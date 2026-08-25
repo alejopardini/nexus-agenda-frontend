@@ -12,6 +12,7 @@ export default function Turnos() {
   const [turnos, setTurnos] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [busqueda, setBusqueda] = useState('')
 
   const hoy = new Date().toISOString().split('T')[0]
 
@@ -46,20 +47,35 @@ export default function Turnos() {
     }
   }
 
+  const termino = busqueda.trim().toLowerCase()
+  const turnosFiltrados = termino
+    ? turnos.filter((t) => t.paciente_nombre.toLowerCase().includes(termino))
+    : turnos
+
   return (
     <Layout>
       {loading && <p className="text-slate-500">Cargando...</p>}
       {error && <p className="text-red-600">{error}</p>}
       {!loading && !error && (
         <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h1 className="text-xl font-bold text-slate-800">Turnos</h1>
-            <Link to="/turnos/cancelados" className="text-sm text-slate-500 hover:underline">
+          <div className="flex justify-between items-center mb-4 gap-4">
+            <h1 className="text-xl font-bold text-slate-800 whitespace-nowrap">Turnos</h1>
+            <input
+              type="text"
+              placeholder="Buscar por apellido del paciente..."
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+              className="flex-1 max-w-xs border border-slate-300 rounded px-3 py-1.5 text-sm"
+            />
+            <Link to="/turnos/cancelados" className="text-sm text-slate-500 hover:underline whitespace-nowrap">
               Ver cancelados
             </Link>
           </div>
+
           {turnos.length === 0 ? (
             <p className="text-slate-500">No hay turnos activos.</p>
+          ) : turnosFiltrados.length === 0 ? (
+            <p className="text-slate-500">Ningún turno coincide con "{busqueda}".</p>
           ) : (
             <table className="w-full text-sm">
               <thead>
@@ -73,7 +89,7 @@ export default function Turnos() {
                 </tr>
               </thead>
               <tbody>
-                {turnos.map((t) => {
+                {turnosFiltrados.map((t) => {
                   const vencidoSinCompletar = t.fecha < hoy && t.consulta_pendiente_id
                   return (
                     <tr
@@ -90,7 +106,7 @@ export default function Turnos() {
                         </span>
                         {t.consulta_pendiente_id && (
                           <Link
-                            to={`/consultas/${t.consulta_pendiente_id}/completar`}
+                            to={`/consultas/${t.consulta_pendiente_id}`}
                             className="inline-block w-2 h-2 rounded-full bg-red-500 ml-2 align-middle"
                             title={vencidoSinCompletar ? 'Turno vencido sin completar la consulta' : 'Completar consulta pendiente'}
                           />

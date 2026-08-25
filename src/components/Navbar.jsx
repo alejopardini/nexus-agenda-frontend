@@ -3,12 +3,13 @@ import { useAuth } from '../context/AuthContext'
 import NotificationBell from './NotificationBell'
 
 function MenuDropdown({ titulo, items }) {
+  if (items.length === 0) return null
   return (
     <div className="relative group">
       <button className="text-sm text-slate-600 hover:text-blue-600 py-2">
         {titulo}
       </button>
-      <div className="absolute left-0 top-full hidden group-hover:block bg-white border border-slate-200 rounded-lg shadow-lg py-1 w-44 z-10">
+      <div className="absolute left-0 top-full hidden group-hover:block bg-white border border-slate-200 rounded-lg shadow-lg py-1 w-48 z-10">
         {items.map((item) => (
           <Link
             key={item.to}
@@ -32,6 +33,8 @@ export default function Navbar() {
     navigate('/login')
   }
 
+  const esDueño = auth.rol === 'dueño'
+
   return (
     <nav className="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between">
       <div className="flex items-center gap-6">
@@ -41,15 +44,22 @@ export default function Navbar() {
           titulo="Pacientes"
           items={[
             { to: '/pacientes', label: 'Ver lista' },
-            { to: '/pacientes/nuevo', label: 'Nuevo paciente' },
+            ...(auth.rol !== 'profesional' ? [{ to: '/pacientes/nuevo', label: 'Nuevo paciente' }] : []),
           ]}
         />
         <MenuDropdown
           titulo="Turnos"
           items={[
             { to: '/turnos', label: 'Ver lista' },
-            { to: '/turnos/nuevo', label: 'Nuevo turno' },
+            ...(auth.rol !== 'profesional' ? [{ to: '/turnos/nuevo', label: 'Nuevo turno' }] : []),
             { to: '/disponibilidad', label: 'Disponibilidad' },
+          ]}
+        />
+        <MenuDropdown
+          titulo="Profesionales"
+          items={[
+            { to: '/profesionales', label: 'Ver lista' },
+            ...(esDueño ? [{ to: '/profesionales/invitar', label: 'Invitar profesional' }] : []),
           ]}
         />
       </div>

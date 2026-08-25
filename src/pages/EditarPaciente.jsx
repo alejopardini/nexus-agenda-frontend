@@ -25,6 +25,8 @@ export default function EditarPaciente() {
           sucursal: pacienteRes.data.sucursal,
           nombre: pacienteRes.data.nombre || '',
           apellido: pacienteRes.data.apellido || '',
+          dni: pacienteRes.data.dni || '',
+          obra_social: pacienteRes.data.obra_social || '',
           email: pacienteRes.data.email || '',
           celular: pacienteRes.data.celular || '',
           fecha_nacimiento: pacienteRes.data.fecha_nacimiento || '',
@@ -40,9 +42,9 @@ export default function EditarPaciente() {
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
 
-    if (name === 'celular') {
+    if (name === 'celular' || name === 'dni') {
       const filtrado = value.replace(/[^\d\s()+-]/g, '')
-      setForm({ ...form, celular: filtrado })
+      setForm({ ...form, [name]: filtrado })
       return
     }
 
@@ -119,6 +121,30 @@ export default function EditarPaciente() {
                 onChange={handleChange}
                 className="w-full border border-slate-300 rounded px-3 py-2"
                 required
+              />
+            </div>
+          </div>
+
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <label className="block text-sm text-slate-600 mb-1">DNI</label>
+              <input
+                type="text"
+                inputMode="numeric"
+                name="dni"
+                value={form.dni}
+                onChange={handleChange}
+                className="w-full border border-slate-300 rounded px-3 py-2"
+              />
+            </div>
+            <div className="flex-1">
+              <label className="block text-sm text-slate-600 mb-1">Obra social</label>
+              <input
+                type="text"
+                name="obra_social"
+                value={form.obra_social}
+                onChange={handleChange}
+                className="w-full border border-slate-300 rounded px-3 py-2"
               />
             </div>
           </div>

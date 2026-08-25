@@ -4,6 +4,7 @@ import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
+import { useAuth } from '../context/AuthContext'
 
 const TIPOS_TURNO = [
   { value: 'primera_vez', label: 'Primera vez (20 min + 5 margen)', minutos: 25 },
@@ -23,12 +24,10 @@ function minutosAHM(mins) {
 }
 
 function duracionAMinutos(duracionStr) {
-  // "HH:MM:SS" -> minutos
   const [h, m] = duracionStr.split(':').map(Number)
   return h * 60 + m
 }
 
-// Convierte JS Date.getDay() (0=domingo..6=sábado) al formato del backend (0=lunes..6=domingo)
 function diaSemanaBackend(fecha) {
   const jsDay = fecha.getDay()
   return (jsDay + 6) % 7
@@ -50,6 +49,8 @@ export default function NuevoTurno() {
   const [profesionales, setProfesionales] = useState([])
   const [todaDisponibilidad, setTodaDisponibilidad] = useState([])
   const [todosTurnos, setTodosTurnos] = useState([])
+  const [todasExcepciones, setTodasExcepciones] = useState([])
+  const [todosCierres, setTodosCierres] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [guardando, setGuardando] = useState(false)
@@ -64,7 +65,15 @@ export default function NuevoTurno() {
     descripcion: '',
     estado: 'pendiente',
   })
+  const { auth } = useAuth()
 
+  if (auth.rol === 'profesional') {
+    return (
+      <Layout>
+        <p className="text-red-600">No tenés permiso para agendar turnos. Pedile a la secretaría o al dueño que lo haga.</p>
+      </Layout>
+    )
+  }
   useEffect(() => {
     Promise.all([
       apiClient.get('/sucursales/'),
@@ -72,13 +81,17 @@ export default function NuevoTurno() {
       apiClient.get('/profesionales/'),
       apiClient.get('/disponibilidad/'),
       apiClient.get('/turnos/'),
+      apiClient.get('/excepciones/'),
+      apiClient.get('/cierres/'),
     ])
-      .then(([sucursalesRes, pacientesRes, profesionalesRes, disponibilidadRes, turnosRes]) => {
+      .then(([sucursalesRes, pacientesRes, profesionalesRes, disponibilidadRes, turnosRes, excepcionesRes, cierresRes]) => {
         setSucursales(sucursalesRes.data)
         setPacientes(pacientesRes.data)
         setProfesionales(profesionalesRes.data)
         setTodaDisponibilidad(disponibilidadRes.data)
         setTodosTurnos(turnosRes.data.filter((t) => t.estado !== 'cancelado'))
+        setTodasExcepciones(excepcionesRes.data)
+        setTodosCierres(cierresRes.data)
         setForm((prev) => ({ ...prev, sucursal: sucursalesRes.data[0]?.id || '' }))
       })
       .catch(() => setError('No se pudieron cargar los datos del formulario.'))
@@ -93,8 +106,20 @@ export default function NuevoTurno() {
   )
   const diasPermitidos = new Set(disponibilidadDelProfesional.map((d) => d.dia_semana))
 
+  const excepcionesDelProfesional = todasExcepciones.filter(
+    (ex) => String(ex.profesional) === String(form.profesional)
+  )
+  const fechasExcepcion = new Set(excepcionesDelProfesional.map((ex) => ex.fecha))
+
+  const fechasCierre = new Set(
+    todosCierres.filter((c) => String(c.sucursal) === String(form.sucursal)).map((c) => c.fecha)
+  )
+
   const filterDate = (fecha) => {
     if (fecha < new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate())) return false
+    const fechaStr = fechaToStr(fecha)
+    if (fechasCierre.has(fechaStr)) return false
+    if (fechasExcepcion.has(fechaStr)) return false
     return diasPermitidos.has(diaSemanaBackend(fecha))
   }
 
@@ -103,16 +128,14 @@ export default function NuevoTurno() {
 
   const turnosDelDia = fechaStr
     ? todosTurnos.filter(
-        (t) => String(t.profesional) === String(form.profesional) && t.fecha === fechaStr
-      )
+      (t) => String(t.profesional) === String(form.profesional) && t.fecha === fechaStr
+    )
     : []
 
   const disponibilidadDelDia = fechaSeleccionada
     ? disponibilidadDelProfesional.filter((d) => d.dia_semana === diaSemanaBackend(fechaSeleccionada))
     : []
 
-  // Generamos candidatos cada 15 min dentro de la disponibilidad del día,
-  // y sacamos los que se superpongan con un turno ya existente.
   let horariosDisponibles = []
   disponibilidadDelDia.forEach((d) => {
     const inicioMin = hmAMinutos(d.hora_inicio.slice(0, 5))

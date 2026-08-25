@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
+import { useAuth } from '../context/AuthContext'
 
 export default function NuevoPaciente() {
   const navigate = useNavigate()
@@ -23,7 +24,15 @@ export default function NuevoPaciente() {
     discapacidad: false,
     discapacidad_detalle: '',
   })
+  const { auth } = useAuth()
 
+  if (auth.rol === 'profesional') {
+    return (
+      <Layout>
+        <p className="text-red-600">No tenés permiso para crear pacientes.</p>
+      </Layout>
+    )
+  }
   useEffect(() => {
     apiClient
       .get('/sucursales/')
@@ -43,7 +52,7 @@ export default function NuevoPaciente() {
       setForm({ ...form, [name]: filtrado })
       return
     }
-    
+
 
     setForm({ ...form, [name]: type === 'checkbox' ? checked : value })
   }
