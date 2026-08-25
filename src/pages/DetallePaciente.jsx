@@ -2,18 +2,30 @@ import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
+import { useAuth } from '../context/AuthContext'
 
 export default function DetallePaciente() {
   const { id } = useParams()
+  const { auth } = useAuth()
   const [paciente, setPaciente] = useState(null)
   const [consultas, setConsultas] = useState([])
   const [archivos, setArchivos] = useState([])
   const [seguimiento, setSeguimiento] = useState({ etapa_cuidado: '', frecuencia: '' })
+  const [profesionales, setProfesionales] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [archivoFile, setArchivoFile] = useState(null)
   const [subiendo, setSubiendo] = useState(false)
   const [guardandoSeguimiento, setGuardandoSeguimiento] = useState(false)
+
+  const [motivoSolicitud, setMotivoSolicitud] = useState('')
+  const [enviandoSolicitud, setEnviandoSolicitud] = useState(false)
+  const [solicitudEnviada, setSolicitudEnviada] = useState(false)
+
+  const [colegaAInvitar, setColegaAInvitar] = useState('')
+  const [motivoInvitacion, setMotivoInvitacion] = useState('')
+  const [invitando, setInvitando] = useState(false)
+  const [invitacionEnviada, setInvitacionEnviada] = useState(false)
 
   const cargarArchivos = () => {
     apiClient
@@ -27,8 +39,9 @@ export default function DetallePaciente() {
       apiClient.get(`/pacientes/${id}/`),
       apiClient.get('/consultas/'),
       apiClient.get(`/pacientes/${id}/seguimiento_quiropractico/`),
+      apiClient.get('/profesionales/'),
     ])
-      .then(([pacienteRes, consultasRes, seguimientoRes]) => {
+      .then(([pacienteRes, consultasRes, seguimientoRes, profesionalesRes]) => {
         setPaciente(pacienteRes.data)
         setConsultas(consultasRes.data.filter((c) => String(c.paciente) === id))
         if (seguimientoRes.data) {
@@ -37,6 +50,7 @@ export default function DetallePaciente() {
             frecuencia: seguimientoRes.data.frecuencia || '',
           })
         }
+        setProfesionales(profesionalesRes.data)
       })
       .catch(() => setError('No se pudo cargar el paciente.'))
       .finally(() => setLoading(false))
@@ -74,6 +88,37 @@ export default function DetallePaciente() {
     }
   }
 
+  const solicitarAcceso = async (e) => {
+    e.preventDefault()
+    setEnviandoSolicitud(true)
+    try {
+      await apiClient.post('/interconsultas/', { paciente: id, motivo: motivoSolicitud })
+      setSolicitudEnviada(true)
+    } catch {
+      alert('No se pudo enviar la solicitud.')
+    } finally {
+      setEnviandoSolicitud(false)
+    }
+  }
+
+  const invitarColega = async (e) => {
+    e.preventDefault()
+    if (!colegaAInvitar) return
+    setInvitando(true)
+    try {
+      await apiClient.post('/interconsultas/invitar/', {
+        paciente: id, colega: colegaAInvitar, motivo: motivoInvitacion,
+      })
+      setInvitacionEnviada(true)
+      setColegaAInvitar('')
+      setMotivoInvitacion('')
+    } catch (err) {
+      alert(err.response?.data?.detail || 'No se pudo invitar al colega.')
+    } finally {
+      setInvitando(false)
+    }
+  }
+
   if (loading) {
     return (
       <Layout>
@@ -90,8 +135,8 @@ export default function DetallePaciente() {
     )
   }
 
-  // Si el backend restringió los campos personales/clínicos, ninguno de estos va a venir en la respuesta.
   const tieneAcceso = 'email' in paciente
+  const otrosProfesionales = profesionales.filter((p) => String(p.id) !== String(auth.profesional_id))
 
   return (
     <Layout>
@@ -108,11 +153,36 @@ export default function DetallePaciente() {
             )}
           </div>
 
-          {!tieneAcceso && (
-            <p className="text-sm text-slate-400 mt-2">
-              No tenés acceso a los datos de este paciente. Si lo necesitás, pedile al profesional
-              de cabecera que te invite (interconsulta).
-            </p>
+          {!tieneAcceso && auth.rol === 'profesional' && (
+            <div className="mt-3">
+              {solicitudEnviada ? (
+                <p className="text-sm text-green-600">Solicitud enviada. Te van a avisar cuando la resuelvan.</p>
+              ) : (
+                <form onSubmit={solicitarAcceso} className="space-y-2">
+                  <p className="text-sm text-slate-500">
+                    No tenés acceso a los datos de este paciente.
+                  </p>
+                  <input
+                    type="text"
+                    placeholder="Motivo de la interconsulta (opcional)"
+                    value={motivoSolicitud}
+                    onChange={(e) => setMotivoSolicitud(e.target.value)}
+                    className="w-full text-sm border border-slate-300 rounded px-3 py-2"
+                  />
+                  <button
+                    type="submit"
+                    disabled={enviandoSolicitud}
+                    className="bg-blue-600 text-white text-sm rounded px-4 py-2 hover:bg-blue-700 disabled:opacity-50"
+                  >
+                    {enviandoSolicitud ? 'Enviando...' : 'Solicitar acceso'}
+                  </button>
+                </form>
+              )}
+            </div>
+          )}
+
+          {!tieneAcceso && auth.rol !== 'profesional' && (
+            <p className="text-sm text-slate-400 mt-2">No tenés acceso a los datos de este paciente.</p>
           )}
 
           {tieneAcceso && (
@@ -155,6 +225,42 @@ export default function DetallePaciente() {
                   </p>
                 )}
               </div>
+
+              {auth.rol === 'profesional' && otrosProfesionales.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-slate-100">
+                  <h2 className="text-sm font-semibold text-slate-600 mb-2">Invitar a un colega</h2>
+                  {invitacionEnviada && (
+                    <p className="text-sm text-green-600 mb-2">Invitación enviada y aprobada.</p>
+                  )}
+                  <form onSubmit={invitarColega} className="space-y-2">
+                    <select
+                      value={colegaAInvitar}
+                      onChange={(e) => setColegaAInvitar(e.target.value)}
+                      className="w-full text-sm border border-slate-300 rounded px-3 py-2"
+                      required
+                    >
+                      <option value="">Seleccioná un profesional</option>
+                      {otrosProfesionales.map((p) => (
+                        <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>
+                      ))}
+                    </select>
+                    <input
+                      type="text"
+                      placeholder="Motivo (opcional)"
+                      value={motivoInvitacion}
+                      onChange={(e) => setMotivoInvitacion(e.target.value)}
+                      className="w-full text-sm border border-slate-300 rounded px-3 py-2"
+                    />
+                    <button
+                      type="submit"
+                      disabled={invitando}
+                      className="bg-slate-700 text-white text-sm rounded px-4 py-2 hover:bg-slate-800 disabled:opacity-50"
+                    >
+                      {invitando ? 'Invitando...' : 'Invitar'}
+                    </button>
+                  </form>
+                </div>
+              )}
             </>
           )}
         </div>
@@ -199,9 +305,7 @@ export default function DetallePaciente() {
 
         {tieneAcceso && (
           <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex justify-between items-center mb-3">
-              <h2 className="text-lg font-bold text-slate-800">Consultas</h2>
-            </div>
+            <h2 className="text-lg font-bold text-slate-800 mb-3">Consultas</h2>
             {consultas.length === 0 ? (
               <p className="text-slate-500 text-sm">
                 No hay consultas todavía — se generan automáticamente al confirmar un turno.

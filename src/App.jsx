@@ -20,6 +20,8 @@ import NuevoProfesional from './pages/NuevoProfesional'
 import EditarProfesional from './pages/EditarProfesional'
 import InvitarProfesional from './pages/InvitarProfesional'
 import Terminos from './pages/Terminos'
+import Interconsultas from './pages/Interconsultas'
+import MisPacientes from './pages/MisPacientes'
 
 function App() {
   return (
@@ -45,6 +47,8 @@ function App() {
           <Route path="/profesionales/invitar" element={<ProtectedRoute><InvitarProfesional /></ProtectedRoute>} />
           <Route path="/terminos" element={<Terminos />} />
           <Route path="/profesionales/:id/editar" element={<ProtectedRoute><EditarProfesional /></ProtectedRoute>} />
+          <Route path="/interconsultas" element={<ProtectedRoute><Interconsultas /></ProtectedRoute>} />
+          <Route path="/mis-pacientes" element={<ProtectedRoute><MisPacientes /></ProtectedRoute>} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
