@@ -4,6 +4,7 @@ import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
+import BotonVolver from '../components/BotonVolver'
 import { useAuth } from '../context/AuthContext'
 
 const TIPOS_TURNO = [
@@ -41,6 +42,7 @@ function fechaToStr(fecha) {
 }
 
 export default function NuevoTurno() {
+  const { auth } = useAuth()
   const navigate = useNavigate()
   const hoy = new Date()
 
@@ -65,15 +67,7 @@ export default function NuevoTurno() {
     descripcion: '',
     estado: 'pendiente',
   })
-  const { auth } = useAuth()
 
-  if (auth.rol === 'profesional') {
-    return (
-      <Layout>
-        <p className="text-red-600">No tenés permiso para agendar turnos. Pedile a la secretaría o al dueño que lo haga.</p>
-      </Layout>
-    )
-  }
   useEffect(() => {
     Promise.all([
       apiClient.get('/sucursales/'),
@@ -97,6 +91,15 @@ export default function NuevoTurno() {
       .catch(() => setError('No se pudieron cargar los datos del formulario.'))
       .finally(() => setLoading(false))
   }, [])
+
+  if (auth.rol === 'profesional') {
+    return (
+      <Layout>
+        <BotonVolver to="/turnos" />
+        <p className="text-red-600">No tenés permiso para agendar turnos. Pedile a la secretaría o al dueño que lo haga.</p>
+      </Layout>
+    )
+  }
 
   const idsConDisponibilidad = new Set(todaDisponibilidad.map((d) => String(d.profesional)))
   const profesionalesElegibles = profesionales.filter((p) => idsConDisponibilidad.has(String(p.id)))
@@ -128,8 +131,8 @@ export default function NuevoTurno() {
 
   const turnosDelDia = fechaStr
     ? todosTurnos.filter(
-      (t) => String(t.profesional) === String(form.profesional) && t.fecha === fechaStr
-    )
+        (t) => String(t.profesional) === String(form.profesional) && t.fecha === fechaStr
+      )
     : []
 
   const disponibilidadDelDia = fechaSeleccionada
@@ -219,134 +222,137 @@ export default function NuevoTurno() {
 
   return (
     <Layout>
-      <div className="bg-white rounded-lg shadow-md p-6 max-w-lg">
-        <h1 className="text-xl font-bold text-slate-800 mb-4">Nuevo turno</h1>
+      <div className="max-w-lg">
+        <BotonVolver to="/turnos" />
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h1 className="text-xl font-bold text-slate-800 mb-4">Nuevo turno</h1>
 
-        {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
+          {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm text-slate-600 mb-1">Sucursal</label>
-            <select
-              name="sucursal"
-              value={form.sucursal}
-              onChange={handleChange}
-              className="w-full border border-slate-300 rounded px-3 py-2"
-              required
-            >
-              {sucursales.map((s) => (
-                <option key={s.id} value={s.id}>{s.nombre}</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm text-slate-600 mb-1">Paciente</label>
-            <select
-              name="paciente"
-              value={form.paciente}
-              onChange={handleChange}
-              className="w-full border border-slate-300 rounded px-3 py-2"
-              required
-            >
-              <option value="">Seleccione un paciente</option>
-              {pacientes.map((p) => (
-                <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm text-slate-600 mb-1">Profesional</label>
-            <select
-              name="profesional"
-              value={form.profesional}
-              onChange={handleChange}
-              className="w-full border border-slate-300 rounded px-3 py-2"
-              required
-            >
-              <option value="">Seleccione un profesional</option>
-              {profesionalesElegibles.map((p) => (
-                <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>
-              ))}
-            </select>
-            {profesionales.length > profesionalesElegibles.length && (
-              <p className="text-xs text-slate-400 mt-1">
-                Algunos profesionales no aparecen porque todavía no tienen disponibilidad configurada.
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm text-slate-600 mb-1">Tipo de turno</label>
-            <select
-              name="tipoTurno"
-              value={form.tipoTurno}
-              onChange={handleChange}
-              className="w-full border border-slate-300 rounded px-3 py-2"
-            >
-              {TIPOS_TURNO.map((t) => (
-                <option key={t.value} value={t.value}>{t.label}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="flex gap-4">
-            <div className="flex-1">
-              <label className="block text-sm text-slate-600 mb-1">Fecha</label>
-              <DatePicker
-                selected={fechaSeleccionada}
-                onChange={(fecha) => {
-                  setFechaSeleccionada(fecha)
-                  setForm({ ...form, hora: '' })
-                }}
-                filterDate={filterDate}
-                minDate={hoy}
-                disabled={!form.profesional}
-                placeholderText={form.profesional ? 'Elegí una fecha' : 'Elegí un profesional primero'}
-                className="w-full border border-slate-300 rounded px-3 py-2"
-                dateFormat="dd/MM/yyyy"
-              />
-            </div>
-            <div className="flex-1">
-              <label className="block text-sm text-slate-600 mb-1">Horario</label>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm text-slate-600 mb-1">Sucursal</label>
               <select
-                name="hora"
-                value={form.hora}
+                name="sucursal"
+                value={form.sucursal}
                 onChange={handleChange}
-                disabled={!fechaSeleccionada}
-                className="w-full border border-slate-300 rounded px-3 py-2 disabled:bg-slate-50"
+                className="w-full border border-slate-300 rounded px-3 py-2"
+                required
               >
-                <option value="">Seleccione un horario</option>
-                {horariosDisponibles.map((h) => (
-                  <option key={h} value={h}>{h}</option>
+                {sucursales.map((s) => (
+                  <option key={s.id} value={s.id}>{s.nombre}</option>
                 ))}
               </select>
-              {fechaSeleccionada && horariosDisponibles.length === 0 && (
-                <p className="text-red-600 text-xs mt-1">No hay horarios libres ese día para este tipo de turno.</p>
+            </div>
+
+            <div>
+              <label className="block text-sm text-slate-600 mb-1">Paciente</label>
+              <select
+                name="paciente"
+                value={form.paciente}
+                onChange={handleChange}
+                className="w-full border border-slate-300 rounded px-3 py-2"
+                required
+              >
+                <option value="">Seleccione un paciente</option>
+                {pacientes.map((p) => (
+                  <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm text-slate-600 mb-1">Profesional</label>
+              <select
+                name="profesional"
+                value={form.profesional}
+                onChange={handleChange}
+                className="w-full border border-slate-300 rounded px-3 py-2"
+                required
+              >
+                <option value="">Seleccione un profesional</option>
+                {profesionalesElegibles.map((p) => (
+                  <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>
+                ))}
+              </select>
+              {profesionales.length > profesionalesElegibles.length && (
+                <p className="text-xs text-slate-400 mt-1">
+                  Algunos profesionales no aparecen porque todavía no tienen disponibilidad configurada.
+                </p>
               )}
             </div>
-          </div>
 
-          <div>
-            <label className="block text-sm text-slate-600 mb-1">Descripción</label>
-            <textarea
-              name="descripcion"
-              value={form.descripcion}
-              onChange={handleChange}
-              className="w-full border border-slate-300 rounded px-3 py-2"
-              rows={2}
-            />
-          </div>
+            <div>
+              <label className="block text-sm text-slate-600 mb-1">Tipo de turno</label>
+              <select
+                name="tipoTurno"
+                value={form.tipoTurno}
+                onChange={handleChange}
+                className="w-full border border-slate-300 rounded px-3 py-2"
+              >
+                {TIPOS_TURNO.map((t) => (
+                  <option key={t.value} value={t.value}>{t.label}</option>
+                ))}
+              </select>
+            </div>
 
-          <button
-            type="submit"
-            disabled={guardando}
-            className="w-full bg-blue-600 text-white rounded py-2 font-medium hover:bg-blue-700 disabled:opacity-50"
-          >
-            {guardando ? 'Guardando...' : 'Crear turno'}
-          </button>
-        </form>
+            <div className="flex gap-4">
+              <div className="flex-1">
+                <label className="block text-sm text-slate-600 mb-1">Fecha</label>
+                <DatePicker
+                  selected={fechaSeleccionada}
+                  onChange={(fecha) => {
+                    setFechaSeleccionada(fecha)
+                    setForm({ ...form, hora: '' })
+                  }}
+                  filterDate={filterDate}
+                  minDate={hoy}
+                  disabled={!form.profesional}
+                  placeholderText={form.profesional ? 'Elegí una fecha' : 'Elegí un profesional primero'}
+                  className="w-full border border-slate-300 rounded px-3 py-2"
+                  dateFormat="dd/MM/yyyy"
+                />
+              </div>
+              <div className="flex-1">
+                <label className="block text-sm text-slate-600 mb-1">Horario</label>
+                <select
+                  name="hora"
+                  value={form.hora}
+                  onChange={handleChange}
+                  disabled={!fechaSeleccionada}
+                  className="w-full border border-slate-300 rounded px-3 py-2 disabled:bg-slate-50"
+                >
+                  <option value="">Seleccione un horario</option>
+                  {horariosDisponibles.map((h) => (
+                    <option key={h} value={h}>{h}</option>
+                  ))}
+                </select>
+                {fechaSeleccionada && horariosDisponibles.length === 0 && (
+                  <p className="text-red-600 text-xs mt-1">No hay horarios libres ese día para este tipo de turno.</p>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm text-slate-600 mb-1">Descripción</label>
+              <textarea
+                name="descripcion"
+                value={form.descripcion}
+                onChange={handleChange}
+                className="w-full border border-slate-300 rounded px-3 py-2"
+                rows={2}
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={guardando}
+              className="w-full bg-blue-600 text-white rounded py-2 font-medium hover:bg-blue-700 disabled:opacity-50"
+            >
+              {guardando ? 'Guardando...' : 'Crear turno'}
+            </button>
+          </form>
+        </div>
       </div>
     </Layout>
   )

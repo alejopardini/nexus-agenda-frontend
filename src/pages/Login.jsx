@@ -57,10 +57,9 @@ export default function Login() {
           Entrar
         </button>
 
-        <div className="text-sm text-slate-500 mt-4 text-center space-y-1">
-          <p>¿Sos dueño/a de una clínica o consultorio? <Link to="/registro" className="text-blue-600 hover:underline">Creá tu cuenta</Link></p>
-          <p>¿Sos profesional? <Link to="/registro-profesional" className="text-blue-600 hover:underline">Registrate</Link></p>
-        </div>
+        <p className="text-sm text-slate-500 mt-4 text-center">
+          ¿Sos dueño/a de una clínica? <Link to="/registro" className="text-blue-600 hover:underline">Creá tu cuenta</Link>
+        </p>
       </form>
     </div>
   )

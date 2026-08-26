@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
+import BotonVolver from '../components/BotonVolver'
 import { useAuth } from '../context/AuthContext'
 
 export default function DetallePaciente() {
@@ -141,6 +142,8 @@ export default function DetallePaciente() {
   return (
     <Layout>
       <div className="space-y-4 max-w-2xl">
+        <BotonVolver to="/pacientes" />
+
         <div className="bg-white rounded-lg shadow-md p-6">
           <div className="flex justify-between items-start">
             <h1 className="text-xl font-bold text-slate-800">

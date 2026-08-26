@@ -44,16 +44,15 @@ export default function Navbar() {
           titulo="Pacientes"
           items={[
             { to: '/pacientes', label: 'Ver lista' },
-            (auth.rol !== 'profesional' ? [{ to: '/pacientes/nuevo', label: 'Nuevo paciente' }] : []),
+            ...(auth.rol !== 'profesional' ? [{ to: '/pacientes/nuevo', label: 'Nuevo paciente' }] : []),
             { to: '/interconsultas', label: 'Interconsultas' },
-            (auth.rol === 'profesional' ? [{ to: '/mis-pacientes', label: 'Mis pacientes' }] : []),
           ]}
         />
         <MenuDropdown
           titulo="Turnos"
           items={[
             { to: '/turnos', label: 'Ver lista' },
-            (auth.rol !== 'profesional' ? [{ to: '/turnos/nuevo', label: 'Nuevo turno' }] : []),
+            ...(auth.rol !== 'profesional' ? [{ to: '/turnos/nuevo', label: 'Nuevo turno' }] : []),
             { to: '/disponibilidad', label: 'Disponibilidad' },
           ]}
         />
@@ -61,7 +60,7 @@ export default function Navbar() {
           titulo="Profesionales"
           items={[
             { to: '/profesionales', label: 'Ver lista' },
-            (esDueño ? [{ to: '/profesionales/invitar', label: 'Invitar profesional' }] : []),
+            ...(esDueño ? [{ to: '/profesionales/nuevo', label: 'Nuevo profesional' }] : []),
           ]}
         />
       </div>

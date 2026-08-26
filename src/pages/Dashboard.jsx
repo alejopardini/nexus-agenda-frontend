@@ -1,14 +1,6 @@
-import { Navigate } from 'react-router-dom'
 import Layout from '../components/Layout'
-import { useAuth } from '../context/AuthContext'
 
 export default function Dashboard() {
-  const { auth } = useAuth()
-
-  if (!auth.rol) {
-    return <Navigate to="/invitaciones" replace />
-  }
-
   return (
     <Layout>
       <div className="bg-white p-6 rounded-lg shadow-md max-w-lg">

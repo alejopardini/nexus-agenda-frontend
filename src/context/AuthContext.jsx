@@ -27,16 +27,6 @@ export function AuthProvider({ children }) {
     return response.data
   }
 
-  const registerProfesional = async (payload) => {
-    const response = await apiClient.post('/register-profesional/', payload)
-    guardarSesion(response.data)
-    return response.data
-  }
-
-  const actualizarSesion = (data) => {
-    guardarSesion(data)
-  }
-
   const logout = () => {
     localStorage.removeItem('token')
     localStorage.removeItem('auth')
@@ -44,7 +34,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ auth, login, register, registerProfesional, actualizarSesion, logout }}>
+    <AuthContext.Provider value={{ auth, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   )

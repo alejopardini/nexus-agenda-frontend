@@ -3,8 +3,7 @@ import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/Login'
 import Registro from './pages/Registro'
-import RegistroProfesional from './pages/RegistroProfesional'
-import Invitaciones from './pages/Invitaciones'
+import Terminos from './pages/Terminos'
 import Dashboard from './pages/Dashboard'
 import Pacientes from './pages/Pacientes'
 import NuevoPaciente from './pages/NuevoPaciente'
@@ -18,10 +17,7 @@ import Disponibilidad from './pages/Disponibilidad'
 import Profesionales from './pages/Profesionales'
 import NuevoProfesional from './pages/NuevoProfesional'
 import EditarProfesional from './pages/EditarProfesional'
-import InvitarProfesional from './pages/InvitarProfesional'
-import Terminos from './pages/Terminos'
 import Interconsultas from './pages/Interconsultas'
-import MisPacientes from './pages/MisPacientes'
 
 function App() {
   return (
@@ -30,8 +26,7 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/registro" element={<Registro />} />
-          <Route path="/registro-profesional" element={<RegistroProfesional />} />
-          <Route path="/invitaciones" element={<ProtectedRoute><Invitaciones /></ProtectedRoute>} />
+          <Route path="/terminos" element={<Terminos />} />
           <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/pacientes" element={<ProtectedRoute><Pacientes /></ProtectedRoute>} />
           <Route path="/pacientes/nuevo" element={<ProtectedRoute><NuevoPaciente /></ProtectedRoute>} />
@@ -44,11 +39,8 @@ function App() {
           <Route path="/disponibilidad" element={<ProtectedRoute><Disponibilidad /></ProtectedRoute>} />
           <Route path="/profesionales" element={<ProtectedRoute><Profesionales /></ProtectedRoute>} />
           <Route path="/profesionales/nuevo" element={<ProtectedRoute><NuevoProfesional /></ProtectedRoute>} />
-          <Route path="/profesionales/invitar" element={<ProtectedRoute><InvitarProfesional /></ProtectedRoute>} />
-          <Route path="/terminos" element={<Terminos />} />
           <Route path="/profesionales/:id/editar" element={<ProtectedRoute><EditarProfesional /></ProtectedRoute>} />
           <Route path="/interconsultas" element={<ProtectedRoute><Interconsultas /></ProtectedRoute>} />
-          <Route path="/mis-pacientes" element={<ProtectedRoute><MisPacientes /></ProtectedRoute>} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
 import useClickOutside from '../hooks/useClickOutside'
-
+import BotonVolver from '../components/BotonVolver'
 import cervicalImg from '../assets/columna/columna_cervical.png'
 import toracicaImg from '../assets/columna/columna_toracica.png'
 import lumbarImg from '../assets/columna/columna_lumbar.png'
@@ -255,6 +255,7 @@ export default function ConsultaDetalle() {
 
   return (
     <Layout>
+      <BotonVolver to={`/pacientes/${consulta.paciente}`} texto="Volver a la ficha del paciente" />
       <div className="bg-white rounded-lg shadow-md p-6 max-w-4xl">
         <h1 className="text-xl font-bold text-slate-800 mb-1">
           Consulta — {consulta.estado === 'completada' ? 'completada' : 'pendiente'}

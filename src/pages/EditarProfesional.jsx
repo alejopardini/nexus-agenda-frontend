@@ -3,13 +3,9 @@ import { useNavigate, useParams } from 'react-router-dom'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
 import { useAuth } from '../context/AuthContext'
+import BotonVolver from '../components/BotonVolver'
 
-const ESPECIALIDADES = [
-  { value: 'kinesiologo_quiropra', label: 'Kinesiólogo/Quiropráctico' },
-  { value: 'traumatologo', label: 'Traumatólogo' },
-  { value: 'psicologo_psicopedagogo', label: 'Psicólogo/Psicopedagogo' },
-  { value: 'preparador_fisico', label: 'Preparador Físico' },
-]
+
 
 export default function EditarProfesional() {
   const { id } = useParams()
@@ -48,7 +44,7 @@ export default function EditarProfesional() {
       await apiClient.patch(`/profesionales/${id}/`, {
         nombre: form.nombre,
         apellido: form.apellido,
-        especialidad: form.especialidad,
+        
       })
       navigate('/profesionales')
     } catch (err) {
@@ -65,7 +61,7 @@ export default function EditarProfesional() {
       </Layout>
     )
   }
-
+  <BotonVolver to="/profesionales" />
   return (
     <Layout>
       <div className="bg-white rounded-lg shadow-md p-6 max-w-lg">
@@ -99,19 +95,7 @@ export default function EditarProfesional() {
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm text-slate-600 mb-1">Especialidad</label>
-            <select
-              name="especialidad"
-              value={form.especialidad}
-              onChange={handleChange}
-              className="w-full border border-slate-300 rounded px-3 py-2"
-            >
-              {ESPECIALIDADES.map((e) => (
-                <option key={e.value} value={e.value}>{e.label}</option>
-              ))}
-            </select>
-          </div>
+
 
           <button
             type="submit"
