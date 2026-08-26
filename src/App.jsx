@@ -18,6 +18,8 @@ import Profesionales from './pages/Profesionales'
 import NuevoProfesional from './pages/NuevoProfesional'
 import EditarProfesional from './pages/EditarProfesional'
 import Interconsultas from './pages/Interconsultas'
+import Secretarias from './pages/Secretarias'
+import NuevaSecretaria from './pages/NuevaSecretaria'
 
 function App() {
   return (
@@ -41,6 +43,8 @@ function App() {
           <Route path="/profesionales/nuevo" element={<ProtectedRoute><NuevoProfesional /></ProtectedRoute>} />
           <Route path="/profesionales/:id/editar" element={<ProtectedRoute><EditarProfesional /></ProtectedRoute>} />
           <Route path="/interconsultas" element={<ProtectedRoute><Interconsultas /></ProtectedRoute>} />
+          <Route path="/secretarias" element={<ProtectedRoute><Secretarias /></ProtectedRoute>} />
+          <Route path="/secretarias/nueva" element={<ProtectedRoute><NuevaSecretaria /></ProtectedRoute>} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

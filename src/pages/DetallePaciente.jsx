@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
 import BotonVolver from '../components/BotonVolver'
 import { useAuth } from '../context/AuthContext'
+import AnotadorArchivo from '../components/AnotadorArchivo'
 
 export default function DetallePaciente() {
   const { id } = useParams()
@@ -18,7 +19,7 @@ export default function DetallePaciente() {
   const [archivoFile, setArchivoFile] = useState(null)
   const [subiendo, setSubiendo] = useState(false)
   const [guardandoSeguimiento, setGuardandoSeguimiento] = useState(false)
-
+  const [archivoAAnotar, setArchivoAAnotar] = useState(null)
   const [motivoSolicitud, setMotivoSolicitud] = useState('')
   const [enviandoSolicitud, setEnviandoSolicitud] = useState(false)
   const [solicitudEnviada, setSolicitudEnviada] = useState(false)
@@ -32,7 +33,7 @@ export default function DetallePaciente() {
     apiClient
       .get('/archivos/')
       .then((res) => setArchivos(res.data.filter((a) => String(a.paciente) === id)))
-      .catch(() => {})
+      .catch(() => { })
   }
 
   useEffect(() => {
@@ -59,6 +60,7 @@ export default function DetallePaciente() {
     cargarArchivos()
   }, [id])
 
+  const inputArchivoRef = useRef(null)
   const handleUpload = async (e) => {
     e.preventDefault()
     if (!archivoFile) return
@@ -68,11 +70,18 @@ export default function DetallePaciente() {
     formData.append('archivo', archivoFile)
     formData.append('nombre', archivoFile.name)
     try {
-      await apiClient.post('/archivos/', formData)
+      await apiClient.post('/archivos/', formData, {
+        headers: { 'Content-Type': undefined }, // dejamos que axios arme el multipart/boundary solo
+      })
       setArchivoFile(null)
+      if (inputArchivoRef.current) inputArchivoRef.current.value = ''
       cargarArchivos()
-    } catch {
-      alert('No se pudo subir el archivo.')
+    } catch (err) {
+      const data = err.response?.data
+      const mensaje = data
+        ? Object.entries(data).map(([campo, msgs]) => `${campo}: ${[].concat(msgs).join(', ')}`).join(' | ')
+        : 'No se pudo subir el archivo.'
+      alert(mensaje)
     } finally {
       setSubiendo(false)
     }
@@ -338,6 +347,7 @@ export default function DetallePaciente() {
             <form onSubmit={handleUpload} className="flex gap-2 mb-4">
               <input
                 type="file"
+                ref={inputArchivoRef}
                 onChange={(e) => setArchivoFile(e.target.files[0])}
                 className="flex-1 text-sm border border-slate-300 rounded px-3 py-2"
               />
@@ -354,21 +364,44 @@ export default function DetallePaciente() {
               <p className="text-slate-500 text-sm">No hay archivos subidos todavía.</p>
             ) : (
               <ul className="divide-y divide-slate-100">
-                {archivos.map((a) => (
-                  <li key={a.id} className="py-2 text-sm flex justify-between items-center">
-                    <a href={a.archivo} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                      {a.nombre}
-                    </a>
-                    <span className="text-slate-400 text-xs">
-                      {new Date(a.fecha_subida).toLocaleDateString()}
-                    </span>
-                  </li>
-                ))}
+                {archivos.map((a) => {
+                  const esImagen = /\.(png|jpe?g|gif|webp)$/i.test(a.archivo)
+                  return (
+                    <li key={a.id} className="py-2 text-sm flex justify-between items-center">
+                      <a href={a.archivo} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                        {a.nombre}
+                      </a>
+                      <div className="flex items-center gap-3">
+                        {esImagen && (
+                          <button
+                            onClick={() => setArchivoAAnotar(a)}
+                            className="text-slate-500 text-xs hover:text-blue-600 hover:underline"
+                          >
+                            ✏️ Anotar
+                          </button>
+                        )}
+                        <span className="text-slate-400 text-xs">
+                          {new Date(a.fecha_subida).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </li>
+                  )
+                })}
               </ul>
+
+
             )}
           </div>
         )}
       </div>
+      {archivoAAnotar && (
+        <AnotadorArchivo
+          archivo={archivoAAnotar}
+          pacienteId={id}
+          onClose={() => setArchivoAAnotar(null)}
+          onGuardado={cargarArchivos}
+        />
+      )}
     </Layout>
   )
 }

@@ -61,6 +61,7 @@ export default function Navbar() {
           items={[
             { to: '/profesionales', label: 'Ver lista' },
             ...(esDueño ? [{ to: '/profesionales/nuevo', label: 'Nuevo profesional' }] : []),
+            ...(esDueño ? [{ to: '/secretarias', label: 'Secretaría' }] : []),
           ]}
         />
       </div>
