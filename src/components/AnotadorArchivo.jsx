@@ -282,8 +282,12 @@ export default function AnotadorArchivo({ archivo, pacienteId, onClose, onGuarda
       })
       onGuardado()
       onClose()
-    } catch {
-      alert('No se pudo guardar la anotación.')
+    } catch (err) {
+      const detalle = err.response?.data
+        ? JSON.stringify(err.response.data)
+        : err.message
+      alert(`No se pudo guardar la anotación: ${detalle}`)
+      console.error('Error guardando anotación:', err)
     } finally {
       setGuardando(false)
     }
@@ -380,6 +384,7 @@ export default function AnotadorArchivo({ archivo, pacienteId, onClose, onGuarda
               ref={imgRef}
               src={archivo.archivo}
               alt={archivo.nombre}
+              crossOrigin="anonymous"
               onLoad={handleImgLoad}
               className={`block select-none ${baseWidthRef.current ? '' : 'max-w-full max-h-[60vh]'}`}
               style={baseWidthRef.current ? { width: baseWidthRef.current * zoom, height: 'auto' } : undefined}

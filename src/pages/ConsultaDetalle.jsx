@@ -70,6 +70,8 @@ export default function ConsultaDetalle() {
               tipo_ajuste: a.tipo_ajuste || [],
               tecnica: a.tecnica || [],
               notas: a.notas || '',
+              direccion: a.direccion || null,
+              bloqueada: a.bloqueada || false,
             }
           })
           setAjustes(mapa)
@@ -156,13 +158,15 @@ export default function ConsultaDetalle() {
 
       if (esQuiropractico) {
         const listaAjustes = Object.entries(ajustes)
-          .filter(([, v]) => v.ajustado || v.notas || v.tipo_ajuste.length || v.tecnica.length)
+          .filter(([, v]) => v.ajustado || v.bloqueada || v.notas || v.tipo_ajuste.length || v.tecnica.length)
           .map(([segmento, v]) => ({
             segmento,
             ajustado: v.ajustado,
             tipo_ajuste: v.tipo_ajuste,
             tecnica: v.tecnica,
             notas: v.notas,
+            direccion: v.direccion,
+            bloqueada: v.bloqueada,
           }))
         await apiClient.post(`/consultas/${id}/ajustes_vertebrales/`, { ajustes: listaAjustes })
       }

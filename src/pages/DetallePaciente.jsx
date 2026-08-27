@@ -21,6 +21,10 @@ export default function DetallePaciente() {
   const [guardandoSeguimiento, setGuardandoSeguimiento] = useState(false)
   const [archivoAAnotar, setArchivoAAnotar] = useState(null)
   const [mostrarArchivados, setMostrarArchivados] = useState(false)
+  const [editandoNombreId, setEditandoNombreId] = useState(null)
+  const [nombreEditado, setNombreEditado] = useState('')
+  const [nombreInvalido, setNombreInvalido] = useState(false)
+  const [guardandoNombre, setGuardandoNombre] = useState(false)
   const [motivoSolicitud, setMotivoSolicitud] = useState('')
   const [enviandoSolicitud, setEnviandoSolicitud] = useState(false)
   const [solicitudEnviada, setSolicitudEnviada] = useState(false)
@@ -103,6 +107,39 @@ export default function DetallePaciente() {
       cargarArchivos()
     } catch {
       alert('No se pudo restaurar el archivo.')
+    }
+  }
+
+  const iniciarEdicionNombre = (archivo) => {
+    setEditandoNombreId(archivo.id)
+    setNombreEditado(archivo.nombre)
+    setNombreInvalido(false)
+  }
+
+  const cancelarEdicionNombre = () => {
+    setEditandoNombreId(null)
+    setNombreInvalido(false)
+  }
+
+  const guardarNombreArchivo = async (archivoId) => {
+    const valor = nombreEditado.trim()
+    if (!valor) {
+      setNombreInvalido(true)
+      return
+    }
+    setGuardandoNombre(true)
+    try {
+      const formData = new FormData()
+      formData.append('nombre', valor)
+      await apiClient.patch(`/archivos/${archivoId}/`, formData, {
+        headers: { 'Content-Type': undefined }, // dejamos que axios arme el multipart/boundary solo
+      })
+      setEditandoNombreId(null)
+      cargarArchivos()
+    } catch {
+      alert('No se pudo renombrar el archivo.')
+    } finally {
+      setGuardandoNombre(false)
     }
   }
 
@@ -410,9 +447,59 @@ export default function DetallePaciente() {
                   const esImagen = /\.(png|jpe?g|gif|webp)$/i.test(a.archivo)
                   return (
                     <li key={a.id} className="py-2 text-sm flex justify-between items-center">
-                      <a href={a.archivo} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                        {a.nombre}
-                      </a>
+                      {editandoNombreId === a.id ? (
+                        <div className="flex items-center gap-1">
+                          <input
+                            type="text"
+                            autoFocus
+                            value={nombreEditado}
+                            disabled={guardandoNombre}
+                            onChange={(e) => {
+                              setNombreEditado(e.target.value)
+                              setNombreInvalido(false)
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') guardarNombreArchivo(a.id)
+                              if (e.key === 'Escape') cancelarEdicionNombre()
+                            }}
+                            className={`text-sm border rounded px-2 py-1 ${
+                              nombreInvalido ? 'border-red-500' : 'border-slate-300'
+                            }`}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => guardarNombreArchivo(a.id)}
+                            disabled={guardandoNombre}
+                            className="text-green-600 hover:text-green-700 text-xs px-1 disabled:opacity-50"
+                            title="Guardar"
+                          >
+                            ✓
+                          </button>
+                          <button
+                            type="button"
+                            onClick={cancelarEdicionNombre}
+                            disabled={guardandoNombre}
+                            className="text-slate-400 hover:text-red-600 text-xs px-1 disabled:opacity-50"
+                            title="Cancelar"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1">
+                          <a href={a.archivo} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                            {a.nombre}
+                          </a>
+                          <button
+                            type="button"
+                            onClick={() => iniciarEdicionNombre(a)}
+                            className="text-slate-400 hover:text-blue-600 text-xs"
+                            title="Renombrar"
+                          >
+                            ✏️
+                          </button>
+                        </div>
+                      )}
                       <div className="flex items-center gap-3">
                         {!mostrarArchivados && esImagen && (
                           <button
