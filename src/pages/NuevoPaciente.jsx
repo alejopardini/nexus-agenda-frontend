@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
@@ -8,9 +8,20 @@ export default function NuevoPaciente() {
   const navigate = useNavigate()
   const [error, setError] = useState('')
   const [guardando, setGuardando] = useState(false)
+  const [sucursales, setSucursales] = useState([])
   const [form, setForm] = useState({
     nombre: '', apellido: '', dni: '', obra_social: '', email: '', celular: '', fecha_nacimiento: '',
+    sucursal: '',
   })
+
+  useEffect(() => {
+    apiClient.get('/sucursales/')
+      .then((res) => {
+        setSucursales(res.data)
+        setForm((prev) => ({ ...prev, sucursal: res.data[0]?.id || '' }))
+      })
+      .catch(() => setError('No se pudieron cargar las sucursales.'))
+  }, [])
 
   const handleChange = (e) => {
     let { name, value } = e.target
@@ -48,6 +59,23 @@ export default function NuevoPaciente() {
           {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            {sucursales.length > 1 && (
+              <div>
+                <label className="block text-sm text-slate-600 mb-1">Sucursal</label>
+                <select
+                  name="sucursal"
+                  value={form.sucursal}
+                  onChange={handleChange}
+                  className="w-full border border-slate-300 rounded px-3 py-2"
+                  required
+                >
+                  {sucursales.map((s) => (
+                    <option key={s.id} value={s.id}>{s.nombre}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             <div className="flex gap-4">
               <div className="flex-1">
                 <label className="block text-sm text-slate-600 mb-1">Nombre</label>

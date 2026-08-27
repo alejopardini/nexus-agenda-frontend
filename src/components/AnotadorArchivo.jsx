@@ -2,123 +2,224 @@ import { useEffect, useRef, useState } from 'react'
 import apiClient from '../api/client'
 
 const COLORES = ['#ef4444', '#22c55e', '#3b82f6', '#eab308', '#ffffff']
+const FACTOR_GROSOR = 0.003
+const FACTOR_FUENTE = 0.017
+const ZOOM_PASO = 0.25
+const ZOOM_MIN = 0.5
+const ZOOM_MAX = 3
+
+const grosorProporcional = (ancho) => ancho * FACTOR_GROSOR
+const tamanioFuenteProporcional = (ancho) => ancho * FACTOR_FUENTE
+
+function dibujarTrazo(ctx, trazo, ancho, alto) {
+  if (trazo.tipo === 'trazo') {
+    ctx.globalCompositeOperation = trazo.modo === 'borrador' ? 'destination-out' : 'source-over'
+    ctx.strokeStyle = trazo.color
+    ctx.lineWidth = trazo.modo === 'borrador' ? grosorProporcional(ancho) * 4 : grosorProporcional(ancho)
+    ctx.lineCap = 'round'
+    ctx.lineJoin = 'round'
+    ctx.beginPath()
+    trazo.puntos.forEach((p, i) => {
+      const x = p.xRatio * ancho
+      const y = p.yRatio * alto
+      if (i === 0) ctx.moveTo(x, y)
+      else ctx.lineTo(x, y)
+    })
+    ctx.stroke()
+  } else if (trazo.tipo === 'linea') {
+    ctx.globalCompositeOperation = 'source-over'
+    ctx.strokeStyle = trazo.color
+    ctx.lineWidth = grosorProporcional(ancho)
+    ctx.lineCap = 'round'
+    ctx.beginPath()
+    ctx.moveTo(trazo.desde.xRatio * ancho, trazo.desde.yRatio * alto)
+    ctx.lineTo(trazo.hasta.xRatio * ancho, trazo.hasta.yRatio * alto)
+    ctx.stroke()
+  } else if (trazo.tipo === 'texto') {
+    ctx.globalCompositeOperation = 'source-over'
+    const tamanioFuente = tamanioFuenteProporcional(ancho)
+    ctx.font = `${tamanioFuente}px sans-serif`
+    ctx.textBaseline = 'top'
+    const padding = tamanioFuente / 3
+    const x = trazo.xRatio * ancho
+    const y = trazo.yRatio * alto
+    const anchoTexto = ctx.measureText(trazo.valor).width
+    ctx.fillStyle = '#ffffff'
+    ctx.fillRect(x - padding, y - padding, anchoTexto + padding * 2, tamanioFuente + padding * 2)
+    ctx.fillStyle = '#000000'
+    ctx.fillText(trazo.valor, x, y)
+  }
+}
 
 export default function AnotadorArchivo({ archivo, pacienteId, onClose, onGuardado }) {
   const canvasRef = useRef(null)
   const imgRef = useRef(null)
   const contenedorRef = useRef(null)
+  const inputTextoRef = useRef(null)
+  const baseWidthRef = useRef(null)
+  const trazosRef = useRef([])
+  const trazoEnCursoRef = useRef(null)
 
-  const [herramienta, setHerramienta] = useState('lapiz') // 'lapiz' | 'linea' | 'borrador'
+  const [herramienta, setHerramienta] = useState('lapiz') // 'lapiz' | 'linea' | 'borrador' | 'texto'
   const [color, setColor] = useState(COLORES[0])
-  const [grosor, setGrosor] = useState(3)
+  const [zoom, setZoom] = useState(1)
   const [dibujando, setDibujando] = useState(false)
-  const [puntoInicioLinea, setPuntoInicioLinea] = useState(null)
-  const [historial, setHistorial] = useState([])
+  const [puntoInicioLinea, setPuntoInicioLinea] = useState(null) // {xRatio, yRatio}
+  const [textoPendiente, setTextoPendiente] = useState(null) // { xRatio, yRatio, xPantalla, yPantalla, valor }
+  const [trazos, setTrazos] = useState([])
+  const [trazoEnCurso, setTrazoEnCurso] = useState(null)
   const [guardando, setGuardando] = useState(false)
   const [imagenLista, setImagenLista] = useState(false)
+
+  useEffect(() => {
+    trazosRef.current = trazos
+    trazoEnCursoRef.current = trazoEnCurso
+  })
+
+  const redibujarTodo = () => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    trazosRef.current.forEach((t) => dibujarTrazo(ctx, t, canvas.width, canvas.height))
+    if (trazoEnCursoRef.current) dibujarTrazo(ctx, trazoEnCursoRef.current, canvas.width, canvas.height)
+  }
 
   const ajustarCanvas = () => {
     const canvas = canvasRef.current
     const img = imgRef.current
     if (!canvas || !img) return
-    canvas.width = img.clientWidth
-    canvas.height = img.clientHeight
+
+    const nuevoAncho = img.clientWidth
+    const nuevoAlto = img.clientHeight
+    if (nuevoAncho === 0 || nuevoAlto === 0) return
+
+    canvas.width = nuevoAncho
+    canvas.height = nuevoAlto
+    redibujarTodo()
+  }
+
+  const handleImgLoad = () => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (baseWidthRef.current === null) {
+          baseWidthRef.current = imgRef.current.clientWidth
+        }
+        ajustarCanvas()
+        setImagenLista(true)
+      })
+    })
   }
 
   useEffect(() => {
-    window.addEventListener('resize', ajustarCanvas)
-    return () => window.removeEventListener('resize', ajustarCanvas)
+    const handler = () => ajustarCanvas()
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
   }, [])
 
-  const handleImgLoad = () => {
-    ajustarCanvas()
-    setImagenLista(true)
-  }
+  useEffect(() => {
+    requestAnimationFrame(() => ajustarCanvas())
+  }, [zoom])
+
+  useEffect(() => {
+    redibujarTodo()
+  }, [trazos, trazoEnCurso])
+
+  useEffect(() => {
+    if (textoPendiente && inputTextoRef.current) {
+      inputTextoRef.current.focus()
+    }
+  }, [textoPendiente])
 
   const posicionRelativa = (e) => {
     const canvas = canvasRef.current
     const rect = canvas.getBoundingClientRect()
     const clientX = e.touches ? e.touches[0].clientX : e.clientX
     const clientY = e.touches ? e.touches[0].clientY : e.clientY
-    return { x: clientX - rect.left, y: clientY - rect.top }
-  }
-
-  const guardarSnapshot = () => {
-    const canvas = canvasRef.current
-    setHistorial((prev) => [...prev, canvas.toDataURL()])
+    const escalaX = canvas.width / rect.width
+    const escalaY = canvas.height / rect.height
+    return {
+      xCanvas: (clientX - rect.left) * escalaX,
+      yCanvas: (clientY - rect.top) * escalaY,
+      xPantalla: clientX - rect.left,
+      yPantalla: clientY - rect.top,
+    }
   }
 
   const handleStart = (e) => {
     e.preventDefault()
     const canvas = canvasRef.current
-    const ctx = canvas.getContext('2d')
-    const { x, y } = posicionRelativa(e)
+    const { xCanvas, yCanvas, xPantalla, yPantalla } = posicionRelativa(e)
+    const punto = { xRatio: xCanvas / canvas.width, yRatio: yCanvas / canvas.height }
+
+    if (herramienta === 'texto') {
+      if (textoPendiente) return // ya hay un cuadro de texto abierto, primero confirmalo o cancelalo
+      setTextoPendiente({ xRatio: punto.xRatio, yRatio: punto.yRatio, xPantalla, yPantalla, valor: '' })
+      return
+    }
 
     if (herramienta === 'linea') {
       if (!puntoInicioLinea) {
-        setPuntoInicioLinea({ x, y })
+        setPuntoInicioLinea(punto)
       } else {
-        guardarSnapshot()
-        ctx.globalCompositeOperation = 'source-over'
-        ctx.strokeStyle = color
-        ctx.lineWidth = grosor
-        ctx.lineCap = 'round'
-        ctx.beginPath()
-        ctx.moveTo(puntoInicioLinea.x, puntoInicioLinea.y)
-        ctx.lineTo(x, y)
-        ctx.stroke()
+        setTrazos((prev) => [...prev, { tipo: 'linea', color, desde: puntoInicioLinea, hasta: punto }])
         setPuntoInicioLinea(null)
       }
       return
     }
 
-    guardarSnapshot()
+    setTrazoEnCurso({ tipo: 'trazo', modo: herramienta, color, puntos: [punto] })
     setDibujando(true)
-    ctx.globalCompositeOperation = herramienta === 'borrador' ? 'destination-out' : 'source-over'
-    ctx.strokeStyle = color
-    ctx.lineWidth = herramienta === 'borrador' ? grosor * 4 : grosor
-    ctx.lineCap = 'round'
-    ctx.lineJoin = 'round'
-    ctx.beginPath()
-    ctx.moveTo(x, y)
   }
 
   const handleMove = (e) => {
-    if (herramienta === 'linea' || !dibujando) return
+    if (herramienta === 'linea' || herramienta === 'texto' || !dibujando || !trazoEnCurso) return
     e.preventDefault()
     const canvas = canvasRef.current
-    const ctx = canvas.getContext('2d')
-    const { x, y } = posicionRelativa(e)
-    ctx.lineTo(x, y)
-    ctx.stroke()
+    const { xCanvas, yCanvas } = posicionRelativa(e)
+    const punto = { xRatio: xCanvas / canvas.width, yRatio: yCanvas / canvas.height }
+    setTrazoEnCurso((prev) => ({ ...prev, puntos: [...prev.puntos, punto] }))
   }
 
   const handleEnd = () => {
+    if (trazoEnCurso && trazoEnCurso.puntos.length > 1) {
+      setTrazos((prev) => [...prev, trazoEnCurso])
+    }
+    setTrazoEnCurso(null)
     setDibujando(false)
   }
 
-  const deshacer = () => {
-    const canvas = canvasRef.current
-    const ctx = canvas.getContext('2d')
-    if (historial.length === 0) {
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
+  const confirmarTexto = () => {
+    if (!textoPendiente || !textoPendiente.valor.trim()) {
+      setTextoPendiente(null)
       return
     }
-    const anterior = historial[historial.length - 1]
-    const img = new Image()
-    img.onload = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-      ctx.drawImage(img, 0, 0)
-    }
-    img.src = anterior
-    setHistorial((prev) => prev.slice(0, -1))
+    setTrazos((prev) => [...prev, {
+      tipo: 'texto',
+      xRatio: textoPendiente.xRatio,
+      yRatio: textoPendiente.yRatio,
+      valor: textoPendiente.valor,
+    }])
+    setTextoPendiente(null)
+  }
+
+  const cancelarTexto = () => setTextoPendiente(null)
+
+  const zoomIn = () => setZoom((z) => Math.min(ZOOM_MAX, +(z + ZOOM_PASO).toFixed(2)))
+  const zoomOut = () => setZoom((z) => Math.max(ZOOM_MIN, +(z - ZOOM_PASO).toFixed(2)))
+  const zoomReset = () => setZoom(1)
+
+  const handleKeyDownTexto = (e) => {
+    if (e.key === 'Enter') confirmarTexto()
+    if (e.key === 'Escape') cancelarTexto()
+  }
+
+  const deshacer = () => {
+    setTrazos((prev) => prev.slice(0, -1))
   }
 
   const borrarTodo = () => {
-    guardarSnapshot()
-    const canvas = canvasRef.current
-    const ctx = canvas.getContext('2d')
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    setTrazos([])
   }
 
   const guardar = async () => {
@@ -133,11 +234,9 @@ export default function AnotadorArchivo({ archivo, pacienteId, onClose, onGuarda
       const ctxFinal = canvasFinal.getContext('2d')
 
       ctxFinal.drawImage(img, 0, 0, canvasFinal.width, canvasFinal.height)
-      const escalaX = canvasFinal.width / canvasDibujo.width
-      const escalaY = canvasFinal.height / canvasDibujo.height
       ctxFinal.drawImage(
         canvasDibujo, 0, 0, canvasDibujo.width, canvasDibujo.height,
-        0, 0, canvasDibujo.width * escalaX, canvasDibujo.height * escalaY
+        0, 0, canvasFinal.width, canvasFinal.height
       )
 
       const blob = await new Promise((resolve) => canvasFinal.toBlob(resolve, 'image/png'))
@@ -170,26 +269,32 @@ export default function AnotadorArchivo({ archivo, pacienteId, onClose, onGuarda
         <div className="flex flex-wrap gap-2 items-center p-3 border-b border-slate-100 bg-slate-50">
           <div className="flex gap-1">
             <button
-              onClick={() => { setHerramienta('lapiz'); setPuntoInicioLinea(null) }}
+              onClick={() => { setHerramienta('lapiz'); setPuntoInicioLinea(null); setTextoPendiente(null) }}
               className={`text-xs px-3 py-1.5 rounded ${herramienta === 'lapiz' ? 'bg-blue-600 text-white' : 'bg-white border border-slate-300 text-slate-600'}`}
             >
               ✏️ Lápiz
             </button>
             <button
-              onClick={() => setHerramienta('linea')}
+              onClick={() => { setHerramienta('linea'); setTextoPendiente(null) }}
               className={`text-xs px-3 py-1.5 rounded ${herramienta === 'linea' ? 'bg-blue-600 text-white' : 'bg-white border border-slate-300 text-slate-600'}`}
             >
               📏 Línea recta
             </button>
             <button
-              onClick={() => { setHerramienta('borrador'); setPuntoInicioLinea(null) }}
+              onClick={() => { setHerramienta('texto'); setPuntoInicioLinea(null) }}
+              className={`text-xs px-3 py-1.5 rounded ${herramienta === 'texto' ? 'bg-blue-600 text-white' : 'bg-white border border-slate-300 text-slate-600'}`}
+            >
+              🔤 Texto
+            </button>
+            <button
+              onClick={() => { setHerramienta('borrador'); setPuntoInicioLinea(null); setTextoPendiente(null) }}
               className={`text-xs px-3 py-1.5 rounded ${herramienta === 'borrador' ? 'bg-blue-600 text-white' : 'bg-white border border-slate-300 text-slate-600'}`}
             >
               🧹 Borrador
             </button>
           </div>
 
-          {herramienta !== 'borrador' && (
+          {herramienta !== 'borrador' && herramienta !== 'texto' && (
             <div className="flex gap-1">
               {COLORES.map((c) => (
                 <button
@@ -202,16 +307,6 @@ export default function AnotadorArchivo({ archivo, pacienteId, onClose, onGuarda
             </div>
           )}
 
-          <select
-            value={grosor}
-            onChange={(e) => setGrosor(Number(e.target.value))}
-            className="text-xs border border-slate-300 rounded px-2 py-1.5"
-          >
-            <option value={2}>Fino</option>
-            <option value={3}>Medio</option>
-            <option value={5}>Grueso</option>
-          </select>
-
           <button onClick={deshacer} className="text-xs px-3 py-1.5 rounded bg-white border border-slate-300 text-slate-600 hover:bg-slate-100">
             ↩ Deshacer
           </button>
@@ -219,8 +314,32 @@ export default function AnotadorArchivo({ archivo, pacienteId, onClose, onGuarda
             Borrar todo
           </button>
 
+          <div className="flex items-center gap-1">
+            <button
+              onClick={zoomOut}
+              disabled={zoom <= ZOOM_MIN}
+              className="text-xs w-7 py-1.5 rounded bg-white border border-slate-300 text-slate-600 hover:bg-slate-100 disabled:opacity-50"
+            >
+              −
+            </button>
+            <span className="text-xs text-slate-600 w-10 text-center">{Math.round(zoom * 100)}%</span>
+            <button
+              onClick={zoomIn}
+              disabled={zoom >= ZOOM_MAX}
+              className="text-xs w-7 py-1.5 rounded bg-white border border-slate-300 text-slate-600 hover:bg-slate-100 disabled:opacity-50"
+            >
+              +
+            </button>
+            <button onClick={zoomReset} className="text-xs px-2 py-1.5 rounded bg-white border border-slate-300 text-slate-600 hover:bg-slate-100">
+              Reset
+            </button>
+          </div>
+
           {herramienta === 'linea' && puntoInicioLinea && (
             <span className="text-xs text-blue-600">Click en el segundo punto para trazar la línea</span>
+          )}
+          {herramienta === 'texto' && !textoPendiente && (
+            <span className="text-xs text-blue-600">Click donde querés escribir</span>
           )}
         </div>
 
@@ -231,13 +350,14 @@ export default function AnotadorArchivo({ archivo, pacienteId, onClose, onGuarda
               src={archivo.archivo}
               alt={archivo.nombre}
               onLoad={handleImgLoad}
-              className="max-w-full max-h-[60vh] block select-none"
+              className={`block select-none ${baseWidthRef.current ? '' : 'max-w-full max-h-[60vh]'}`}
+              style={baseWidthRef.current ? { width: baseWidthRef.current * zoom, height: 'auto' } : undefined}
               draggable={false}
             />
             {imagenLista && (
               <canvas
                 ref={canvasRef}
-                className="absolute top-0 left-0 cursor-crosshair touch-none"
+                className="absolute top-0 left-0 w-full h-full cursor-crosshair touch-none"
                 onMouseDown={handleStart}
                 onMouseMove={handleMove}
                 onMouseUp={handleEnd}
@@ -246,6 +366,36 @@ export default function AnotadorArchivo({ archivo, pacienteId, onClose, onGuarda
                 onTouchMove={handleMove}
                 onTouchEnd={handleEnd}
               />
+            )}
+
+            {textoPendiente && (
+              <div
+                className="absolute z-10 flex items-center gap-1"
+                style={{ left: textoPendiente.xPantalla, top: textoPendiente.yPantalla }}
+              >
+                <input
+                  ref={inputTextoRef}
+                  type="text"
+                  value={textoPendiente.valor}
+                  onChange={(e) => setTextoPendiente({ ...textoPendiente, valor: e.target.value })}
+                  onKeyDown={handleKeyDownTexto}
+                  placeholder="Escribí y Enter"
+                  className="text-sm border-2 border-blue-500 rounded px-2 py-1 bg-white shadow-lg outline-none"
+                  style={{ minWidth: 140 }}
+                />
+                <button
+                  onClick={confirmarTexto}
+                  className="bg-blue-600 text-white text-xs rounded px-2 py-1 shadow"
+                >
+                  ✓
+                </button>
+                <button
+                  onClick={cancelarTexto}
+                  className="bg-white border border-slate-300 text-slate-600 text-xs rounded px-2 py-1 shadow"
+                >
+                  ×
+                </button>
+              </div>
             )}
           </div>
         </div>

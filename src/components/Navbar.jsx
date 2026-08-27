@@ -53,6 +53,7 @@ export default function Navbar() {
           items={[
             { to: '/turnos', label: 'Ver lista' },
             ...(auth.rol !== 'profesional' ? [{ to: '/turnos/nuevo', label: 'Nuevo turno' }] : []),
+            { to: '/turnos/calendario', label: 'Ver calendario' },
             { to: '/disponibilidad', label: 'Disponibilidad' },
           ]}
         />

@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
 import BotonVolver from '../components/BotonVolver'
 import { useAuth } from '../context/AuthContext'
+import { hmAMinutos, minutosAHM, duracionAMinutos, diaSemanaBackend, fechaToStr } from '../utils/fechas'
 
 const TIPOS_TURNO = [
   { value: 'primera_vez', label: 'Primera vez (20 min + 5 margen)', minutos: 25 },
@@ -13,37 +14,10 @@ const TIPOS_TURNO = [
   { value: 'reactivacion', label: 'Reactivación (15 min + 5 margen)', minutos: 20 },
 ]
 
-function hmAMinutos(hm) {
-  const [h, m] = hm.split(':').map(Number)
-  return h * 60 + m
-}
-
-function minutosAHM(mins) {
-  const h = Math.floor(mins / 60)
-  const m = mins % 60
-  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
-}
-
-function duracionAMinutos(duracionStr) {
-  const [h, m] = duracionStr.split(':').map(Number)
-  return h * 60 + m
-}
-
-function diaSemanaBackend(fecha) {
-  const jsDay = fecha.getDay()
-  return (jsDay + 6) % 7
-}
-
-function fechaToStr(fecha) {
-  const y = fecha.getFullYear()
-  const m = String(fecha.getMonth() + 1).padStart(2, '0')
-  const d = String(fecha.getDate()).padStart(2, '0')
-  return `${y}-${m}-${d}`
-}
-
 export default function NuevoTurno() {
   const { auth } = useAuth()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const hoy = new Date()
 
   const [sucursales, setSucursales] = useState([])
@@ -56,17 +30,20 @@ export default function NuevoTurno() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [guardando, setGuardando] = useState(false)
-  const [fechaSeleccionada, setFechaSeleccionada] = useState(null)
+  const [fechaSeleccionada, setFechaSeleccionada] = useState(() => {
+    const fechaParam = searchParams.get('fecha')
+    return fechaParam ? new Date(`${fechaParam}T00:00:00`) : null
+  })
 
-  const [form, setForm] = useState({
+  const [form, setForm] = useState(() => ({
     sucursal: '',
     paciente: '',
-    profesional: '',
+    profesional: searchParams.get('profesional') || '',
     tipoTurno: 'primera_vez',
-    hora: '',
+    hora: searchParams.get('hora') || '',
     descripcion: '',
     estado: 'pendiente',
-  })
+  }))
 
   useEffect(() => {
     Promise.all([

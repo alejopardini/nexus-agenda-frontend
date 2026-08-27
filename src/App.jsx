@@ -12,6 +12,7 @@ import EditarPaciente from './pages/EditarPaciente'
 import Turnos from './pages/Turnos'
 import NuevoTurno from './pages/NuevoTurno'
 import TurnosCancelados from './pages/TurnosCancelados'
+import CalendarioTurnos from './pages/CalendarioTurnos'
 import ConsultaDetalle from './pages/ConsultaDetalle'
 import Disponibilidad from './pages/Disponibilidad'
 import Profesionales from './pages/Profesionales'
@@ -37,6 +38,7 @@ function App() {
           <Route path="/turnos" element={<ProtectedRoute><Turnos /></ProtectedRoute>} />
           <Route path="/turnos/nuevo" element={<ProtectedRoute><NuevoTurno /></ProtectedRoute>} />
           <Route path="/turnos/cancelados" element={<ProtectedRoute><TurnosCancelados /></ProtectedRoute>} />
+          <Route path="/turnos/calendario" element={<ProtectedRoute><CalendarioTurnos /></ProtectedRoute>} />
           <Route path="/consultas/:id" element={<ProtectedRoute><ConsultaDetalle /></ProtectedRoute>} />
           <Route path="/disponibilidad" element={<ProtectedRoute><Disponibilidad /></ProtectedRoute>} />
           <Route path="/profesionales" element={<ProtectedRoute><Profesionales /></ProtectedRoute>} />

@@ -20,6 +20,7 @@ export default function DetallePaciente() {
   const [subiendo, setSubiendo] = useState(false)
   const [guardandoSeguimiento, setGuardandoSeguimiento] = useState(false)
   const [archivoAAnotar, setArchivoAAnotar] = useState(null)
+  const [mostrarArchivados, setMostrarArchivados] = useState(false)
   const [motivoSolicitud, setMotivoSolicitud] = useState('')
   const [enviandoSolicitud, setEnviandoSolicitud] = useState(false)
   const [solicitudEnviada, setSolicitudEnviada] = useState(false)
@@ -84,6 +85,35 @@ export default function DetallePaciente() {
       alert(mensaje)
     } finally {
       setSubiendo(false)
+    }
+  }
+
+  const archivarArchivo = async (archivoId) => {
+    try {
+      await apiClient.post(`/archivos/${archivoId}/archivar/`)
+      cargarArchivos()
+    } catch {
+      alert('No se pudo archivar el archivo.')
+    }
+  }
+
+  const desarchivarArchivo = async (archivoId) => {
+    try {
+      await apiClient.post(`/archivos/${archivoId}/desarchivar/`)
+      cargarArchivos()
+    } catch {
+      alert('No se pudo restaurar el archivo.')
+    }
+  }
+
+  const eliminarArchivo = async (archivoId) => {
+    if (!confirm('¿Seguro que querés eliminar este archivo? Esta acción no se puede deshacer.')) return
+    if (!confirm('Confirmá de nuevo: el archivo se va a eliminar definitivamente.')) return
+    try {
+      await apiClient.delete(`/archivos/${archivoId}/`)
+      cargarArchivos()
+    } catch {
+      alert('No se pudo eliminar el archivo.')
     }
   }
 
@@ -342,29 +372,41 @@ export default function DetallePaciente() {
 
         {tieneAcceso && (
           <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-lg font-bold text-slate-800 mb-3">Archivos adjuntos</h2>
-
-            <form onSubmit={handleUpload} className="flex gap-2 mb-4">
-              <input
-                type="file"
-                ref={inputArchivoRef}
-                onChange={(e) => setArchivoFile(e.target.files[0])}
-                className="flex-1 text-sm border border-slate-300 rounded px-3 py-2"
-              />
+            <div className="flex justify-between items-center mb-3">
+              <h2 className="text-lg font-bold text-slate-800">Archivos adjuntos</h2>
               <button
-                type="submit"
-                disabled={!archivoFile || subiendo}
-                className="bg-blue-600 text-white rounded px-4 py-2 text-sm hover:bg-blue-700 disabled:opacity-50"
+                onClick={() => setMostrarArchivados(!mostrarArchivados)}
+                className="text-sm text-blue-600 hover:underline"
               >
-                {subiendo ? 'Subiendo...' : 'Subir'}
+                {mostrarArchivados ? 'Ver archivos activos' : 'Ver archivados'}
               </button>
-            </form>
+            </div>
 
-            {archivos.length === 0 ? (
-              <p className="text-slate-500 text-sm">No hay archivos subidos todavía.</p>
+            {!mostrarArchivados && (
+              <form onSubmit={handleUpload} className="flex gap-2 mb-4">
+                <input
+                  type="file"
+                  ref={inputArchivoRef}
+                  onChange={(e) => setArchivoFile(e.target.files[0])}
+                  className="flex-1 text-sm border border-slate-300 rounded px-3 py-2"
+                />
+                <button
+                  type="submit"
+                  disabled={!archivoFile || subiendo}
+                  className="bg-blue-600 text-white rounded px-4 py-2 text-sm hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {subiendo ? 'Subiendo...' : 'Subir'}
+                </button>
+              </form>
+            )}
+
+            {archivos.filter((a) => Boolean(a.archivado) === mostrarArchivados).length === 0 ? (
+              <p className="text-slate-500 text-sm">
+                {mostrarArchivados ? 'No hay archivos archivados.' : 'No hay archivos subidos todavía.'}
+              </p>
             ) : (
               <ul className="divide-y divide-slate-100">
-                {archivos.map((a) => {
+                {archivos.filter((a) => Boolean(a.archivado) === mostrarArchivados).map((a) => {
                   const esImagen = /\.(png|jpe?g|gif|webp)$/i.test(a.archivo)
                   return (
                     <li key={a.id} className="py-2 text-sm flex justify-between items-center">
@@ -372,13 +414,37 @@ export default function DetallePaciente() {
                         {a.nombre}
                       </a>
                       <div className="flex items-center gap-3">
-                        {esImagen && (
+                        {!mostrarArchivados && esImagen && (
                           <button
                             onClick={() => setArchivoAAnotar(a)}
                             className="text-slate-500 text-xs hover:text-blue-600 hover:underline"
                           >
                             ✏️ Anotar
                           </button>
+                        )}
+                        {!mostrarArchivados && (
+                          <button
+                            onClick={() => archivarArchivo(a.id)}
+                            className="text-slate-500 text-xs hover:text-amber-600 hover:underline"
+                          >
+                            Archivar
+                          </button>
+                        )}
+                        {mostrarArchivados && (
+                          <>
+                            <button
+                              onClick={() => desarchivarArchivo(a.id)}
+                              className="text-slate-500 text-xs hover:text-green-600 hover:underline"
+                            >
+                              Restaurar
+                            </button>
+                            <button
+                              onClick={() => eliminarArchivo(a.id)}
+                              className="text-slate-500 text-xs hover:text-red-600 hover:underline"
+                            >
+                              Eliminar
+                            </button>
+                          </>
                         )}
                         <span className="text-slate-400 text-xs">
                           {new Date(a.fecha_subida).toLocaleDateString()}
@@ -388,8 +454,6 @@ export default function DetallePaciente() {
                   )
                 })}
               </ul>
-
-
             )}
           </div>
         )}
