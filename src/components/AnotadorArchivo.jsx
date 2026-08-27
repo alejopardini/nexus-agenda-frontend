@@ -7,8 +7,6 @@ const TAMANIO_FUENTE_BASE = 16
 const ZOOM_PASO = 0.25
 const ZOOM_MIN = 0.5
 const ZOOM_MAX = 3
-const CAJA_TEXTO_ANCHO_ESTIMADO = 235
-const CAJA_TEXTO_ALTO_ESTIMADO = 40
 
 const grosorProporcional = (ancho) => ancho * FACTOR_GROSOR
 const tamanioFuenteProporcional = (ancho, anchoBase) => TAMANIO_FUENTE_BASE * (ancho / (anchoBase || ancho))
@@ -61,7 +59,6 @@ export default function AnotadorArchivo({ archivo, pacienteId, onClose, onGuarda
   const baseWidthRef = useRef(null)
   const trazosRef = useRef([])
   const trazoEnCursoRef = useRef(null)
-  const cajaTextoRef = useRef(null)
 
   const [herramienta, setHerramienta] = useState('lapiz') // 'lapiz' | 'linea' | 'borrador' | 'texto'
   const [color, setColor] = useState(COLORES[0])
@@ -115,6 +112,10 @@ export default function AnotadorArchivo({ archivo, pacienteId, onClose, onGuarda
   }
 
   useEffect(() => {
+    if (imagenLista) ajustarCanvas()
+  }, [imagenLista])
+
+  useEffect(() => {
     const handler = () => ajustarCanvas()
     window.addEventListener('resize', handler)
     return () => window.removeEventListener('resize', handler)
@@ -127,17 +128,6 @@ export default function AnotadorArchivo({ archivo, pacienteId, onClose, onGuarda
   useEffect(() => {
     redibujarTodo()
   }, [trazos, trazoEnCurso])
-
-  useEffect(() => {
-    if (!textoPendiente) return
-    const handleClickFuera = (e) => {
-      if (cajaTextoRef.current && !cajaTextoRef.current.contains(e.target)) {
-        setTextoPendiente(null)
-      }
-    }
-    document.addEventListener('mousedown', handleClickFuera)
-    return () => document.removeEventListener('mousedown', handleClickFuera)
-  }, [textoPendiente])
 
   useEffect(() => {
     if (textoPendiente && inputTextoRef.current) {
@@ -221,7 +211,6 @@ export default function AnotadorArchivo({ archivo, pacienteId, onClose, onGuarda
 
   const iniciarArrastreCaja = (e) => {
     e.preventDefault()
-    e.stopPropagation()
     const inicioX = e.clientX
     const inicioY = e.clientY
     const xInicial = textoPendiente.xPantalla
@@ -299,13 +288,6 @@ export default function AnotadorArchivo({ archivo, pacienteId, onClose, onGuarda
       setGuardando(false)
     }
   }
-
-  const cajaTextoNoEntraDerecha = textoPendiente && canvasRef.current
-    ? textoPendiente.xPantalla + CAJA_TEXTO_ANCHO_ESTIMADO > canvasRef.current.width
-    : false
-  const cajaTextoNoEntraAbajo = textoPendiente && canvasRef.current
-    ? textoPendiente.yPantalla + CAJA_TEXTO_ALTO_ESTIMADO > canvasRef.current.height
-    : false
 
   return (
     <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
@@ -419,22 +401,16 @@ export default function AnotadorArchivo({ archivo, pacienteId, onClose, onGuarda
 
             {textoPendiente && (
               <div
-                ref={cajaTextoRef}
-                className="absolute z-10 flex items-center gap-1"
-                style={{
-                  left: cajaTextoNoEntraDerecha ? undefined : textoPendiente.xPantalla,
-                  right: cajaTextoNoEntraDerecha ? canvasRef.current.width - textoPendiente.xPantalla : undefined,
-                  top: cajaTextoNoEntraAbajo ? undefined : textoPendiente.yPantalla,
-                  bottom: cajaTextoNoEntraAbajo ? canvasRef.current.height - textoPendiente.yPantalla : undefined,
-                }}
+                className="absolute z-10 flex flex-col items-start gap-1"
+                style={{ left: textoPendiente.xPantalla, top: textoPendiente.yPantalla }}
               >
-                <span
+                <div
                   onMouseDown={iniciarArrastreCaja}
-                  className="cursor-move text-slate-400 hover:text-slate-600 text-xs select-none px-0.5"
+                  className="w-full text-center bg-slate-700 text-white text-xs rounded-t cursor-move select-none py-0.5"
                   title="Arrastrar"
                 >
                   ⠿
-                </span>
+                </div>
                 <input
                   ref={inputTextoRef}
                   type="text"
@@ -445,18 +421,20 @@ export default function AnotadorArchivo({ archivo, pacienteId, onClose, onGuarda
                   className="text-sm border-2 border-blue-500 rounded px-2 py-1 bg-white shadow-lg outline-none"
                   style={{ minWidth: 140 }}
                 />
-                <button
-                  onClick={confirmarTexto}
-                  className="bg-blue-600 text-white text-xs rounded px-2 py-1 shadow"
-                >
-                  ✓
-                </button>
-                <button
-                  onClick={cancelarTexto}
-                  className="bg-white border border-slate-300 text-slate-600 text-xs rounded px-2 py-1 shadow"
-                >
-                  ×
-                </button>
+                <div className="flex gap-1">
+                  <button
+                    onClick={confirmarTexto}
+                    className="bg-blue-600 text-white text-xs rounded px-2 py-1 shadow"
+                  >
+                    ✓
+                  </button>
+                  <button
+                    onClick={cancelarTexto}
+                    className="bg-white border border-slate-300 text-slate-600 text-xs rounded px-2 py-1 shadow"
+                  >
+                    ×
+                  </button>
+                </div>
               </div>
             )}
           </div>
