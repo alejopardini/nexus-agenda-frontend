@@ -3,15 +3,17 @@ import apiClient from '../api/client'
 
 const COLORES = ['#ef4444', '#22c55e', '#3b82f6', '#eab308', '#ffffff']
 const FACTOR_GROSOR = 0.003
-const FACTOR_FUENTE = 0.017
+const TAMANIO_FUENTE_BASE = 16
 const ZOOM_PASO = 0.25
 const ZOOM_MIN = 0.5
 const ZOOM_MAX = 3
+const CAJA_TEXTO_ANCHO_ESTIMADO = 235
+const CAJA_TEXTO_ALTO_ESTIMADO = 40
 
 const grosorProporcional = (ancho) => ancho * FACTOR_GROSOR
-const tamanioFuenteProporcional = (ancho) => ancho * FACTOR_FUENTE
+const tamanioFuenteProporcional = (ancho, anchoBase) => TAMANIO_FUENTE_BASE * (ancho / (anchoBase || ancho))
 
-function dibujarTrazo(ctx, trazo, ancho, alto) {
+function dibujarTrazo(ctx, trazo, ancho, alto, anchoBase) {
   if (trazo.tipo === 'trazo') {
     ctx.globalCompositeOperation = trazo.modo === 'borrador' ? 'destination-out' : 'source-over'
     ctx.strokeStyle = trazo.color
@@ -37,7 +39,7 @@ function dibujarTrazo(ctx, trazo, ancho, alto) {
     ctx.stroke()
   } else if (trazo.tipo === 'texto') {
     ctx.globalCompositeOperation = 'source-over'
-    const tamanioFuente = tamanioFuenteProporcional(ancho)
+    const tamanioFuente = tamanioFuenteProporcional(ancho, anchoBase)
     ctx.font = `${tamanioFuente}px sans-serif`
     ctx.textBaseline = 'top'
     const padding = tamanioFuente / 3
@@ -59,6 +61,7 @@ export default function AnotadorArchivo({ archivo, pacienteId, onClose, onGuarda
   const baseWidthRef = useRef(null)
   const trazosRef = useRef([])
   const trazoEnCursoRef = useRef(null)
+  const cajaTextoRef = useRef(null)
 
   const [herramienta, setHerramienta] = useState('lapiz') // 'lapiz' | 'linea' | 'borrador' | 'texto'
   const [color, setColor] = useState(COLORES[0])
@@ -81,8 +84,8 @@ export default function AnotadorArchivo({ archivo, pacienteId, onClose, onGuarda
     if (!canvas) return
     const ctx = canvas.getContext('2d')
     ctx.clearRect(0, 0, canvas.width, canvas.height)
-    trazosRef.current.forEach((t) => dibujarTrazo(ctx, t, canvas.width, canvas.height))
-    if (trazoEnCursoRef.current) dibujarTrazo(ctx, trazoEnCursoRef.current, canvas.width, canvas.height)
+    trazosRef.current.forEach((t) => dibujarTrazo(ctx, t, canvas.width, canvas.height, baseWidthRef.current))
+    if (trazoEnCursoRef.current) dibujarTrazo(ctx, trazoEnCursoRef.current, canvas.width, canvas.height, baseWidthRef.current)
   }
 
   const ajustarCanvas = () => {
@@ -124,6 +127,17 @@ export default function AnotadorArchivo({ archivo, pacienteId, onClose, onGuarda
   useEffect(() => {
     redibujarTodo()
   }, [trazos, trazoEnCurso])
+
+  useEffect(() => {
+    if (!textoPendiente) return
+    const handleClickFuera = (e) => {
+      if (cajaTextoRef.current && !cajaTextoRef.current.contains(e.target)) {
+        setTextoPendiente(null)
+      }
+    }
+    document.addEventListener('mousedown', handleClickFuera)
+    return () => document.removeEventListener('mousedown', handleClickFuera)
+  }, [textoPendiente])
 
   useEffect(() => {
     if (textoPendiente && inputTextoRef.current) {
@@ -205,6 +219,34 @@ export default function AnotadorArchivo({ archivo, pacienteId, onClose, onGuarda
 
   const cancelarTexto = () => setTextoPendiente(null)
 
+  const iniciarArrastreCaja = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const inicioX = e.clientX
+    const inicioY = e.clientY
+    const xInicial = textoPendiente.xPantalla
+    const yInicial = textoPendiente.yPantalla
+
+    const onMove = (ev) => {
+      setTextoPendiente((prev) => prev && {
+        ...prev,
+        xPantalla: xInicial + (ev.clientX - inicioX),
+        yPantalla: yInicial + (ev.clientY - inicioY),
+      })
+    }
+    const onUp = () => {
+      document.removeEventListener('mousemove', onMove)
+      document.removeEventListener('mouseup', onUp)
+      const canvas = canvasRef.current
+      setTextoPendiente((prev) => {
+        if (!prev || !canvas) return prev
+        return { ...prev, xRatio: prev.xPantalla / canvas.width, yRatio: prev.yPantalla / canvas.height }
+      })
+    }
+    document.addEventListener('mousemove', onMove)
+    document.addEventListener('mouseup', onUp)
+  }
+
   const zoomIn = () => setZoom((z) => Math.min(ZOOM_MAX, +(z + ZOOM_PASO).toFixed(2)))
   const zoomOut = () => setZoom((z) => Math.max(ZOOM_MIN, +(z - ZOOM_PASO).toFixed(2)))
   const zoomReset = () => setZoom(1)
@@ -257,6 +299,13 @@ export default function AnotadorArchivo({ archivo, pacienteId, onClose, onGuarda
       setGuardando(false)
     }
   }
+
+  const cajaTextoNoEntraDerecha = textoPendiente && canvasRef.current
+    ? textoPendiente.xPantalla + CAJA_TEXTO_ANCHO_ESTIMADO > canvasRef.current.width
+    : false
+  const cajaTextoNoEntraAbajo = textoPendiente && canvasRef.current
+    ? textoPendiente.yPantalla + CAJA_TEXTO_ALTO_ESTIMADO > canvasRef.current.height
+    : false
 
   return (
     <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
@@ -370,9 +419,22 @@ export default function AnotadorArchivo({ archivo, pacienteId, onClose, onGuarda
 
             {textoPendiente && (
               <div
+                ref={cajaTextoRef}
                 className="absolute z-10 flex items-center gap-1"
-                style={{ left: textoPendiente.xPantalla, top: textoPendiente.yPantalla }}
+                style={{
+                  left: cajaTextoNoEntraDerecha ? undefined : textoPendiente.xPantalla,
+                  right: cajaTextoNoEntraDerecha ? canvasRef.current.width - textoPendiente.xPantalla : undefined,
+                  top: cajaTextoNoEntraAbajo ? undefined : textoPendiente.yPantalla,
+                  bottom: cajaTextoNoEntraAbajo ? canvasRef.current.height - textoPendiente.yPantalla : undefined,
+                }}
               >
+                <span
+                  onMouseDown={iniciarArrastreCaja}
+                  className="cursor-move text-slate-400 hover:text-slate-600 text-xs select-none px-0.5"
+                  title="Arrastrar"
+                >
+                  ⠿
+                </span>
                 <input
                   ref={inputTextoRef}
                   type="text"
