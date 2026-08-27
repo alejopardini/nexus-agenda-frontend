@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import NotificationBell from './NotificationBell'
+import logoQnexus from '../assets/logo_qnexus.png'
 
 function MenuDropdown({ titulo, items }) {
   if (items.length === 0) return null
@@ -36,9 +37,9 @@ export default function Navbar() {
   const esDueño = auth.rol === 'dueño'
 
   return (
-    <nav className="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between">
+    <nav className="bg-white border-b border-slate-200 px-6 py-2 flex items-center justify-between">
       <div className="flex items-center gap-6">
-        <span className="font-bold text-slate-800">{auth.organizacion_nombre}</span>
+        <img src={logoQnexus} alt="QuiroNexus" className="h-14 w-auto" />
         <Link to="/" className="text-sm text-slate-600 hover:text-blue-600">Inicio</Link>
         <MenuDropdown
           titulo="Pacientes"
@@ -67,8 +68,11 @@ export default function Navbar() {
         />
       </div>
       <div className="flex items-center gap-4">
+        <div className="flex flex-col items-end">
+          <span className="text-xs text-slate-400">{auth.organizacion_nombre}</span>
+          <span className="text-sm text-slate-500">{auth.username} ({auth.rol})</span>
+        </div>
         <NotificationBell />
-        <span className="text-sm text-slate-500">{auth.username} ({auth.rol})</span>
         <button
           onClick={handleLogout}
           className="text-sm bg-red-600 text-white rounded px-3 py-1 hover:bg-red-700"
