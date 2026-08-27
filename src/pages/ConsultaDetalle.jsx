@@ -274,14 +274,14 @@ export default function ConsultaDetalle() {
                           <label
                             key={t}
                             className={`flex items-center gap-1 text-xs bg-white border border-slate-200 rounded px-2 py-1 ${
-                              datosSegmentoActivo.bloqueada ? 'opacity-50 cursor-not-allowed' : ''
+                              !datosSegmentoActivo.ajustado ? 'opacity-50 cursor-not-allowed' : ''
                             }`}
                           >
                             <input
                               type="checkbox"
                               checked={datosSegmentoActivo.tipo_ajuste.includes(t)}
                               onChange={() => toggleEnLista('tipo_ajuste', t)}
-                              disabled={datosSegmentoActivo.bloqueada}
+                              disabled={!datosSegmentoActivo.ajustado}
                               className="disabled:cursor-not-allowed"
                             />
                             {t}
@@ -295,14 +295,14 @@ export default function ConsultaDetalle() {
                           <label
                             key={t}
                             className={`flex items-center gap-1 text-xs bg-white border border-slate-200 rounded px-2 py-1 ${
-                              datosSegmentoActivo.bloqueada ? 'opacity-50 cursor-not-allowed' : ''
+                              !datosSegmentoActivo.ajustado ? 'opacity-50 cursor-not-allowed' : ''
                             }`}
                           >
                             <input
                               type="checkbox"
                               checked={datosSegmentoActivo.tecnica.includes(t)}
                               onChange={() => toggleEnLista('tecnica', t)}
-                              disabled={datosSegmentoActivo.bloqueada}
+                              disabled={!datosSegmentoActivo.ajustado}
                               className="disabled:cursor-not-allowed"
                             />
                             {t}
@@ -322,7 +322,7 @@ export default function ConsultaDetalle() {
                               <label
                                 key={op.label}
                                 className={`flex items-center gap-1 text-xs text-slate-600 ${
-                                  datosSegmentoActivo.bloqueada ? 'opacity-50 cursor-not-allowed' : ''
+                                  !datosSegmentoActivo.ajustado ? 'opacity-50 cursor-not-allowed' : ''
                                 }`}
                               >
                                 <input
@@ -330,7 +330,7 @@ export default function ConsultaDetalle() {
                                   name="direccion"
                                   checked={(datosSegmentoActivo.direccion || null) === op.valor}
                                   onChange={() => actualizarSegmento('direccion', op.valor)}
-                                  disabled={datosSegmentoActivo.bloqueada}
+                                  disabled={!datosSegmentoActivo.ajustado}
                                   className="disabled:cursor-not-allowed"
                                 />
                                 {op.label}
