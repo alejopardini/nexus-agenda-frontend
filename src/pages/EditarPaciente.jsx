@@ -34,7 +34,7 @@ export default function EditarPaciente() {
     setGuardando(true)
     try {
       await apiClient.patch(`/pacientes/${id}/`, form)
-      navigate(`/pacientes/${id}`)
+      navigate('/pacientes', { state: { abrirPacienteId: id } })
     } catch (err) {
       const data = err.response?.data
       const mensaje = data

@@ -1,15 +1,19 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
+import FichaPacienteModal from '../components/FichaPacienteModal'
 import { useAuth } from '../context/AuthContext'
 
 export default function Pacientes() {
   const { auth } = useAuth()
+  const location = useLocation()
+  const navigate = useNavigate()
   const [pacientes, setPacientes] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [busqueda, setBusqueda] = useState('')
+  const [pacienteAbiertoId, setPacienteAbiertoId] = useState(() => location.state?.abrirPacienteId ?? null)
 
   useEffect(() => {
     apiClient
@@ -17,6 +21,13 @@ export default function Pacientes() {
       .then((res) => setPacientes(res.data))
       .catch(() => setError('No se pudieron cargar los pacientes.'))
       .finally(() => setLoading(false))
+  }, [])
+
+  useEffect(() => {
+    if (location.state?.abrirPacienteId) {
+      navigate(location.pathname, { replace: true, state: {} })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const termino = busqueda.trim().toLowerCase()
@@ -67,9 +78,12 @@ export default function Pacientes() {
                 {pacientesFiltrados.map((p) => (
                   <tr key={p.id} className="border-b border-slate-100 hover:bg-slate-50">
                     <td className="py-2">
-                      <Link to={`/pacientes/${p.id}`} className="text-blue-600 hover:underline">
+                      <button
+                        onClick={() => setPacienteAbiertoId(p.id)}
+                        className="text-blue-600 hover:underline"
+                      >
                         {p.nombre} {p.apellido}
-                      </Link>
+                      </button>
                     </td>
                     <td className="py-2">{p.email || '—'}</td>
                     <td className="py-2">{p.celular || '—'}</td>
@@ -80,6 +94,13 @@ export default function Pacientes() {
             </table>
           )}
         </div>
+      )}
+
+      {pacienteAbiertoId && (
+        <FichaPacienteModal
+          pacienteId={pacienteAbiertoId}
+          onClose={() => setPacienteAbiertoId(null)}
+        />
       )}
     </Layout>
   )
