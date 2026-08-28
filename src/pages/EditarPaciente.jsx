@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
 import BotonVolver from '../components/BotonVolver'
+import SelectorFrasesRapidas from '../components/SelectorFrasesRapidas'
 
 export default function EditarPaciente() {
   const { id } = useParams()
@@ -150,7 +151,17 @@ export default function EditarPaciente() {
             )}
 
             <div>
-              <label className="block text-sm text-slate-600 mb-1">Historia clínica</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-sm text-slate-600">Historia clínica</label>
+                <SelectorFrasesRapidas
+                  onSeleccionar={(texto) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      historia_clinica: prev.historia_clinica ? `${prev.historia_clinica}\n${texto}` : texto,
+                    }))
+                  }
+                />
+              </div>
               <textarea
                 name="historia_clinica" value={form.historia_clinica || ''} onChange={handleChange}
                 className="w-full border border-slate-300 rounded px-3 py-2" rows={4}

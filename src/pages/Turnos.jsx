@@ -19,7 +19,9 @@ export default function Turnos() {
   const cargarTurnos = () => {
     apiClient
       .get('/turnos/')
-      .then((res) => setTurnos(res.data.filter((t) => t.estado !== 'cancelado')))
+      .then((res) =>
+        setTurnos(res.data.filter((t) => t.estado !== 'cancelado' && t.fecha >= hoy))
+      )
       .catch(() => setError('No se pudieron cargar los turnos.'))
       .finally(() => setLoading(false))
   }
@@ -92,48 +94,42 @@ export default function Turnos() {
                 </tr>
               </thead>
               <tbody>
-                {turnosFiltrados.map((t) => {
-                  const vencidoSinCompletar = t.fecha < hoy && t.consulta_pendiente_id
-                  return (
-                    <tr
-                      key={t.id}
-                      className={`border-b border-slate-100 ${vencidoSinCompletar ? 'bg-red-50' : ''}`}
-                    >
-                      <td className="py-2">{t.fecha}</td>
-                      <td className="py-2">{t.hora}</td>
-                      <td className="py-2">{t.paciente_nombre}</td>
-                      <td className="py-2">{t.profesional_nombre}</td>
-                      <td className="py-2">
-                        <span className={`px-2 py-1 rounded text-xs font-medium ${COLOR_ESTADO[t.estado] || ''}`}>
-                          {t.estado}
-                        </span>
-                        {t.consulta_pendiente_id && (
-                          <Link
-                            to={`/consultas/${t.consulta_pendiente_id}`}
-                            className="inline-block w-2 h-2 rounded-full bg-red-500 ml-2 align-middle"
-                            title={vencidoSinCompletar ? 'Turno vencido sin completar la consulta' : 'Completar consulta pendiente'}
-                          />
-                        )}
-                      </td>
-                      <td className="py-2 space-x-2">
-                        {t.estado === 'pendiente' && (
-                          <button
-                            onClick={() => confirmarTurno(t.id)}
-                            className="text-green-600 text-xs hover:underline"
-                          >
-                            Confirmar
-                          </button>
-                        )}
+                {turnosFiltrados.map((t) => (
+                  <tr key={t.id} className="border-b border-slate-100">
+                    <td className="py-2">{t.fecha}</td>
+                    <td className="py-2">{t.hora}</td>
+                    <td className="py-2">{t.paciente_nombre}</td>
+                    <td className="py-2">{t.profesional_nombre}</td>
+                    <td className="py-2">
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${COLOR_ESTADO[t.estado] || ''}`}>
+                        {t.estado}
+                      </span>
+                      {t.consulta_pendiente_id && (
+                        <Link
+                          to={`/consultas/${t.consulta_pendiente_id}`}
+                          className="inline-block w-2 h-2 rounded-full bg-red-500 ml-2 align-middle"
+                          title="Completar consulta pendiente"
+                        />
+                      )}
+                    </td>
+                    <td className="py-2 space-x-2">
+                      {t.estado === 'pendiente' && (
                         <button
-                          onClick={() => cancelarTurno(t.id)}
-                          className="text-red-600 text-xs hover:underline"
+                          onClick={() => confirmarTurno(t.id)}
+                          className="text-green-600 text-xs hover:underline"
                         >
-                          Cancelar
+                          Confirmar
                         </button>
-                      </td>
-                    </tr>
-                  )
-                })}
+                      )}
+                      <button
+                        onClick={() => cancelarTurno(t.id)}
+                        className="text-red-600 text-xs hover:underline"
+                      >
+                        Cancelar
+                      </button>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           )}

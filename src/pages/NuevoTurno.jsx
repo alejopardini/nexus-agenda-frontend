@@ -14,6 +14,8 @@ const TIPOS_TURNO = [
   { value: 'reactivacion', label: 'Reactivación (15 min + 5 margen)', minutos: 20 },
 ]
 
+const MARGEN_MINUTOS_MINIMO = 30
+
 export default function NuevoTurno() {
   const { auth } = useAuth()
   const navigate = useNavigate()
@@ -117,12 +119,15 @@ export default function NuevoTurno() {
     : []
 
   let horariosDisponibles = []
+  const esHoy = fechaSeleccionada && fechaToStr(fechaSeleccionada) === fechaToStr(hoy)
+  const minutosAhora = hoy.getHours() * 60 + hoy.getMinutes()
   disponibilidadDelDia.forEach((d) => {
     const inicioMin = hmAMinutos(d.hora_inicio.slice(0, 5))
     const finMin = hmAMinutos(d.hora_fin.slice(0, 5))
     for (let m = inicioMin; m + tipo.minutos <= finMin; m += 15) {
       const slotInicio = m
       const slotFin = m + tipo.minutos
+      if (esHoy && slotInicio < minutosAhora + MARGEN_MINUTOS_MINIMO) continue
       const ocupado = turnosDelDia.some((t) => {
         const tInicio = hmAMinutos(t.hora.slice(0, 5))
         const tFin = tInicio + duracionAMinutos(t.duracion)

@@ -12,6 +12,7 @@ import EditarPaciente from './pages/EditarPaciente'
 import Turnos from './pages/Turnos'
 import NuevoTurno from './pages/NuevoTurno'
 import TurnosCancelados from './pages/TurnosCancelados'
+import HistorialTurnos from './pages/HistorialTurnos'
 import CalendarioTurnos from './pages/CalendarioTurnos'
 import ConsultaDetalle from './pages/ConsultaDetalle'
 import Disponibilidad from './pages/Disponibilidad'
@@ -22,6 +23,7 @@ import Interconsultas from './pages/Interconsultas'
 import Secretarias from './pages/Secretarias'
 import NuevaSecretaria from './pages/NuevaSecretaria'
 import Soporte from './pages/Soporte'
+import FrasesRapidas from './pages/FrasesRapidas'
 
 function App() {
   return (
@@ -40,6 +42,7 @@ function App() {
           <Route path="/turnos/lista" element={<ProtectedRoute><Turnos /></ProtectedRoute>} />
           <Route path="/turnos/nuevo" element={<ProtectedRoute><NuevoTurno /></ProtectedRoute>} />
           <Route path="/turnos/cancelados" element={<ProtectedRoute><TurnosCancelados /></ProtectedRoute>} />
+          <Route path="/turnos/historial" element={<ProtectedRoute><HistorialTurnos /></ProtectedRoute>} />
           <Route path="/consultas/:id" element={<ProtectedRoute><ConsultaDetalle /></ProtectedRoute>} />
           <Route path="/disponibilidad" element={<ProtectedRoute><Disponibilidad /></ProtectedRoute>} />
           <Route path="/profesionales" element={<ProtectedRoute><Profesionales /></ProtectedRoute>} />
@@ -49,6 +52,7 @@ function App() {
           <Route path="/secretarias" element={<ProtectedRoute><Secretarias /></ProtectedRoute>} />
           <Route path="/secretarias/nueva" element={<ProtectedRoute><NuevaSecretaria /></ProtectedRoute>} />
           <Route path="/soporte" element={<ProtectedRoute><Soporte /></ProtectedRoute>} />
+          <Route path="/frases-rapidas" element={<ProtectedRoute><FrasesRapidas /></ProtectedRoute>} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

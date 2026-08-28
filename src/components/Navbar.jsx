@@ -55,7 +55,9 @@ export default function Navbar() {
             { to: '/turnos/lista', label: 'Ver lista' },
             ...(auth.rol !== 'profesional' ? [{ to: '/turnos/nuevo', label: 'Nuevo turno' }] : []),
             { to: '/turnos', label: 'Ver calendario' },
+            { to: '/turnos/historial', label: 'Historial' },
             { to: '/disponibilidad', label: 'Disponibilidad' },
+            ...(auth.rol === 'profesional' ? [{ to: '/frases-rapidas', label: 'Frases rápidas' }] : []),
           ]}
         />
         <MenuDropdown

@@ -5,6 +5,7 @@ import Layout from '../components/Layout'
 import useClickOutside from '../hooks/useClickOutside'
 import BotonVolver from '../components/BotonVolver'
 import ColumnaVertebral from '../components/ColumnaVertebral'
+import SelectorFrasesRapidas from '../components/SelectorFrasesRapidas'
 
 const LISTADOS_POR_SEGMENTO = {
   C1: ['ASR', 'AIR', 'ASRA', 'ASRP', 'AIRA', 'AIRP'],
@@ -223,7 +224,12 @@ export default function ConsultaDetalle() {
           </div>
 
           <div>
-            <label className="block text-sm text-slate-600 mb-1">Observaciones</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-sm text-slate-600">Observaciones</label>
+              <SelectorFrasesRapidas
+                onSeleccionar={(texto) => setObservaciones((prev) => (prev ? `${prev}\n${texto}` : texto))}
+              />
+            </div>
             <textarea
               value={observaciones}
               onChange={(e) => setObservaciones(e.target.value)}
