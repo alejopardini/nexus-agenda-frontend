@@ -25,6 +25,7 @@ export default function TurnosCancelados() {
           {turnos.length === 0 ? (
             <p className="text-slate-500">No hay turnos cancelados registrados.</p>
           ) : (
+            <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-slate-500 border-b border-slate-200">
@@ -45,6 +46,7 @@ export default function TurnosCancelados() {
                 ))}
               </tbody>
             </table>
+            </div>
           )}
         </div>
       )}

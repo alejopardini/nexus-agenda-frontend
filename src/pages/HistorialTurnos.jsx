@@ -75,6 +75,7 @@ export default function HistorialTurnos() {
           ) : turnosFiltrados.length === 0 ? (
             <p className="text-slate-500">Ningún turno coincide con "{busqueda}".</p>
           ) : (
+            <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-slate-500 border-b border-slate-200">
@@ -153,6 +154,7 @@ export default function HistorialTurnos() {
                 })}
               </tbody>
             </table>
+            </div>
           )}
         </div>
       )}

@@ -49,6 +49,7 @@ export default function Secretarias() {
           {secretarias.length === 0 ? (
             <p className="text-slate-500">No hay secretarias cargadas todavía.</p>
           ) : (
+            <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-slate-500 border-b border-slate-200">
@@ -74,6 +75,7 @@ export default function Secretarias() {
                 ))}
               </tbody>
             </table>
+            </div>
           )}
         </div>
       )}

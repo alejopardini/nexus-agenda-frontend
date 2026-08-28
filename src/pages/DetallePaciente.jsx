@@ -269,7 +269,7 @@ export default function DetallePaciente() {
 
           {tieneAcceso && (
             <>
-              <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
+              <dl className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                 <div>
                   <dt className="text-slate-500">DNI</dt>
                   <dd className="text-slate-800">{paciente.dni || '—'}</dd>

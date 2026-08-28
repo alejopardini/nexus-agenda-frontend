@@ -71,7 +71,7 @@ export default function NuevoProfesional() {
           {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="flex gap-4">
+            <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1">
                 <label className="block text-sm text-slate-600 mb-1">Nombre</label>
                 <input
@@ -149,7 +149,7 @@ export default function NuevoProfesional() {
                     ))}
                   </select>
                 </div>
-                <div className="flex gap-4">
+                <div className="flex flex-col md:flex-row gap-4">
                   <div className="flex-1">
                     <label className="block text-sm text-slate-600 mb-1">Desde</label>
                     <input
