@@ -36,10 +36,10 @@ function App() {
           <Route path="/pacientes/nuevo" element={<ProtectedRoute><NuevoPaciente /></ProtectedRoute>} />
           <Route path="/pacientes/:id/editar" element={<ProtectedRoute><EditarPaciente /></ProtectedRoute>} />
           <Route path="/pacientes/:id" element={<ProtectedRoute><DetallePaciente /></ProtectedRoute>} />
-          <Route path="/turnos" element={<ProtectedRoute><Turnos /></ProtectedRoute>} />
+          <Route path="/turnos" element={<ProtectedRoute><CalendarioTurnos /></ProtectedRoute>} />
+          <Route path="/turnos/lista" element={<ProtectedRoute><Turnos /></ProtectedRoute>} />
           <Route path="/turnos/nuevo" element={<ProtectedRoute><NuevoTurno /></ProtectedRoute>} />
           <Route path="/turnos/cancelados" element={<ProtectedRoute><TurnosCancelados /></ProtectedRoute>} />
-          <Route path="/turnos/calendario" element={<ProtectedRoute><CalendarioTurnos /></ProtectedRoute>} />
           <Route path="/consultas/:id" element={<ProtectedRoute><ConsultaDetalle /></ProtectedRoute>} />
           <Route path="/disponibilidad" element={<ProtectedRoute><Disponibilidad /></ProtectedRoute>} />
           <Route path="/profesionales" element={<ProtectedRoute><Profesionales /></ProtectedRoute>} />

@@ -52,9 +52,9 @@ export default function Navbar() {
         <MenuDropdown
           titulo="Turnos"
           items={[
-            { to: '/turnos', label: 'Ver lista' },
+            { to: '/turnos/lista', label: 'Ver lista' },
             ...(auth.rol !== 'profesional' ? [{ to: '/turnos/nuevo', label: 'Nuevo turno' }] : []),
-            { to: '/turnos/calendario', label: 'Ver calendario' },
+            { to: '/turnos', label: 'Ver calendario' },
             { to: '/disponibilidad', label: 'Disponibilidad' },
           ]}
         />

@@ -67,7 +67,7 @@ export default function Turnos() {
               onChange={(e) => setBusqueda(e.target.value)}
               className="flex-1 max-w-xs border border-slate-300 rounded px-3 py-1.5 text-sm"
             />
-            <Link to="/turnos/calendario" className="text-sm text-blue-600 hover:underline whitespace-nowrap">
+            <Link to="/turnos" className="text-sm text-blue-600 hover:underline whitespace-nowrap">
               Ver calendario
             </Link>
             <Link to="/turnos/cancelados" className="text-sm text-slate-500 hover:underline whitespace-nowrap">

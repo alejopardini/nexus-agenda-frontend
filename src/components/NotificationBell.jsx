@@ -63,7 +63,7 @@ export default function NotificationBell() {
             <ul className="max-h-64 overflow-y-auto divide-y divide-slate-100">
               {relevantes.map((t) => (
                 <li key={t.id} className="p-3 text-sm">
-                  <Link to="/turnos" onClick={() => setAbierto(false)} className="block hover:text-blue-600">
+                  <Link to="/turnos/lista" onClick={() => setAbierto(false)} className="block hover:text-blue-600">
                     <div className="flex justify-between">
                       <span className="font-medium">{t.paciente_nombre}</span>
                       <span className="text-slate-500">{t.hora}</span>

@@ -120,7 +120,7 @@ export default function CalendarioTurnos() {
       <div className="space-y-4">
         <div className="bg-white rounded-lg shadow-md p-4 flex flex-wrap justify-between items-center gap-3">
           <h1 className="text-xl font-bold text-slate-800">Calendario de turnos</h1>
-          <Link to="/turnos" className="text-sm text-blue-600 hover:underline">Ver lista</Link>
+          <Link to="/turnos/lista" className="text-sm text-blue-600 hover:underline">Ver lista</Link>
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-4 flex flex-wrap items-center gap-3">
