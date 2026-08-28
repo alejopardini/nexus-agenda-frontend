@@ -45,6 +45,7 @@ export default function ConsultaDetalle() {
   const [observaciones, setObservaciones] = useState('')
   const [ajustes, setAjustes] = useState({})
   const [segmentoActivo, setSegmentoActivo] = useState(null)
+  const [turnoInfo, setTurnoInfo] = useState(null)
 
   const panelRef = useClickOutside(() => setSegmentoActivo(null))
 
@@ -57,6 +58,9 @@ export default function ConsultaDetalle() {
         setConsulta(res.data)
         setMotivo(res.data.motivo || '')
         setObservaciones(res.data.observaciones || '')
+        if (res.data.turno) {
+          apiClient.get(`/turnos/${res.data.turno}/`).then((r) => setTurnoInfo(r.data)).catch(() => {})
+        }
         if (res.data.profesional_especialidad === 'kinesiologo_quiropra') {
           return apiClient.get(`/consultas/${id}/ajustes_vertebrales/`)
         }
@@ -174,7 +178,9 @@ export default function ConsultaDetalle() {
 
       navigate(`/pacientes/${consulta.paciente}`)
     } catch (err) {
-      setError('No se pudo guardar la consulta.')
+      const data = err.response?.data
+      const mensaje = data ? Object.values(data).flat().join(' ') : 'No se pudo guardar la consulta.'
+      setError(mensaje)
     } finally {
       setGuardando(false)
     }
@@ -197,6 +203,17 @@ export default function ConsultaDetalle() {
   }
 
   const datosSegmentoActivo = segmentoActivo ? ajustes[segmentoActivo] : null
+
+  const MARGEN_MINUTOS_COMPLETAR = 15
+  let habilitadoDesde = null
+  if (turnoInfo) {
+    const momentoTurno = new Date(`${turnoInfo.fecha}T${turnoInfo.hora}`)
+    habilitadoDesde = new Date(momentoTurno.getTime() - MARGEN_MINUTOS_COMPLETAR * 60000)
+  }
+  const debeEsperar = consulta.estado !== 'completada' && habilitadoDesde && new Date() < habilitadoDesde
+  const horaHabilitada = habilitadoDesde
+    ? `${String(habilitadoDesde.getHours()).padStart(2, '0')}:${String(habilitadoDesde.getMinutes()).padStart(2, '0')}`
+    : ''
 
   return (
     <Layout>
@@ -370,11 +387,14 @@ export default function ConsultaDetalle() {
 
           <button
             type="submit"
-            disabled={guardando}
+            disabled={guardando || debeEsperar}
             className="w-full bg-blue-600 text-white rounded py-2 font-medium hover:bg-blue-700 disabled:opacity-50"
           >
             {guardando ? 'Guardando...' : consulta.estado === 'completada' ? 'Guardar cambios' : 'Marcar como completada'}
           </button>
+          {debeEsperar && (
+            <p className="text-xs text-slate-500 text-center">Podés completarla desde las {horaHabilitada}</p>
+          )}
         </form>
       </div>
     </Layout>

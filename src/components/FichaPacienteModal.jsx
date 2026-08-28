@@ -36,6 +36,11 @@ export default function FichaPacienteModal({ pacienteId, onClose }) {
   const [planesError, setPlanesError] = useState(false)
   const [formPlan, setFormPlan] = useState({ sesiones_totales: '', precio: '', notas: '' })
   const [guardandoPlan, setGuardandoPlan] = useState(false)
+  const [errorPlan, setErrorPlan] = useState('')
+  const [editandoPlanId, setEditandoPlanId] = useState(null)
+  const [editPlan, setEditPlan] = useState({ sesiones_totales: '', precio: '', notas: '' })
+  const [guardandoEditPlan, setGuardandoEditPlan] = useState(false)
+  const [mostrarPlanesArchivados, setMostrarPlanesArchivados] = useState(false)
 
   const [archivos, setArchivos] = useState([])
   const [archivosError, setArchivosError] = useState(false)
@@ -240,13 +245,18 @@ export default function FichaPacienteModal({ pacienteId, onClose }) {
 
   const handleSubmitPlan = async (e) => {
     e.preventDefault()
+    setErrorPlan('')
     if (!formPlan.sesiones_totales) return
+    if (!formPlan.precio) {
+      setErrorPlan('El precio es obligatorio.')
+      return
+    }
     setGuardandoPlan(true)
     try {
       await apiClient.post('/planes/', {
         paciente: pacienteId,
         sesiones_totales: formPlan.sesiones_totales,
-        precio: formPlan.precio || null,
+        precio: formPlan.precio,
         notas: formPlan.notas,
       })
       setFormPlan({ sesiones_totales: '', precio: '', notas: '' })
@@ -261,6 +271,44 @@ export default function FichaPacienteModal({ pacienteId, onClose }) {
       setGuardandoPlan(false)
     }
   }
+
+  const iniciarEdicionPlan = (p) => {
+    setEditandoPlanId(p.id)
+    setEditPlan({ sesiones_totales: p.sesiones_totales, precio: p.precio, notas: p.notas })
+  }
+
+  const cancelarEdicionPlan = () => {
+    setEditandoPlanId(null)
+  }
+
+  const guardarEdicionPlan = async (id) => {
+    setGuardandoEditPlan(true)
+    try {
+      await apiClient.patch(`/planes/${id}/`, {
+        sesiones_totales: editPlan.sesiones_totales,
+        precio: editPlan.precio,
+        notas: editPlan.notas,
+      })
+      setEditandoPlanId(null)
+      cargarPlanes()
+    } catch {
+      alert('No se pudo guardar el plan.')
+    } finally {
+      setGuardandoEditPlan(false)
+    }
+  }
+
+  const darDeBajaPlan = async (id) => {
+    if (!confirm('¿Dar de baja este plan? Las sesiones no se pierden, pero deja de usarse automáticamente para nuevos turnos.')) return
+    try {
+      await apiClient.post(`/planes/${id}/dar_de_baja/`)
+      cargarPlanes()
+    } catch {
+      alert('No se pudo dar de baja el plan.')
+    }
+  }
+
+  const planCerrado = (p) => !p.activo || p.sesiones_usadas >= p.sesiones_totales
 
   const tieneAcceso = paciente ? 'email' in paciente : false
   const profesionalACargo = consultas[0]?.profesional_nombre || null
@@ -361,6 +409,14 @@ export default function FichaPacienteModal({ pacienteId, onClose }) {
                   <p className="text-slate-400 text-sm">No se pudieron cargar los planes.</p>
                 ) : (
                   <div className="space-y-4">
+                    <button
+                      onClick={() => setMostrarPlanesArchivados(!mostrarPlanesArchivados)}
+                      className="text-sm text-blue-600 hover:underline"
+                    >
+                      {mostrarPlanesArchivados ? 'Ver planes activos' : 'Ver archivados'}
+                    </button>
+
+                    {!mostrarPlanesArchivados && (
                     <form onSubmit={handleSubmitPlan} className="flex flex-wrap gap-2 items-end bg-slate-50 rounded p-3">
                       <div>
                         <label className="block text-xs text-slate-500 mb-1">Sesiones</label>
@@ -382,6 +438,7 @@ export default function FichaPacienteModal({ pacienteId, onClose }) {
                           value={formPlan.precio}
                           onChange={(e) => setFormPlan({ ...formPlan, precio: e.target.value })}
                           className="w-28 text-sm border border-slate-300 rounded px-2 py-1.5"
+                          required
                         />
                       </div>
                       <div className="flex-1 min-w-[140px]">
@@ -400,24 +457,100 @@ export default function FichaPacienteModal({ pacienteId, onClose }) {
                       >
                         {guardandoPlan ? 'Guardando...' : '+ Agregar plan'}
                       </button>
+                      {errorPlan && <p className="text-red-600 text-xs w-full">{errorPlan}</p>}
                     </form>
+                    )}
 
-                    {planes.length === 0 ? (
-                      <p className="text-slate-500 text-sm">No hay planes cargados todavía.</p>
+                    {planes.filter((p) => planCerrado(p) === mostrarPlanesArchivados).length === 0 ? (
+                      <p className="text-slate-500 text-sm">
+                        {mostrarPlanesArchivados ? 'No hay planes archivados.' : 'No hay planes activos cargados todavía.'}
+                      </p>
                     ) : (
                       <ul className="divide-y divide-slate-100">
-                        {planes.map((p) => (
-                          <li key={p.id} className="py-2 text-sm">
-                            <div className="flex justify-between">
-                              <span className="font-medium text-slate-800">
-                                {p.sesiones_usadas} / {p.sesiones_totales} sesiones usadas
-                              </span>
-                              <span className="text-slate-500">{p.fecha_compra}</span>
-                            </div>
-                            <div className="flex justify-between text-slate-600 mt-0.5">
-                              <span>{p.sesiones_restantes} restantes{p.notas ? ` — ${p.notas}` : ''}</span>
-                              <span>{p.precio ? `$${p.precio}` : '—'}</span>
-                            </div>
+                        {planes.filter((p) => planCerrado(p) === mostrarPlanesArchivados).map((p) => (
+                          <li key={p.id} className={`py-2 text-sm ${p.activo ? '' : 'opacity-50'}`}>
+                            {editandoPlanId === p.id ? (
+                              <div className="space-y-2">
+                                <div className="flex flex-wrap gap-2 items-end">
+                                  <div>
+                                    <label className="block text-xs text-slate-500 mb-1">Sesiones</label>
+                                    <input
+                                      type="number"
+                                      min="1"
+                                      value={editPlan.sesiones_totales}
+                                      onChange={(e) => setEditPlan({ ...editPlan, sesiones_totales: e.target.value })}
+                                      className="w-24 text-sm border border-slate-300 rounded px-2 py-1.5"
+                                      required
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="block text-xs text-slate-500 mb-1">Precio</label>
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      step="0.01"
+                                      value={editPlan.precio}
+                                      onChange={(e) => setEditPlan({ ...editPlan, precio: e.target.value })}
+                                      className="w-28 text-sm border border-slate-300 rounded px-2 py-1.5"
+                                      required
+                                    />
+                                  </div>
+                                  <div className="flex-1 min-w-[140px]">
+                                    <label className="block text-xs text-slate-500 mb-1">Notas</label>
+                                    <input
+                                      type="text"
+                                      value={editPlan.notas}
+                                      onChange={(e) => setEditPlan({ ...editPlan, notas: e.target.value })}
+                                      className="w-full text-sm border border-slate-300 rounded px-2 py-1.5"
+                                    />
+                                  </div>
+                                </div>
+                                <div className="space-x-3">
+                                  <button
+                                    onClick={() => guardarEdicionPlan(p.id)}
+                                    disabled={guardandoEditPlan}
+                                    className="text-green-600 text-xs hover:underline disabled:opacity-50"
+                                  >
+                                    Guardar
+                                  </button>
+                                  <button onClick={cancelarEdicionPlan} className="text-slate-500 text-xs hover:underline">
+                                    Cancelar
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <>
+                                <div className="flex justify-between">
+                                  <span className="font-medium text-slate-800">
+                                    {p.sesiones_usadas} / {p.sesiones_totales} sesiones usadas
+                                    {!p.activo && (
+                                      <span className="ml-2 text-xs bg-slate-200 text-slate-600 rounded px-1.5 py-0.5">
+                                        Dado de baja
+                                      </span>
+                                    )}
+                                  </span>
+                                  <span className="text-slate-500">{p.fecha_compra}</span>
+                                </div>
+                                <div className="flex justify-between text-slate-600 mt-0.5">
+                                  <span>{p.sesiones_restantes} restantes{p.notas ? ` — ${p.notas}` : ''}</span>
+                                  <span>{p.precio ? `$${p.precio}` : '—'}</span>
+                                </div>
+                                {!mostrarPlanesArchivados && (
+                                  <div className="mt-1 space-x-3">
+                                    {!planCerrado(p) && (
+                                      <button onClick={() => iniciarEdicionPlan(p)} className="text-blue-600 text-xs hover:underline">
+                                        Editar
+                                      </button>
+                                    )}
+                                    {p.activo && (
+                                      <button onClick={() => darDeBajaPlan(p.id)} className="text-red-600 text-xs hover:underline">
+                                        Dar de baja
+                                      </button>
+                                    )}
+                                  </div>
+                                )}
+                              </>
+                            )}
                           </li>
                         ))}
                       </ul>
