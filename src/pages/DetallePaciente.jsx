@@ -44,13 +44,11 @@ export default function DetallePaciente() {
   useEffect(() => {
     Promise.all([
       apiClient.get(`/pacientes/${id}/`),
-      apiClient.get('/consultas/'),
       apiClient.get(`/pacientes/${id}/seguimiento_quiropractico/`),
       apiClient.get('/profesionales/'),
     ])
-      .then(([pacienteRes, consultasRes, seguimientoRes, profesionalesRes]) => {
+      .then(([pacienteRes, seguimientoRes, profesionalesRes]) => {
         setPaciente(pacienteRes.data)
-        setConsultas(consultasRes.data.filter((c) => String(c.paciente) === id))
         if (seguimientoRes.data) {
           setSeguimiento({
             etapa_cuidado: seguimientoRes.data.etapa_cuidado || '',
@@ -61,6 +59,11 @@ export default function DetallePaciente() {
       })
       .catch(() => setError('No se pudo cargar el paciente.'))
       .finally(() => setLoading(false))
+
+    apiClient
+      .get('/consultas/')
+      .then((res) => setConsultas(res.data.filter((c) => String(c.paciente) === id)))
+      .catch(() => setConsultas([]))
 
     cargarArchivos()
   }, [id])
@@ -386,9 +389,13 @@ export default function DetallePaciente() {
           <div className="bg-white rounded-lg shadow-md p-6">
             <h2 className="text-lg font-bold text-slate-800 mb-3">Consultas</h2>
             {consultas.length === 0 ? (
-              <p className="text-slate-500 text-sm">
-                No hay consultas todavía — se generan automáticamente al confirmar un turno.
-              </p>
+              auth.rol === 'secretaria' ? (
+                <p className="text-slate-400 text-sm">No disponible para tu rol.</p>
+              ) : (
+                <p className="text-slate-500 text-sm">
+                  No hay consultas todavía — se generan automáticamente al confirmar un turno.
+                </p>
+              )
             ) : (
               <ul className="divide-y divide-slate-100">
                 {consultas.map((c) => (
