@@ -47,6 +47,7 @@ export default function Navbar() {
             { to: '/pacientes', label: 'Ver lista' },
             ...(auth.rol !== 'profesional' ? [{ to: '/pacientes/nuevo', label: 'Nuevo paciente' }] : []),
             { to: '/interconsultas', label: 'Interconsultas' },
+            { to: '/pacientes/sin-turno', label: 'Sin turno reciente' },
           ]}
         />
         <MenuDropdown
