@@ -21,6 +21,7 @@ import EditarProfesional from './pages/EditarProfesional'
 import Interconsultas from './pages/Interconsultas'
 import Secretarias from './pages/Secretarias'
 import NuevaSecretaria from './pages/NuevaSecretaria'
+import Soporte from './pages/Soporte'
 
 function App() {
   return (
@@ -47,6 +48,7 @@ function App() {
           <Route path="/interconsultas" element={<ProtectedRoute><Interconsultas /></ProtectedRoute>} />
           <Route path="/secretarias" element={<ProtectedRoute><Secretarias /></ProtectedRoute>} />
           <Route path="/secretarias/nueva" element={<ProtectedRoute><NuevaSecretaria /></ProtectedRoute>} />
+          <Route path="/soporte" element={<ProtectedRoute><Soporte /></ProtectedRoute>} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

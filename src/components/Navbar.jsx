@@ -68,6 +68,13 @@ export default function Navbar() {
         />
       </div>
       <div className="flex items-center gap-4">
+        <Link
+          to="/soporte"
+          title="Soporte técnico"
+          className="w-7 h-7 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 text-sm"
+        >
+          🛟
+        </Link>
         <div className="flex flex-col items-end">
           <span className="text-xs text-slate-400">{auth.organizacion_nombre}</span>
           <span className="text-sm text-slate-500">{auth.username} ({auth.rol})</span>
