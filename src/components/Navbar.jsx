@@ -86,6 +86,7 @@ export default function Navbar() {
           <img src={logoQnexus} alt="QuiroNexus" className="h-14 w-auto" />
           <div className="hidden md:flex items-center gap-6">
             <Link to="/" className="text-sm text-slate-600 hover:text-blue-600">Inicio</Link>
+            <Link to="/camillas" className="text-sm text-slate-600 hover:text-blue-600">Camillas</Link>
             <MenuDropdown titulo="Pacientes" items={itemsPacientes} />
             <MenuDropdown titulo="Turnos" items={itemsTurnos} />
             <MenuDropdown titulo="Profesionales" items={itemsProfesionales} />
@@ -129,6 +130,13 @@ export default function Navbar() {
             className="block text-sm text-slate-600 hover:text-blue-600 px-1"
           >
             Inicio
+          </Link>
+          <Link
+            to="/camillas"
+            onClick={() => setMobileOpen(false)}
+            className="block text-sm text-slate-600 hover:text-blue-600 px-1"
+          >
+            Camillas
           </Link>
           <MenuSeccionMobile titulo="Pacientes" items={itemsPacientes} onNavegar={() => setMobileOpen(false)} />
           <MenuSeccionMobile titulo="Turnos" items={itemsTurnos} onNavegar={() => setMobileOpen(false)} />

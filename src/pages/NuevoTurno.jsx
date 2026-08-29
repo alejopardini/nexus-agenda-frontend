@@ -5,6 +5,8 @@ import 'react-datepicker/dist/react-datepicker.css'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
 import BotonVolver from '../components/BotonVolver'
+import BuscadorPaciente from '../components/BuscadorPaciente'
+import NuevoPacienteModal from '../components/NuevoPacienteModal'
 import { useAuth } from '../context/AuthContext'
 import { hmAMinutos, minutosAHM, duracionAMinutos, diaSemanaBackend, fechaToStr } from '../utils/fechas'
 
@@ -32,6 +34,7 @@ export default function NuevoTurno() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [guardando, setGuardando] = useState(false)
+  const [modalNuevoPacienteAbierto, setModalNuevoPacienteAbierto] = useState(false)
   const [fechaSeleccionada, setFechaSeleccionada] = useState(() => {
     const fechaParam = searchParams.get('fecha')
     return fechaParam ? new Date(`${fechaParam}T00:00:00`) : null
@@ -229,18 +232,12 @@ export default function NuevoTurno() {
 
             <div>
               <label className="block text-sm text-slate-600 mb-1">Paciente</label>
-              <select
-                name="paciente"
+              <BuscadorPaciente
+                pacientes={pacientes}
                 value={form.paciente}
-                onChange={handleChange}
-                className="w-full border border-slate-300 rounded px-3 py-2"
-                required
-              >
-                <option value="">Seleccione un paciente</option>
-                {pacientes.map((p) => (
-                  <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>
-                ))}
-              </select>
+                onChange={(id) => setForm({ ...form, paciente: id })}
+                onNuevoPaciente={() => setModalNuevoPacienteAbierto(true)}
+              />
             </div>
 
             <div>
@@ -336,6 +333,16 @@ export default function NuevoTurno() {
           </form>
         </div>
       </div>
+
+      {modalNuevoPacienteAbierto && (
+        <NuevoPacienteModal
+          onClose={() => setModalNuevoPacienteAbierto(false)}
+          onCreado={(p) => {
+            setPacientes((prev) => [...prev, p])
+            setForm((prev) => ({ ...prev, paciente: p.id }))
+          }}
+        />
+      )}
     </Layout>
   )
 }
