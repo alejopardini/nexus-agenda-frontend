@@ -71,7 +71,6 @@ export default function Navbar() {
     { to: '/turnos', label: 'Ver calendario' },
     { to: '/turnos/historial', label: 'Historial' },
     { to: '/disponibilidad', label: 'Disponibilidad' },
-    ...(auth.rol === 'profesional' ? [{ to: '/frases-rapidas', label: 'Frases rápidas' }] : []),
   ]
   const itemsProfesionales = [
     { to: '/profesionales', label: 'Ver lista' },

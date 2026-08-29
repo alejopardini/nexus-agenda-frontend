@@ -23,7 +23,6 @@ import Interconsultas from './pages/Interconsultas'
 import Secretarias from './pages/Secretarias'
 import NuevaSecretaria from './pages/NuevaSecretaria'
 import Soporte from './pages/Soporte'
-import FrasesRapidas from './pages/FrasesRapidas'
 import PacientesSinTurno from './pages/PacientesSinTurno'
 import Camillas from './pages/Camillas'
 
@@ -54,7 +53,6 @@ function App() {
           <Route path="/secretarias" element={<ProtectedRoute><Secretarias /></ProtectedRoute>} />
           <Route path="/secretarias/nueva" element={<ProtectedRoute><NuevaSecretaria /></ProtectedRoute>} />
           <Route path="/soporte" element={<ProtectedRoute><Soporte /></ProtectedRoute>} />
-          <Route path="/frases-rapidas" element={<ProtectedRoute><FrasesRapidas /></ProtectedRoute>} />
           <Route path="/pacientes/sin-turno" element={<ProtectedRoute><PacientesSinTurno /></ProtectedRoute>} />
           <Route path="/camillas" element={<ProtectedRoute><Camillas /></ProtectedRoute>} />
         </Routes>
