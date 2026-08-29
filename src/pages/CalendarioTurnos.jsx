@@ -110,6 +110,16 @@ export default function CalendarioTurnos() {
     return minuto >= inicio && minuto < fin
   })
 
+  const turnosHoy = turnosDelDia.length
+  const atendidos = turnosDelDia.filter((t) => t.consulta_id && !t.consulta_pendiente_id).length
+
+  let turnosLibres = 0
+  columnas.forEach(({ profesional, bloques }) => {
+    franjas.forEach((minuto) => {
+      if (estaEnBloque(bloques, minuto) && !turnoQueOcupa(profesional.id, minuto)) turnosLibres += 1
+    })
+  })
+
   const handleClickCelda = (profesionalId, disponible, ocupado, minuto) => {
     if (!disponible || ocupado) return
     navigate(`/turnos/nuevo?profesional=${profesionalId}&fecha=${fechaStr}&hora=${minutosAHM(minuto)}`)
@@ -145,6 +155,21 @@ export default function CalendarioTurnos() {
           <span className="text-sm text-slate-500 capitalize">
             {fecha.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}
           </span>
+        </div>
+
+        <div className="grid grid-cols-3 gap-3">
+          <div className="bg-white rounded-lg shadow-md p-4 text-center">
+            <p className="text-2xl font-bold text-slate-800">{turnosHoy}</p>
+            <p className="text-xs text-slate-500 mt-1">Turnos hoy</p>
+          </div>
+          <div className="bg-white rounded-lg shadow-md p-4 text-center">
+            <p className="text-2xl font-bold text-slate-800">{atendidos}</p>
+            <p className="text-xs text-slate-500 mt-1">Atendidos</p>
+          </div>
+          <div className="bg-white rounded-lg shadow-md p-4 text-center">
+            <p className="text-2xl font-bold text-slate-800">{turnosLibres}</p>
+            <p className="text-xs text-slate-500 mt-1">Turnos libres</p>
+          </div>
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-4 overflow-x-auto">

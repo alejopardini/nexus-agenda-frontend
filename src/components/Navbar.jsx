@@ -70,7 +70,10 @@ export default function Navbar() {
     ...(auth.rol !== 'profesional' ? [{ to: '/turnos/nuevo', label: 'Nuevo turno' }] : []),
     { to: '/turnos', label: 'Ver calendario' },
     { to: '/turnos/historial', label: 'Historial' },
+    ...(auth.rol !== 'secretaria' ? [{ to: '/consultas', label: 'Consultas' }] : []),
+    ...(auth.rol !== 'secretaria' ? [{ to: '/estadisticas', label: 'Estadísticas' }] : []),
     { to: '/disponibilidad', label: 'Disponibilidad' },
+    ...(auth.rol === 'profesional' ? [{ to: '/campos-personalizados', label: 'Campos personalizados' }] : []),
   ]
   const itemsProfesionales = [
     { to: '/profesionales', label: 'Ver lista' },

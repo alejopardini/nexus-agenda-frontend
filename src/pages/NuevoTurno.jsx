@@ -178,6 +178,7 @@ export default function NuevoTurno() {
       profesional: form.profesional,
       fecha: fechaStr,
       hora: form.hora,
+      tipo_turno: form.tipoTurno,
       descripcion: form.descripcion,
       estado: form.estado,
       duracion: `${String(Math.floor(tipo.minutos / 60)).padStart(2, '0')}:${String(tipo.minutos % 60).padStart(2, '0')}:00`,

@@ -15,6 +15,7 @@ import TurnosCancelados from './pages/TurnosCancelados'
 import HistorialTurnos from './pages/HistorialTurnos'
 import CalendarioTurnos from './pages/CalendarioTurnos'
 import ConsultaDetalle from './pages/ConsultaDetalle'
+import Consultas from './pages/Consultas'
 import Disponibilidad from './pages/Disponibilidad'
 import Profesionales from './pages/Profesionales'
 import NuevoProfesional from './pages/NuevoProfesional'
@@ -25,6 +26,8 @@ import NuevaSecretaria from './pages/NuevaSecretaria'
 import Soporte from './pages/Soporte'
 import PacientesSinTurno from './pages/PacientesSinTurno'
 import Camillas from './pages/Camillas'
+import CamposPersonalizados from './pages/CamposPersonalizados'
+import Estadisticas from './pages/Estadisticas'
 
 function App() {
   return (
@@ -44,6 +47,7 @@ function App() {
           <Route path="/turnos/nuevo" element={<ProtectedRoute><NuevoTurno /></ProtectedRoute>} />
           <Route path="/turnos/cancelados" element={<ProtectedRoute><TurnosCancelados /></ProtectedRoute>} />
           <Route path="/turnos/historial" element={<ProtectedRoute><HistorialTurnos /></ProtectedRoute>} />
+          <Route path="/consultas" element={<ProtectedRoute><Consultas /></ProtectedRoute>} />
           <Route path="/consultas/:id" element={<ProtectedRoute><ConsultaDetalle /></ProtectedRoute>} />
           <Route path="/disponibilidad" element={<ProtectedRoute><Disponibilidad /></ProtectedRoute>} />
           <Route path="/profesionales" element={<ProtectedRoute><Profesionales /></ProtectedRoute>} />
@@ -55,6 +59,8 @@ function App() {
           <Route path="/soporte" element={<ProtectedRoute><Soporte /></ProtectedRoute>} />
           <Route path="/pacientes/sin-turno" element={<ProtectedRoute><PacientesSinTurno /></ProtectedRoute>} />
           <Route path="/camillas" element={<ProtectedRoute><Camillas /></ProtectedRoute>} />
+          <Route path="/campos-personalizados" element={<ProtectedRoute><CamposPersonalizados /></ProtectedRoute>} />
+          <Route path="/estadisticas" element={<ProtectedRoute><Estadisticas /></ProtectedRoute>} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
