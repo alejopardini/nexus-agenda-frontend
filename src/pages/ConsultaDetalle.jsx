@@ -7,31 +7,38 @@ import BotonVolver from '../components/BotonVolver'
 import ColumnaVertebral from '../components/ColumnaVertebral'
 
 const LISTADOS_POR_SEGMENTO = {
-  C1: ['ASR', 'AIR', 'ASRA', 'ASRP', 'AIRA', 'AIRP'],
-  C2: ['SPBR', 'CPBR', 'BPSR', 'ESR', 'ESR-BR', 'ESR-SR', 'PRI', 'PRS', 'PI'],
-  // TODO: C3-C7 sin confirmar, usamos temporalmente la lista de C2
-  C3: ['SPBR', 'CPBR', 'BPSR', 'ESR', 'ESR-BR', 'ESR-SR', 'PRI', 'PRS', 'PI'],
-  C4: ['SPBR', 'CPBR', 'BPSR', 'ESR', 'ESR-BR', 'ESR-SR', 'PRI', 'PRS', 'PI'],
-  C5: ['SPBR', 'CPBR', 'BPSR', 'ESR', 'ESR-BR', 'ESR-SR', 'PRI', 'PRS', 'PI'],
-  C6: ['SPBR', 'CPBR', 'BPSR', 'ESR', 'ESR-BR', 'ESR-SR', 'PRI', 'PRS', 'PI'],
-  C7: ['SPBR', 'CPBR', 'BPSR', 'ESR', 'ESR-BR', 'ESR-SR', 'PRI', 'PRS', 'PI'],
-  T1: ['PR', 'PRS', 'PRI', 'PI'], T2: ['PR', 'PRS', 'PRI', 'PI'],
-  T3: ['PR', 'PRS', 'PRI', 'PI'], T4: ['PR', 'PRS', 'PRI', 'PI'],
-  T5: ['PR', 'PRS', 'PRI', 'PI'], T6: ['PR', 'PRS', 'PRI', 'PI'],
-  T7: ['PR', 'PRS', 'PRI', 'PI'], T8: ['PR', 'PRS', 'PRI', 'PI'],
-  T9: ['PR', 'PRS', 'PRI', 'PI'], T10: ['PR', 'PRS', 'PRI', 'PI'],
-  T11: ['PR', 'PRS', 'PRI', 'PI'], T12: ['PR', 'PRS', 'PRI', 'PI'],
-  L1: ['PR', 'PRS', 'PRI', 'PI'], L2: ['PR', 'PRS', 'PRI', 'PI'],
-  L3: ['PR', 'PRS', 'PRI', 'PI'], L4: ['PR', 'PRS', 'PRI', 'PI'],
-  L5: ['PR', 'PRS', 'PRI', 'PI'],
-  SACRO: ['PI-R', 'P-R', 'AP', 'BP'],
-  ILION_IZQ: ['PI', 'AS', 'IN', 'EX', 'PI-EX', 'PI-IN', 'AS-EX', 'AS-IN'],
+  C1_DER: ['ASR', 'AIR', 'ASRA', 'ASRP', 'AORA', 'AIRP'],
+  C1_IZQ: ['ASL', 'AIL', 'ASLA', 'ASLP', 'AOLA', 'AILP'],
+  C2_DER: ['SPBR', 'CPBR', 'BPSR', 'ESR', 'ESR-BR', 'ESR-SR', 'PRI', 'PRS', 'PI'],
+  C2_IZQ: ['SPBL', 'CPBL', 'BPSL', 'ESL', 'ESL-BL', 'ESL-SL', 'PLI', 'PLS', 'PI'],
+  C3_DER: ['PR', 'PRS', 'PRI', 'PI'], C3_IZQ: ['PL', 'PLS', 'PLI', 'PI'],
+  C4_DER: ['PR', 'PRS', 'PRI', 'PI'], C4_IZQ: ['PL', 'PLS', 'PLI', 'PI'],
+  C5_DER: ['PR', 'PRS', 'PRI', 'PI'], C5_IZQ: ['PL', 'PLS', 'PLI', 'PI'],
+  C6_DER: ['PR', 'PRS', 'PRI', 'PI'], C6_IZQ: ['PL', 'PLS', 'PLI', 'PI'],
+  C7_DER: ['PR', 'PRS', 'PRI', 'PI'], C7_IZQ: ['PL', 'PLS', 'PLI', 'PI'],
+  T1_DER: ['PR', 'PRS', 'PRI', 'PI'], T1_IZQ: ['PL', 'PLS', 'PLI', 'PI'],
+  T2_DER: ['PR', 'PRS', 'PRI', 'PI'], T2_IZQ: ['PL', 'PLS', 'PLI', 'PI'],
+  T3_DER: ['PR', 'PRS', 'PRI', 'PI'], T3_IZQ: ['PL', 'PLS', 'PLI', 'PI'],
+  T4_DER: ['PR', 'PRS', 'PRI', 'PI'], T4_IZQ: ['PL', 'PLS', 'PLI', 'PI'],
+  T5_DER: ['PR', 'PRS', 'PRI', 'PI'], T5_IZQ: ['PL', 'PLS', 'PLI', 'PI'],
+  T6_DER: ['PR', 'PRS', 'PRI', 'PI'], T6_IZQ: ['PL', 'PLS', 'PLI', 'PI'],
+  T7_DER: ['PR', 'PRS', 'PRI', 'PI'], T7_IZQ: ['PL', 'PLS', 'PLI', 'PI'],
+  T8_DER: ['PR', 'PRS', 'PRI', 'PI'], T8_IZQ: ['PL', 'PLS', 'PLI', 'PI'],
+  T9_DER: ['PR', 'PRS', 'PRI', 'PI'], T9_IZQ: ['PL', 'PLS', 'PLI', 'PI'],
+  T10_DER: ['PR', 'PRS', 'PRI', 'PI'], T10_IZQ: ['PL', 'PLS', 'PLI', 'PI'],
+  T11_DER: ['PR', 'PRS', 'PRI', 'PI'], T11_IZQ: ['PL', 'PLS', 'PLI', 'PI'],
+  T12_DER: ['PR', 'PRS', 'PRI', 'PI'], T12_IZQ: ['PL', 'PLS', 'PLI', 'PI'],
+  L1_DER: ['PR', 'PRS', 'PRI', 'PI'], L1_IZQ: ['PL', 'PLS', 'PLI', 'PI'],
+  L2_DER: ['PR', 'PRS', 'PRI', 'PI'], L2_IZQ: ['PL', 'PLS', 'PLI', 'PI'],
+  L3_DER: ['PR', 'PRS', 'PRI', 'PI'], L3_IZQ: ['PL', 'PLS', 'PLI', 'PI'],
+  L4_DER: ['PR', 'PRS', 'PRI', 'PI'], L4_IZQ: ['PL', 'PLS', 'PLI', 'PI'],
+  L5_DER: ['PR', 'PRS', 'PRI', 'PI'], L5_IZQ: ['PL', 'PLS', 'PLI', 'PI'],
+  SACRO_DER: ['PI-R', 'PR', 'AP', 'BP'], SACRO_IZQ: ['PI-L', 'PL', 'AP', 'BP'],
   ILION_DER: ['PI', 'AS', 'IN', 'EX', 'PI-EX', 'PI-IN', 'AS-EX', 'AS-IN'],
+  ILION_IZQ: ['PI', 'AS', 'IN', 'EX', 'PI-EX', 'PI-IN', 'AS-EX', 'AS-IN'],
 }
 
 const TECNICAS = ['SUP', 'GC', 'GNC', 'SP', 'TR', 'FS', 'PIE', 'PRO', 'THO', 'ACT']
-
-const SEGMENTOS_SIN_DIRECCION = ['ILION_IZQ', 'ILION_DER']
 
 const CARACTERISTICAS_DOLOR_OPCIONES = [
   'Doloroso', 'Ardor', 'Sordo', 'Agudo', 'Punzante', 'Pulsátil', 'Debilidad', 'Entumecimiento', 'Tensión',
@@ -174,9 +181,8 @@ export default function ConsultaDetalle() {
             mapa[a.segmento] = {
               ajustado: a.ajustado,
               tipo_ajuste: a.tipo_ajuste || [],
-              tecnica: a.tecnica || [],
+              tecnica: a.tecnica || '',
               notas: a.notas || '',
-              direccion: a.direccion || null,
               bloqueada: a.bloqueada || false,
             }
           })
@@ -210,9 +216,8 @@ export default function ConsultaDetalle() {
       [segmento]: prev[segmento] || {
         ajustado: false,
         tipo_ajuste: [],
-        tecnica: [],
+        tecnica: '',
         notas: '',
-        direccion: null,
         bloqueada: false,
       },
     }))
@@ -244,7 +249,6 @@ export default function ConsultaDetalle() {
           ...actual,
           ajustado: nuevoAjustado,
           bloqueada: nuevoAjustado ? false : actual.bloqueada,
-          direccion: nuevoAjustado ? actual.direccion : null,
         },
       }
     })
@@ -261,7 +265,6 @@ export default function ConsultaDetalle() {
           ...actual,
           bloqueada: nuevaBloqueada,
           ajustado: nuevaBloqueada ? false : actual.ajustado,
-          direccion: nuevaBloqueada ? null : actual.direccion,
         },
       }
     })
@@ -294,14 +297,13 @@ export default function ConsultaDetalle() {
 
       if (esQuiropractico) {
         const listaAjustes = Object.entries(ajustes)
-          .filter(([, v]) => v.ajustado || v.bloqueada || v.notas || v.tipo_ajuste.length || v.tecnica.length)
+          .filter(([, v]) => v.ajustado || v.bloqueada || v.notas || v.tipo_ajuste.length || v.tecnica)
           .map(([segmento, v]) => ({
             segmento,
             ajustado: v.ajustado,
             tipo_ajuste: v.tipo_ajuste,
             tecnica: v.tecnica,
             notas: v.notas,
-            direccion: v.direccion,
             bloqueada: v.bloqueada,
           }))
         await apiClient.post(`/consultas/${id}/ajustes_vertebrales/`, { ajustes: listaAjustes })
@@ -584,9 +586,10 @@ export default function ConsultaDetalle() {
                             }`}
                           >
                             <input
-                              type="checkbox"
-                              checked={datosSegmentoActivo.tecnica.includes(t)}
-                              onChange={() => toggleEnLista('tecnica', t)}
+                              type="radio"
+                              name="tecnica"
+                              checked={datosSegmentoActivo.tecnica === t}
+                              onChange={() => actualizarSegmento('tecnica', t)}
                               disabled={!datosSegmentoActivo.ajustado}
                               className="disabled:cursor-not-allowed"
                             />
@@ -594,36 +597,6 @@ export default function ConsultaDetalle() {
                           </label>
                         ))}
                       </div>
-
-                      {!SEGMENTOS_SIN_DIRECCION.includes(segmentoActivo) && (
-                        <>
-                          <p className="text-xs text-slate-500 mb-1">Dirección</p>
-                          <div className="flex flex-wrap gap-3 mb-3">
-                            {[
-                              { valor: 'izquierda', label: 'Izquierda' },
-                              { valor: 'derecha', label: 'Derecha' },
-                              { valor: null, label: 'Ninguna' },
-                            ].map((op) => (
-                              <label
-                                key={op.label}
-                                className={`flex items-center gap-1 text-xs text-slate-600 ${
-                                  !datosSegmentoActivo.ajustado ? 'opacity-50 cursor-not-allowed' : ''
-                                }`}
-                              >
-                                <input
-                                  type="radio"
-                                  name="direccion"
-                                  checked={(datosSegmentoActivo.direccion || null) === op.valor}
-                                  onChange={() => actualizarSegmento('direccion', op.valor)}
-                                  disabled={!datosSegmentoActivo.ajustado}
-                                  className="disabled:cursor-not-allowed"
-                                />
-                                {op.label}
-                              </label>
-                            ))}
-                          </div>
-                        </>
-                      )}
 
                       <p className="text-xs text-slate-500 mb-1">Nota</p>
                       <input
