@@ -4,7 +4,6 @@ import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/Login'
 import Registro from './pages/Registro'
 import Terminos from './pages/Terminos'
-import Dashboard from './pages/Dashboard'
 import Pacientes from './pages/Pacientes'
 import NuevoPaciente from './pages/NuevoPaciente'
 import DetallePaciente from './pages/DetallePaciente'
@@ -37,7 +36,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/registro" element={<Registro />} />
           <Route path="/terminos" element={<Terminos />} />
-          <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/" element={<ProtectedRoute><CalendarioTurnos /></ProtectedRoute>} />
           <Route path="/pacientes" element={<ProtectedRoute><Pacientes /></ProtectedRoute>} />
           <Route path="/pacientes/nuevo" element={<ProtectedRoute><NuevoPaciente /></ProtectedRoute>} />
           <Route path="/pacientes/:id/editar" element={<ProtectedRoute><EditarPaciente /></ProtectedRoute>} />

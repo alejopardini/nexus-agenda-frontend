@@ -8,11 +8,32 @@ const TABS = [
   { key: 'datos', label: 'Datos' },
   { key: 'turnos', label: 'Turnos' },
   { key: 'planes', label: 'Planes' },
+  { key: 'pagos', label: 'Pagos' },
   { key: 'ultimo_ajuste', label: 'Último ajuste' },
   { key: 'historial_ajustes', label: 'Historial de ajustes' },
   { key: 'notas', label: 'Notas / Información' },
   { key: 'archivos', label: 'Archivos' },
 ]
+
+const humanizar = (valor) => (valor ? valor.replace(/_/g, ' ') : '')
+
+function resumenUltimaConsulta(consulta, etapaCuidado, frecuenciaSeguimiento) {
+  const partes = []
+  if (consulta.frecuencia_dolor || consulta.dolor_promedio != null) {
+    const dolor = [
+      consulta.frecuencia_dolor && humanizar(consulta.frecuencia_dolor),
+      consulta.dolor_promedio != null && `promedio ${consulta.dolor_promedio}/10`,
+    ].filter(Boolean).join(', ')
+    partes.push(`Dolor: ${dolor}.`)
+  }
+  if (consulta.estado_condicion) {
+    partes.push(`Estado: ${humanizar(consulta.estado_condicion)}.`)
+  }
+  if (etapaCuidado || frecuenciaSeguimiento) {
+    partes.push(`Plan: ${[etapaCuidado, frecuenciaSeguimiento].filter(Boolean).join(' — ')}.`)
+  }
+  return partes.join(' ')
+}
 
 export default function FichaPacienteModal({ pacienteId, onClose }) {
   const [paciente, setPaciente] = useState(null)
@@ -24,6 +45,8 @@ export default function FichaPacienteModal({ pacienteId, onClose }) {
   const [consultasError, setConsultasError] = useState(false)
   const [consultasCargadas, setConsultasCargadas] = useState(false)
   const [turnos, setTurnos] = useState([])
+  const [etapaCuidado, setEtapaCuidado] = useState('')
+  const [frecuenciaSeguimiento, setFrecuenciaSeguimiento] = useState('')
 
   const [ultimoAjuste, setUltimoAjuste] = useState(null)
   const [ultimoAjusteError, setUltimoAjusteError] = useState(false)
@@ -99,6 +122,15 @@ export default function FichaPacienteModal({ pacienteId, onClose }) {
         const propios = res.data.filter((t) => String(t.paciente) === String(pacienteId))
         propios.sort((a, b) => `${b.fecha} ${b.hora}`.localeCompare(`${a.fecha} ${a.hora}`))
         setTurnos(propios)
+      })
+      .catch(() => {})
+
+    apiClient
+      .get(`/pacientes/${pacienteId}/seguimiento_quiropractico/`)
+      .then((res) => {
+        if (!activo || !res.data) return
+        setEtapaCuidado(res.data.etapa_cuidado || '')
+        setFrecuenciaSeguimiento(res.data.frecuencia || '')
       })
       .catch(() => {})
 
@@ -312,10 +344,16 @@ export default function FichaPacienteModal({ pacienteId, onClose }) {
 
   const tieneAcceso = paciente ? 'email' in paciente : false
   const profesionalACargo = consultas[0]?.profesional_nombre || null
+  const ultimaConsultaCompletada = consultas.find((c) => c.estado === 'completada')
+  const resumenUltima = ultimaConsultaCompletada
+    ? resumenUltimaConsulta(ultimaConsultaCompletada, etapaCuidado, frecuenciaSeguimiento)
+    : ''
+  const pagosRealizados = turnos.filter((t) => t.pagado)
+  const totalPagado = pagosRealizados.reduce((acc, t) => acc + (Number(t.monto_cobrado) || 0), 0)
 
   return (
     <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col">
+      <div className="bg-white rounded-lg shadow-xl max-w-5xl w-full max-h-[90vh] flex flex-col">
         <div className="flex justify-between items-start p-4 border-b border-slate-200">
           <div>
             <h2 className="font-bold text-slate-800 text-lg">
@@ -359,34 +397,62 @@ export default function FichaPacienteModal({ pacienteId, onClose }) {
 
             <div className="flex-1 overflow-y-auto p-4">
               {tab === 'datos' && (
-                <dl className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                  <div>
-                    <dt className="text-slate-500">DNI</dt>
-                    <dd className="text-slate-800">{paciente.dni || '—'}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-slate-500">Obra social</dt>
-                    <dd className="text-slate-800">{paciente.obra_social || '—'}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-slate-500">Email</dt>
-                    <dd className="text-slate-800">{paciente.email || '—'}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-slate-500">Celular</dt>
-                    <dd className="text-slate-800">{paciente.celular || '—'}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-slate-500">Fecha de nacimiento</dt>
-                    <dd className="text-slate-800">{paciente.fecha_nacimiento || '—'}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-slate-500">Profesional a cargo</dt>
-                    <dd className="text-slate-800">
-                      {profesionalACargo || (consultasError ? 'No disponible' : '—')}
-                    </dd>
-                  </div>
-                </dl>
+                <>
+                  <dl className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
+                    <div>
+                      <dt className="text-slate-500">DNI</dt>
+                      <dd className="text-slate-800">{paciente.dni || '—'}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-slate-500">Obra social</dt>
+                      <dd className="text-slate-800">{paciente.obra_social || '—'}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-slate-500">Email</dt>
+                      <dd className="text-slate-800">{paciente.email || '—'}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-slate-500">Celular</dt>
+                      <dd className="text-slate-800">{paciente.celular || '—'}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-slate-500">Fecha de nacimiento</dt>
+                      <dd className="text-slate-800">{paciente.fecha_nacimiento || '—'}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-slate-500">Profesional a cargo</dt>
+                      <dd className="text-slate-800">
+                        {profesionalACargo || (consultasError ? 'No disponible' : '—')}
+                      </dd>
+                    </div>
+                  </dl>
+
+                  {ultimaConsultaCompletada && (
+                    <div className="mt-4 pt-4 border-t border-slate-100">
+                      <h3 className="text-sm font-semibold text-slate-700 mb-2">Última consulta</h3>
+                      <dl className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm mb-2">
+                        <div>
+                          <dt className="text-slate-500">Fecha</dt>
+                          <dd className="text-slate-800">{ultimaConsultaCompletada.fecha}</dd>
+                        </div>
+                        <div>
+                          <dt className="text-slate-500">Motivo</dt>
+                          <dd className="text-slate-800">{ultimaConsultaCompletada.motivo || '—'}</dd>
+                        </div>
+                      </dl>
+                      {resumenUltima && <p className="text-slate-600 text-sm">{resumenUltima}</p>}
+                      <div className="text-right mt-2">
+                        <Link
+                          to={`/consultas/${ultimaConsultaCompletada.id}`}
+                          onClick={onClose}
+                          className="text-xs text-blue-600 hover:underline"
+                        >
+                          Ver consulta completa →
+                        </Link>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
 
               {tab === 'turnos' && (
@@ -555,6 +621,27 @@ export default function FichaPacienteModal({ pacienteId, onClose }) {
                         ))}
                       </ul>
                     )}
+                  </div>
+                )
+              )}
+
+              {tab === 'pagos' && (
+                pagosRealizados.length === 0 ? (
+                  <p className="text-slate-500 text-sm">Sin pagos registrados todavía.</p>
+                ) : (
+                  <div>
+                    <p className="text-sm font-medium text-slate-800 mb-3">
+                      Total pagado: <span className="text-green-700">${totalPagado.toFixed(2)}</span>
+                    </p>
+                    <ul className="divide-y divide-slate-100">
+                      {pagosRealizados.map((t) => (
+                        <li key={t.id} className="py-2 text-sm flex justify-between">
+                          <span className="text-slate-800">{t.fecha}</span>
+                          <span className="text-slate-600">{t.plan ? 'Con plan' : 'Sin plan'}</span>
+                          <span className="font-medium text-slate-800">${t.monto_cobrado}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 )
               )}

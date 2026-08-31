@@ -9,30 +9,50 @@ const RANGOS = [
   { dias: 90, label: '90 días' },
 ]
 
+const MESES_CORTOS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+
 const COLOR_NUEVOS = '#2a78d6'
 const COLOR_RECURRENTES = '#eb6834'
 
 const formatMonto = (monto) =>
   `$${Number(monto).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
-const formatFechaCorta = (fecha) => {
+const formatFechaCorta = (fecha, esAnual) => {
   const [, mes, dia] = fecha.split('-')
+  if (esAnual) return MESES_CORTOS[Number(mes) - 1]
   return `${dia}/${mes}`
 }
 
 export default function Estadisticas() {
+  const [modo, setModo] = useState('periodo') // 'periodo' | 'anio'
   const [dias, setDias] = useState(30)
+  const [anio, setAnio] = useState(null)
+  const [aniosDisponibles, setAniosDisponibles] = useState([])
   const [datos, setDatos] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
   useEffect(() => {
     apiClient
-      .get(`/estadisticas/?dias=${dias}`)
+      .get('/estadisticas/anios-disponibles/')
+      .then((res) => {
+        setAniosDisponibles(res.data)
+        if (res.data.length > 0) setAnio(res.data[res.data.length - 1])
+      })
+      .catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    if (modo === 'anio' && anio == null) return
+    setLoading(true)
+    setError('')
+    const query = modo === 'anio' ? `anio=${anio}` : `dias=${dias}`
+    apiClient
+      .get(`/estadisticas/?${query}`)
       .then((res) => setDatos(res.data))
       .catch(() => setError('No se pudieron cargar las estadísticas.'))
       .finally(() => setLoading(false))
-  }, [dias])
+  }, [modo, dias, anio])
 
   const cambiarRango = (nuevosDias) => {
     setDias(nuevosDias)
@@ -41,26 +61,61 @@ export default function Estadisticas() {
   }
 
   const maxTipoTurno = datos ? Math.max(1, ...datos.top_tipos_turno.map((t) => t.cantidad)) : 1
+  const esAnual = modo === 'anio'
 
   return (
     <Layout>
       <div className="space-y-4">
         <div className="bg-white rounded-lg shadow-md p-4 flex flex-wrap justify-between items-center gap-3">
           <h1 className="text-xl font-bold text-slate-800">Estadísticas</h1>
-          <div className="flex gap-2">
-            {RANGOS.map((r) => (
+          <div className="flex items-center gap-3">
+            <div className="flex gap-1 bg-slate-100 rounded p-1">
               <button
-                key={r.dias}
-                onClick={() => cambiarRango(r.dias)}
-                className={`text-sm px-3 py-1.5 rounded border ${
-                  dias === r.dias
-                    ? 'bg-blue-600 text-white border-blue-600'
-                    : 'border-slate-300 text-slate-600 hover:bg-slate-50'
+                onClick={() => setModo('periodo')}
+                className={`text-sm px-3 py-1 rounded ${
+                  modo === 'periodo' ? 'bg-white shadow text-slate-800' : 'text-slate-500'
                 }`}
               >
-                {r.label}
+                Por período
               </button>
-            ))}
+              <button
+                onClick={() => setModo('anio')}
+                className={`text-sm px-3 py-1 rounded ${
+                  modo === 'anio' ? 'bg-white shadow text-slate-800' : 'text-slate-500'
+                }`}
+              >
+                Por año
+              </button>
+            </div>
+
+            {modo === 'periodo' ? (
+              <div className="flex gap-2">
+                {RANGOS.map((r) => (
+                  <button
+                    key={r.dias}
+                    onClick={() => cambiarRango(r.dias)}
+                    className={`text-sm px-3 py-1.5 rounded border ${
+                      dias === r.dias
+                        ? 'bg-blue-600 text-white border-blue-600'
+                        : 'border-slate-300 text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    {r.label}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <select
+                value={anio ?? ''}
+                onChange={(e) => setAnio(Number(e.target.value))}
+                className="text-sm border border-slate-300 rounded px-2 py-1.5"
+              >
+                {aniosDisponibles.length === 0 && <option value="">Sin años disponibles</option>}
+                {aniosDisponibles.map((a) => (
+                  <option key={a} value={a}>{a}</option>
+                ))}
+              </select>
+            )}
           </div>
         </div>
 
@@ -90,17 +145,19 @@ export default function Estadisticas() {
 
         {!loading && !error && datos && (
           <div className="bg-white rounded-lg shadow-md p-4">
-            <h2 className="text-sm font-semibold text-slate-700 mb-3">Evolución diaria</h2>
+            <h2 className="text-sm font-semibold text-slate-700 mb-3">
+              {esAnual ? 'Evolución mensual' : 'Evolución diaria'}
+            </h2>
             <ResponsiveContainer width="100%" height={280}>
               <BarChart data={datos.evolucion_diaria}>
                 <CartesianGrid vertical={false} stroke="#e1e0d9" />
                 <XAxis
                   dataKey="fecha"
-                  tickFormatter={formatFechaCorta}
+                  tickFormatter={(fecha) => formatFechaCorta(fecha, esAnual)}
                   tick={{ fontSize: 11, fill: '#898781' }}
                   axisLine={{ stroke: '#c3c2b7' }}
                   tickLine={false}
-                  interval={Math.max(0, Math.ceil(datos.evolucion_diaria.length / 10) - 1)}
+                  interval={esAnual ? 0 : Math.max(0, Math.ceil(datos.evolucion_diaria.length / 10) - 1)}
                 />
                 <YAxis
                   allowDecimals={false}
@@ -108,7 +165,7 @@ export default function Estadisticas() {
                   axisLine={false}
                   tickLine={false}
                 />
-                <Tooltip labelFormatter={formatFechaCorta} />
+                <Tooltip labelFormatter={(fecha) => formatFechaCorta(fecha, esAnual)} />
                 <Legend wrapperStyle={{ fontSize: 12 }} />
                 <Bar
                   dataKey="pacientes_nuevos"

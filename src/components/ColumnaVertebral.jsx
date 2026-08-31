@@ -4,10 +4,11 @@ const NIVELES = [
   'L1', 'L2', 'L3', 'L4', 'L5',
 ]
 
-const OVALO_ANCHO = 52
+const OVALO_ANCHO = 64
 const OVALO_ALTO = 28
 const PELVIS_OVALO_ANCHO = 70
 const PELVIS_OVALO_ALTO = 40
+const ILION_CAJA_ANCHO = PELVIS_OVALO_ANCHO + 16
 
 const COLOR_REGION = {
   cervical: '#bbf7d0',
@@ -17,6 +18,7 @@ const COLOR_REGION = {
 }
 const COLOR_AJUSTADO = '#f59e0b'
 const COLOR_BLOQUEADA = '#ef4444'
+const DESPLAZAMIENTO_AJUSTE = 24
 
 function regionDe(nivel) {
   if (nivel.startsWith('C')) return 'cervical'
@@ -41,28 +43,85 @@ function resumenAjuste(datos) {
   return partes.join('-') + (extra > 0 ? ` +${extra}` : '')
 }
 
-function Punto({ segmento, nivel, datos, seleccionado, onClick, ancho = OVALO_ANCHO, alto = OVALO_ALTO }) {
-  const { color, texto } = colorEstado(nivel, datos)
-  const resumen = resumenAjuste(datos)
+function OvaloPartido({ nivel, ajustes, onClick, ancho = OVALO_ANCHO, alto = OVALO_ALTO, sinDesplazamiento = false }) {
+  const claveIzq = `${nivel}_IZQ`
+  const claveDer = `${nivel}_DER`
+  const bloqueadaIzq = ajustes[claveIzq]?.bloqueada
+  const bloqueadaDer = ajustes[claveDer]?.bloqueada
+  const ajustadoIzq = ajustes[claveIzq]?.ajustado
+  const ajustadoDer = ajustes[claveDer]?.ajustado
+  const bloqueada = bloqueadaIzq || bloqueadaDer
+  const ajustado = ajustadoIzq || ajustadoDer
+  const colorOvalo = bloqueada
+    ? COLOR_BLOQUEADA
+    : ajustado
+      ? COLOR_AJUSTADO
+      : COLOR_REGION[regionDe(nivel)]
+  const resumenIzq = resumenAjuste(ajustes[claveIzq])
+  const resumenDer = resumenAjuste(ajustes[claveDer])
+  const mitadAncho = ancho / 2
+  const radioExterior = alto / 2
+  const desplazamiento = sinDesplazamiento || bloqueada
+    ? 0
+    : ajustadoDer
+      ? DESPLAZAMIENTO_AJUSTE
+      : ajustadoIzq
+        ? -DESPLAZAMIENTO_AJUSTE
+        : 0
 
   return (
     <div className="flex flex-col items-center shrink-0" style={{ width: ancho }}>
-      <button
-        type="button"
-        onClick={() => onClick(segmento)}
-        title={segmento}
-        className="flex items-center justify-center text-[11px] font-bold"
+      <div
+        className="relative flex transition-all duration-150 hover:shadow-md hover:shadow-slate-400/50"
         style={{
           width: ancho,
           height: alto,
           borderRadius: 9999,
-          backgroundColor: color,
-          color: texto,
-          border: seleccionado ? '2px solid #1d4ed8' : '1px solid rgba(100,116,139,0.4)',
+          overflow: 'hidden',
+          border: '1px solid rgba(100,116,139,0.4)',
+          transform: `translateX(${desplazamiento}px)`,
         }}
-      />
-      {resumen && (
-        <span className="text-[10px] text-slate-500 whitespace-nowrap mt-0.5">{resumen}</span>
+      >
+        <button
+          type="button"
+          onClick={() => onClick(claveIzq)}
+          title={claveIzq}
+          style={{
+            width: mitadAncho,
+            height: alto,
+            backgroundColor: colorOvalo,
+            borderTopLeftRadius: radioExterior,
+            borderBottomLeftRadius: radioExterior,
+          }}
+        />
+        <button
+          type="button"
+          onClick={() => onClick(claveDer)}
+          title={claveDer}
+          style={{
+            width: mitadAncho,
+            height: alto,
+            backgroundColor: colorOvalo,
+            borderTopRightRadius: radioExterior,
+            borderBottomRightRadius: radioExterior,
+          }}
+        />
+        <span
+          className="absolute inset-0 flex items-center justify-center pointer-events-none text-[10px] font-bold leading-none"
+          style={{ color: '#1e293b' }}
+        >
+          {nivel}
+        </span>
+      </div>
+      {(resumenIzq || resumenDer) && (
+        <div className="flex" style={{ width: ancho }}>
+          <span className="text-[9px] text-slate-500 text-center leading-tight truncate" style={{ width: mitadAncho }}>
+            {resumenIzq}
+          </span>
+          <span className="text-[9px] text-slate-500 text-center leading-tight truncate" style={{ width: mitadAncho }}>
+            {resumenDer}
+          </span>
+        </div>
       )}
     </div>
   )
@@ -102,27 +161,11 @@ function VertebraPelvis({ segmento, datos, seleccionado, onClick, ancho, ovaloAl
   )
 }
 
-function FilaNivel({ nivel, ajustes, segmentoActivo, onClickSegmento }) {
-  const claveIzq = `${nivel}_IZQ`
-  const claveDer = `${nivel}_DER`
-
+function FilaNivel({ nivel, ajustes, onClickSegmento }) {
   return (
-    <div className="flex items-center justify-between py-1">
-      <Punto
-        segmento={claveIzq}
-        nivel={nivel}
-        datos={ajustes[claveIzq]}
-        seleccionado={segmentoActivo === claveIzq}
-        onClick={onClickSegmento}
-      />
-      <span className="text-xs font-semibold text-slate-600 w-10 text-center shrink-0">{nivel}</span>
-      <Punto
-        segmento={claveDer}
-        nivel={nivel}
-        datos={ajustes[claveDer]}
-        seleccionado={segmentoActivo === claveDer}
-        onClick={onClickSegmento}
-      />
+    <div className="flex items-center gap-2 py-1">
+      <div style={{ width: ILION_CAJA_ANCHO, flexShrink: 0 }} aria-hidden="true" />
+      <OvaloPartido nivel={nivel} ajustes={ajustes} onClick={onClickSegmento} />
     </div>
   )
 }
@@ -135,12 +178,11 @@ export default function ColumnaVertebral({ ajustes, segmentoActivo, onClickSegme
           key={nivel}
           nivel={nivel}
           ajustes={ajustes}
-          segmentoActivo={segmentoActivo}
           onClickSegmento={onClickSegmento}
         />
       ))}
 
-      <div className="flex items-center justify-center gap-2 py-3">
+      <div className="flex items-center gap-2 py-3">
         <VertebraPelvis
           segmento="ILION_IZQ"
           datos={ajustes.ILION_IZQ}
@@ -150,23 +192,7 @@ export default function ColumnaVertebral({ ajustes, segmentoActivo, onClickSegme
           ovaloAlto={PELVIS_OVALO_ALTO}
           lineas={['ILIÓN', 'IZQ']}
         />
-        <div className="flex items-center gap-1.5">
-          <Punto
-            segmento="SACRO_IZQ"
-            nivel="SACRO"
-            datos={ajustes.SACRO_IZQ}
-            seleccionado={segmentoActivo === 'SACRO_IZQ'}
-            onClick={onClickSegmento}
-          />
-          <span className="text-xs font-semibold text-slate-600">SACRO</span>
-          <Punto
-            segmento="SACRO_DER"
-            nivel="SACRO"
-            datos={ajustes.SACRO_DER}
-            seleccionado={segmentoActivo === 'SACRO_DER'}
-            onClick={onClickSegmento}
-          />
-        </div>
+        <OvaloPartido nivel="SACRO" ajustes={ajustes} onClick={onClickSegmento} sinDesplazamiento />
         <VertebraPelvis
           segmento="ILION_DER"
           datos={ajustes.ILION_DER}

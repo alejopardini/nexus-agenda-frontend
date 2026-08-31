@@ -62,7 +62,6 @@ export default function Navbar() {
   const itemsPacientes = [
     { to: '/pacientes', label: 'Ver lista' },
     ...(auth.rol !== 'profesional' ? [{ to: '/pacientes/nuevo', label: 'Nuevo paciente' }] : []),
-    { to: '/interconsultas', label: 'Interconsultas' },
     { to: '/pacientes/sin-turno', label: 'Sin turno reciente' },
   ]
   const itemsTurnos = [
@@ -70,13 +69,12 @@ export default function Navbar() {
     ...(auth.rol !== 'profesional' ? [{ to: '/turnos/nuevo', label: 'Nuevo turno' }] : []),
     { to: '/turnos', label: 'Ver calendario' },
     { to: '/turnos/historial', label: 'Historial' },
-    ...(auth.rol !== 'secretaria' ? [{ to: '/consultas', label: 'Consultas' }] : []),
-    ...(auth.rol !== 'secretaria' ? [{ to: '/estadisticas', label: 'Estadísticas' }] : []),
     { to: '/disponibilidad', label: 'Disponibilidad' },
     ...(auth.rol === 'profesional' ? [{ to: '/campos-personalizados', label: 'Campos personalizados' }] : []),
   ]
   const itemsProfesionales = [
     { to: '/profesionales', label: 'Ver lista' },
+    ...(auth.rol !== 'secretaria' ? [{ to: '/consultas', label: 'Ver consultas' }] : []),
     ...(esDueño ? [{ to: '/profesionales/nuevo', label: 'Nuevo profesional' }] : []),
     ...(esDueño ? [{ to: '/secretarias', label: 'Secretaría' }] : []),
   ]
@@ -92,6 +90,9 @@ export default function Navbar() {
             <MenuDropdown titulo="Pacientes" items={itemsPacientes} />
             <MenuDropdown titulo="Turnos" items={itemsTurnos} />
             <MenuDropdown titulo="Profesionales" items={itemsProfesionales} />
+            {auth.rol !== 'secretaria' && (
+              <Link to="/estadisticas" className="text-sm text-slate-600 hover:text-blue-600">Estadísticas</Link>
+            )}
           </div>
         </div>
 
@@ -143,6 +144,15 @@ export default function Navbar() {
           <MenuSeccionMobile titulo="Pacientes" items={itemsPacientes} onNavegar={() => setMobileOpen(false)} />
           <MenuSeccionMobile titulo="Turnos" items={itemsTurnos} onNavegar={() => setMobileOpen(false)} />
           <MenuSeccionMobile titulo="Profesionales" items={itemsProfesionales} onNavegar={() => setMobileOpen(false)} />
+          {auth.rol !== 'secretaria' && (
+            <Link
+              to="/estadisticas"
+              onClick={() => setMobileOpen(false)}
+              className="block text-sm text-slate-600 hover:text-blue-600 px-1"
+            >
+              Estadísticas
+            </Link>
+          )}
           <Link
             to="/soporte"
             onClick={() => setMobileOpen(false)}

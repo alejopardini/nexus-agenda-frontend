@@ -238,12 +238,19 @@ export default function ConsultaDetalle() {
     actualizarSegmento(campo, nuevo)
   }
 
+  const segmentoHermano = (segmento) => {
+    if (segmento.endsWith('_DER')) return segmento.slice(0, -4) + '_IZQ'
+    if (segmento.endsWith('_IZQ')) return segmento.slice(0, -4) + '_DER'
+    return null
+  }
+
   const toggleAjustado = () => {
     if (!segmentoActivo) return
     setAjustes((prev) => {
       const actual = prev[segmentoActivo] || {}
       const nuevoAjustado = !actual.ajustado
-      return {
+      const hermano = segmentoHermano(segmentoActivo)
+      const siguiente = {
         ...prev,
         [segmentoActivo]: {
           ...actual,
@@ -251,6 +258,10 @@ export default function ConsultaDetalle() {
           bloqueada: nuevoAjustado ? false : actual.bloqueada,
         },
       }
+      if (nuevoAjustado && hermano && prev[hermano]) {
+        siguiente[hermano] = { ...prev[hermano], ajustado: false, bloqueada: false }
+      }
+      return siguiente
     })
   }
 
@@ -259,7 +270,8 @@ export default function ConsultaDetalle() {
     setAjustes((prev) => {
       const actual = prev[segmentoActivo] || {}
       const nuevaBloqueada = !actual.bloqueada
-      return {
+      const hermano = segmentoHermano(segmentoActivo)
+      const siguiente = {
         ...prev,
         [segmentoActivo]: {
           ...actual,
@@ -267,6 +279,21 @@ export default function ConsultaDetalle() {
           ajustado: nuevaBloqueada ? false : actual.ajustado,
         },
       }
+      if (hermano) {
+        const actualHermano = prev[hermano] || {
+          ajustado: false,
+          tipo_ajuste: [],
+          tecnica: '',
+          notas: '',
+          bloqueada: false,
+        }
+        siguiente[hermano] = {
+          ...actualHermano,
+          bloqueada: nuevaBloqueada,
+          ajustado: nuevaBloqueada ? false : actualHermano.ajustado,
+        }
+      }
+      return siguiente
     })
   }
 
@@ -362,7 +389,7 @@ export default function ConsultaDetalle() {
   return (
     <Layout>
       <BotonVolver to={`/pacientes/${consulta.paciente}`} texto="Volver a la ficha del paciente" />
-      <div className="bg-white rounded-lg shadow-md p-6 max-w-4xl">
+      <div className="bg-white rounded-lg shadow-md p-6 max-w-5xl">
         <h1 className="text-xl font-bold text-slate-800 mb-1">
           Consulta — {consulta.estado === 'completada' ? 'completada' : 'pendiente'}
         </h1>
@@ -522,7 +549,7 @@ export default function ConsultaDetalle() {
                 Click en una vértebra para marcarla.
               </p>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-[320px_1fr] gap-4">
                 <ColumnaVertebral
                   ajustes={ajustes}
                   segmentoActivo={segmentoActivo}
@@ -590,6 +617,9 @@ export default function ConsultaDetalle() {
                               name="tecnica"
                               checked={datosSegmentoActivo.tecnica === t}
                               onChange={() => actualizarSegmento('tecnica', t)}
+                              onClick={() => {
+                                if (datosSegmentoActivo.tecnica === t) actualizarSegmento('tecnica', '')
+                              }}
                               disabled={!datosSegmentoActivo.ajustado}
                               className="disabled:cursor-not-allowed"
                             />

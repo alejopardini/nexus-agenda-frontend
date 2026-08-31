@@ -1,21 +1,8 @@
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
 import FichaPacienteModal from '../components/FichaPacienteModal'
 import { useAuth } from '../context/AuthContext'
-
-const COLOR_ESTADO = {
-  pendiente: 'bg-yellow-100 text-yellow-800',
-  completada: 'bg-green-100 text-green-800',
-}
-
-const LABEL_ESTADO = {
-  pendiente: 'Pendiente',
-  completada: 'Completada',
-}
-
-const MOTIVO_MAX = 45
 
 export default function Consultas() {
   const { auth } = useAuth()
@@ -33,15 +20,27 @@ export default function Consultas() {
       .finally(() => setLoading(false))
   }, [])
 
-  const termino = busqueda.trim().toLowerCase()
-  const consultasFiltradas = termino
-    ? consultas.filter((c) => c.paciente_nombre.toLowerCase().includes(termino))
-    : consultas
+  const pacientes = useMemo(() => {
+    const mapa = new Map()
+    consultas.forEach((c) => {
+      const existente = mapa.get(c.paciente)
+      if (existente) {
+        existente.profesionales.add(c.profesional_nombre)
+      } else {
+        mapa.set(c.paciente, {
+          id: c.paciente,
+          nombre: c.paciente_nombre,
+          profesionales: new Set([c.profesional_nombre]),
+        })
+      }
+    })
+    return Array.from(mapa.values()).sort((a, b) => a.nombre.localeCompare(b.nombre))
+  }, [consultas])
 
-  const truncarMotivo = (motivo) => {
-    if (!motivo) return '—'
-    return motivo.length > MOTIVO_MAX ? `${motivo.slice(0, MOTIVO_MAX)}…` : motivo
-  }
+  const termino = busqueda.trim().toLowerCase()
+  const pacientesFiltrados = termino
+    ? pacientes.filter((p) => p.nombre.toLowerCase().includes(termino))
+    : pacientes
 
   return (
     <Layout>
@@ -60,47 +59,33 @@ export default function Consultas() {
             />
           </div>
 
-          {consultas.length === 0 ? (
+          {pacientes.length === 0 ? (
             <p className="text-slate-500">No hay consultas todavía.</p>
-          ) : consultasFiltradas.length === 0 ? (
-            <p className="text-slate-500">Ninguna consulta coincide con "{busqueda}".</p>
+          ) : pacientesFiltrados.length === 0 ? (
+            <p className="text-slate-500">Ningún paciente coincide con "{busqueda}".</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-left text-slate-500 border-b border-slate-200">
-                    <th className="py-2">Fecha</th>
                     <th className="py-2">Paciente</th>
-                    {auth.rol === 'dueño' && <th className="py-2">Profesional</th>}
-                    <th className="py-2">Motivo</th>
-                    <th className="py-2">Estado</th>
-                    <th className="py-2"></th>
+                    {auth.rol === 'dueño' && <th className="py-2">Profesional/es</th>}
                   </tr>
                 </thead>
                 <tbody>
-                  {consultasFiltradas.map((c) => (
-                    <tr key={c.id} className="border-b border-slate-100">
-                      <td className="py-2">{c.fecha}</td>
+                  {pacientesFiltrados.map((p) => (
+                    <tr key={p.id} className="border-b border-slate-100">
                       <td className="py-2">
                         <button
-                          onClick={() => setPacienteAbiertoId(c.paciente)}
+                          onClick={() => setPacienteAbiertoId(p.id)}
                           className="text-blue-600 hover:underline"
                         >
-                          {c.paciente_nombre}
+                          {p.nombre}
                         </button>
                       </td>
-                      {auth.rol === 'dueño' && <td className="py-2">{c.profesional_nombre}</td>}
-                      <td className="py-2">{truncarMotivo(c.motivo)}</td>
-                      <td className="py-2">
-                        <span className={`px-2 py-1 rounded text-xs font-medium ${COLOR_ESTADO[c.estado] || ''}`}>
-                          {LABEL_ESTADO[c.estado] || c.estado}
-                        </span>
-                      </td>
-                      <td className="py-2">
-                        <Link to={`/consultas/${c.id}`} className="text-blue-600 text-xs hover:underline">
-                          Ver/Editar
-                        </Link>
-                      </td>
+                      {auth.rol === 'dueño' && (
+                        <td className="py-2">{Array.from(p.profesionales).join(', ')}</td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
