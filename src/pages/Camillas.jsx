@@ -53,7 +53,8 @@ export default function Camillas() {
   const [walkInError, setWalkInError] = useState('')
   const [walkInGuardando, setWalkInGuardando] = useState(false)
   const [walkInPlanDisponible, setWalkInPlanDisponible] = useState(null)
-  const [walkInPrecio, setWalkInPrecio] = useState('')
+  const [tiposTurno, setTiposTurno] = useState([])
+  const [walkInTipoTurnoId, setWalkInTipoTurnoId] = useState('')
   const [modalNuevoPacienteAbierto, setModalNuevoPacienteAbierto] = useState(false)
 
   const hoy = new Date().toISOString().split('T')[0]
@@ -68,8 +69,9 @@ export default function Camillas() {
       apiClient.get('/consultas/'),
       apiClient.get('/pacientes/'),
       apiClient.get('/sucursales/'),
+      apiClient.get('/tipos-turno/'),
     ])
-      .then(([turnosRes, profesionalesRes, disponibilidadRes, excepcionesRes, cierresRes, consultasRes, pacientesRes, sucursalesRes]) => {
+      .then(([turnosRes, profesionalesRes, disponibilidadRes, excepcionesRes, cierresRes, consultasRes, pacientesRes, sucursalesRes, tiposTurnoRes]) => {
         setTurnosHoy(turnosRes.data.filter((t) => t.fecha === hoy && t.estado !== 'cancelado'))
         setProfesionales(profesionalesRes.data)
         setDisponibilidad(disponibilidadRes.data)
@@ -78,6 +80,7 @@ export default function Camillas() {
         setConsultas(consultasRes.data)
         setPacientes(pacientesRes.data)
         setSucursales(sucursalesRes.data)
+        setTiposTurno(tiposTurnoRes.data.filter((t) => t.activo))
       })
       .catch(() => setError('No se pudieron cargar los datos de camillas.'))
   }
@@ -111,11 +114,10 @@ export default function Camillas() {
     setWalkInSucursal(sucursales[0]?.id || '')
     setWalkInError('')
     setWalkInPlanDisponible(null)
-    setWalkInPrecio('')
+    setWalkInTipoTurnoId(tiposTurno[0]?.id || '')
   }
 
   useEffect(() => {
-    setWalkInPrecio('')
     if (!walkInPaciente) {
       setWalkInPlanDisponible(null)
       return
@@ -130,13 +132,15 @@ export default function Camillas() {
       .catch(() => setWalkInPlanDisponible(false))
   }, [walkInPaciente])
 
+  const walkInTipo = tiposTurno.find((t) => String(t.id) === String(walkInTipoTurnoId))
+
   const confirmarWalkIn = async () => {
     if (!walkInPaciente) {
       setWalkInError('Elegí un paciente.')
       return
     }
-    if (walkInPlanDisponible === false && !walkInPrecio) {
-      setWalkInError('Ingresá el precio de este turno.')
+    if (!walkInTipo) {
+      setWalkInError('Elegí un tipo de turno.')
       return
     }
     setWalkInGuardando(true)
@@ -146,9 +150,10 @@ export default function Camillas() {
         paciente: walkInPaciente,
         profesional: walkInProfesionalId,
         sucursal: walkInSucursal,
+        tipo_turno_catalogo: walkInTipoTurnoId,
       }
       if (walkInPlanDisponible === false) {
-        payload.monto_cobrado = walkInPrecio
+        payload.monto_cobrado = walkInTipo.precio
       }
       await apiClient.post('/turnos/walk_in/', payload)
       setWalkInProfesionalId(null)
@@ -409,19 +414,26 @@ export default function Camillas() {
                     Este turno va a descontar una sesión del plan activo de {walkInPacienteSeleccionado?.nombre} {walkInPacienteSeleccionado?.apellido}.
                   </p>
                 )}
-                {walkInPlanDisponible === false && (
-                  <div className="mt-2">
-                    <label className="block text-sm text-slate-600 mb-1">Precio de este turno</label>
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={walkInPrecio}
-                      onChange={(e) => setWalkInPrecio(e.target.value)}
-                      className="w-full border border-slate-300 rounded px-3 py-2"
-                      required
-                    />
-                  </div>
+                {walkInPlanDisponible === false && walkInTipo && (
+                  <p className="text-xs text-slate-500 mt-1">Se va a cobrar ${walkInTipo.precio} por este turno.</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm text-slate-600 mb-1">Tipo de turno</label>
+                {tiposTurno.length === 0 ? (
+                  <p className="text-red-600 text-xs">No hay tipos de turno configurados — cargalos en Valores turnos.</p>
+                ) : (
+                  <select
+                    value={walkInTipoTurnoId}
+                    onChange={(e) => setWalkInTipoTurnoId(e.target.value)}
+                    className="w-full border border-slate-300 rounded px-3 py-2"
+                    required
+                  >
+                    {tiposTurno.map((t) => (
+                      <option key={t.id} value={t.id}>{t.nombre} — {t.duracion_minutos} min — ${t.precio}</option>
+                    ))}
+                  </select>
                 )}
               </div>
 

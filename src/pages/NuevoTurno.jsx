@@ -10,12 +10,6 @@ import NuevoPacienteModal from '../components/NuevoPacienteModal'
 import { useAuth } from '../context/AuthContext'
 import { hmAMinutos, minutosAHM, duracionAMinutos, diaSemanaBackend, fechaToStr } from '../utils/fechas'
 
-const TIPOS_TURNO = [
-  { value: 'primera_vez', label: 'Primera vez (20 min + 5 margen)', minutos: 25 },
-  { value: 'chequeo', label: 'Chequeo (10 min + 5 margen)', minutos: 15 },
-  { value: 'reactivacion', label: 'Reactivación (15 min + 5 margen)', minutos: 20 },
-]
-
 const MARGEN_MINUTOS_MINIMO = 30
 
 export default function NuevoTurno() {
@@ -40,17 +34,17 @@ export default function NuevoTurno() {
     return fechaParam ? new Date(`${fechaParam}T00:00:00`) : null
   })
 
+  const [tiposTurno, setTiposTurno] = useState([])
   const [form, setForm] = useState(() => ({
     sucursal: '',
     paciente: '',
     profesional: searchParams.get('profesional') || '',
-    tipoTurno: 'primera_vez',
+    tipoTurnoId: '',
     hora: searchParams.get('hora') || '',
     descripcion: '',
     estado: 'pendiente',
   }))
   const [planDisponible, setPlanDisponible] = useState(null)
-  const [precioTurno, setPrecioTurno] = useState('')
 
   useEffect(() => {
     Promise.all([
@@ -61,8 +55,9 @@ export default function NuevoTurno() {
       apiClient.get('/turnos/'),
       apiClient.get('/excepciones/'),
       apiClient.get('/cierres/'),
+      apiClient.get('/tipos-turno/'),
     ])
-      .then(([sucursalesRes, pacientesRes, profesionalesRes, disponibilidadRes, turnosRes, excepcionesRes, cierresRes]) => {
+      .then(([sucursalesRes, pacientesRes, profesionalesRes, disponibilidadRes, turnosRes, excepcionesRes, cierresRes, tiposTurnoRes]) => {
         setSucursales(sucursalesRes.data)
         setPacientes(pacientesRes.data)
         setProfesionales(profesionalesRes.data)
@@ -70,14 +65,15 @@ export default function NuevoTurno() {
         setTodosTurnos(turnosRes.data.filter((t) => t.estado !== 'cancelado'))
         setTodasExcepciones(excepcionesRes.data)
         setTodosCierres(cierresRes.data)
-        setForm((prev) => ({ ...prev, sucursal: sucursalesRes.data[0]?.id || '' }))
+        const activos = tiposTurnoRes.data.filter((t) => t.activo)
+        setTiposTurno(activos)
+        setForm((prev) => ({ ...prev, sucursal: sucursalesRes.data[0]?.id || '', tipoTurnoId: activos[0]?.id || '' }))
       })
       .catch(() => setError('No se pudieron cargar los datos del formulario.'))
       .finally(() => setLoading(false))
   }, [])
 
   useEffect(() => {
-    setPrecioTurno('')
     if (!form.paciente) {
       setPlanDisponible(null)
       return
@@ -128,7 +124,7 @@ export default function NuevoTurno() {
     return diasPermitidos.has(diaSemanaBackend(fecha))
   }
 
-  const tipo = TIPOS_TURNO.find((t) => t.value === form.tipoTurno)
+  const tipo = tiposTurno.find((t) => String(t.id) === String(form.tipoTurnoId))
   const fechaStr = fechaSeleccionada ? fechaToStr(fechaSeleccionada) : null
 
   const turnosDelDia = fechaStr
@@ -144,24 +140,26 @@ export default function NuevoTurno() {
   let horariosDisponibles = []
   const esHoy = fechaSeleccionada && fechaToStr(fechaSeleccionada) === fechaToStr(hoy)
   const minutosAhora = hoy.getHours() * 60 + hoy.getMinutes()
-  disponibilidadDelDia.forEach((d) => {
-    const inicioMin = hmAMinutos(d.hora_inicio.slice(0, 5))
-    const finMin = hmAMinutos(d.hora_fin.slice(0, 5))
-    for (let m = inicioMin; m + tipo.minutos <= finMin; m += 15) {
-      const slotInicio = m
-      const slotFin = m + tipo.minutos
-      if (esHoy && slotInicio < minutosAhora + MARGEN_MINUTOS_MINIMO) continue
-      const ocupado = turnosDelDia.some((t) => {
-        const tInicio = hmAMinutos(t.hora.slice(0, 5))
-        const tFin = tInicio + duracionAMinutos(t.duracion)
-        return slotInicio < tFin && tInicio < slotFin
-      })
-      if (!ocupado) {
-        const hm = minutosAHM(m)
-        if (!horariosDisponibles.includes(hm)) horariosDisponibles.push(hm)
+  if (tipo) {
+    disponibilidadDelDia.forEach((d) => {
+      const inicioMin = hmAMinutos(d.hora_inicio.slice(0, 5))
+      const finMin = hmAMinutos(d.hora_fin.slice(0, 5))
+      for (let m = inicioMin; m + tipo.duracion_minutos <= finMin; m += 15) {
+        const slotInicio = m
+        const slotFin = m + tipo.duracion_minutos
+        if (esHoy && slotInicio < minutosAhora + MARGEN_MINUTOS_MINIMO) continue
+        const ocupado = turnosDelDia.some((t) => {
+          const tInicio = hmAMinutos(t.hora.slice(0, 5))
+          const tFin = tInicio + duracionAMinutos(t.duracion)
+          return slotInicio < tFin && tInicio < slotFin
+        })
+        if (!ocupado) {
+          const hm = minutosAHM(m)
+          if (!horariosDisponibles.includes(hm)) horariosDisponibles.push(hm)
+        }
       }
-    }
-  })
+    })
+  }
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -170,8 +168,8 @@ export default function NuevoTurno() {
       setFechaSeleccionada(null)
       return
     }
-    if (name === 'tipoTurno') {
-      setForm({ ...form, tipoTurno: value, hora: '' })
+    if (name === 'tipoTurnoId') {
+      setForm({ ...form, tipoTurnoId: value, hora: '' })
       return
     }
     setForm({ ...form, [name]: value })
@@ -189,8 +187,8 @@ export default function NuevoTurno() {
       setError('Elegí un horario.')
       return
     }
-    if (planDisponible === false && !precioTurno) {
-      setError('Ingresá el precio de este turno.')
+    if (!tipo) {
+      setError('Elegí un tipo de turno.')
       return
     }
 
@@ -202,13 +200,13 @@ export default function NuevoTurno() {
       profesional: form.profesional,
       fecha: fechaStr,
       hora: form.hora,
-      tipo_turno: form.tipoTurno,
+      tipo_turno_catalogo: form.tipoTurnoId,
       descripcion: form.descripcion,
       estado: form.estado,
-      duracion: `${String(Math.floor(tipo.minutos / 60)).padStart(2, '0')}:${String(tipo.minutos % 60).padStart(2, '0')}:00`,
+      duracion: `${String(Math.floor(tipo.duracion_minutos / 60)).padStart(2, '0')}:${String(tipo.duracion_minutos % 60).padStart(2, '0')}:00`,
     }
     if (planDisponible === false) {
-      payload.monto_cobrado = precioTurno
+      payload.monto_cobrado = tipo.precio
     }
 
     try {
@@ -271,19 +269,8 @@ export default function NuevoTurno() {
                   Este turno va a descontar una sesión del plan activo de {pacienteSeleccionado?.nombre} {pacienteSeleccionado?.apellido}.
                 </p>
               )}
-              {planDisponible === false && (
-                <div className="mt-2">
-                  <label className="block text-sm text-slate-600 mb-1">Precio de este turno</label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={precioTurno}
-                    onChange={(e) => setPrecioTurno(e.target.value)}
-                    className="w-full border border-slate-300 rounded px-3 py-2"
-                    required
-                  />
-                </div>
+              {planDisponible === false && tipo && (
+                <p className="text-xs text-slate-500 mt-1">Se va a cobrar ${tipo.precio} por este turno.</p>
               )}
             </div>
 
@@ -310,16 +297,21 @@ export default function NuevoTurno() {
 
             <div>
               <label className="block text-sm text-slate-600 mb-1">Tipo de turno</label>
-              <select
-                name="tipoTurno"
-                value={form.tipoTurno}
-                onChange={handleChange}
-                className="w-full border border-slate-300 rounded px-3 py-2"
-              >
-                {TIPOS_TURNO.map((t) => (
-                  <option key={t.value} value={t.value}>{t.label}</option>
-                ))}
-              </select>
+              {tiposTurno.length === 0 ? (
+                <p className="text-red-600 text-xs">No hay tipos de turno configurados — cargalos en Valores turnos.</p>
+              ) : (
+                <select
+                  name="tipoTurnoId"
+                  value={form.tipoTurnoId}
+                  onChange={handleChange}
+                  className="w-full border border-slate-300 rounded px-3 py-2"
+                  required
+                >
+                  {tiposTurno.map((t) => (
+                    <option key={t.id} value={t.id}>{t.nombre} — {t.duracion_minutos} min — ${t.precio}</option>
+                  ))}
+                </select>
+              )}
             </div>
 
             <div className="flex flex-col md:flex-row gap-4">

@@ -3,22 +3,16 @@ import apiClient from '../api/client'
 import BuscadorPaciente from './BuscadorPaciente'
 import NuevoPacienteModal from './NuevoPacienteModal'
 
-const TIPOS_TURNO = [
-  { value: 'primera_vez', label: 'Primera vez (20 min + 5 margen)', minutos: 25 },
-  { value: 'chequeo', label: 'Chequeo (10 min + 5 margen)', minutos: 15 },
-  { value: 'reactivacion', label: 'Reactivación (15 min + 5 margen)', minutos: 20 },
-]
-
 export default function NuevoTurnoModal({ profesional, sucursalId, fecha, hora, onClose, onCreado }) {
   const [pacientes, setPacientes] = useState([])
   const [loadingPacientes, setLoadingPacientes] = useState(true)
   const [paciente, setPaciente] = useState('')
-  const [tipoTurno, setTipoTurno] = useState('primera_vez')
+  const [tiposTurno, setTiposTurno] = useState([])
+  const [tipoTurnoId, setTipoTurnoId] = useState('')
   const [error, setError] = useState('')
   const [guardando, setGuardando] = useState(false)
   const [modalNuevoPacienteAbierto, setModalNuevoPacienteAbierto] = useState(false)
   const [planDisponible, setPlanDisponible] = useState(null)
-  const [precioTurno, setPrecioTurno] = useState('')
 
   useEffect(() => {
     apiClient
@@ -29,7 +23,17 @@ export default function NuevoTurnoModal({ profesional, sucursalId, fecha, hora, 
   }, [])
 
   useEffect(() => {
-    setPrecioTurno('')
+    apiClient
+      .get('/tipos-turno/')
+      .then((res) => {
+        const activos = res.data.filter((t) => t.activo)
+        setTiposTurno(activos)
+        setTipoTurnoId(activos[0]?.id || '')
+      })
+      .catch(() => {})
+  }, [])
+
+  useEffect(() => {
     if (!paciente) {
       setPlanDisponible(null)
       return
@@ -45,6 +49,7 @@ export default function NuevoTurnoModal({ profesional, sucursalId, fecha, hora, 
   }, [paciente])
 
   const pacienteSeleccionado = pacientes.find((p) => String(p.id) === String(paciente))
+  const tipo = tiposTurno.find((t) => String(t.id) === String(tipoTurnoId))
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -53,26 +58,25 @@ export default function NuevoTurnoModal({ profesional, sucursalId, fecha, hora, 
       setError('Elegí un paciente.')
       return
     }
-    if (planDisponible === false && !precioTurno) {
-      setError('Ingresá el precio de este turno.')
+    if (!tipo) {
+      setError('Elegí un tipo de turno.')
       return
     }
 
     setGuardando(true)
-    const tipo = TIPOS_TURNO.find((t) => t.value === tipoTurno)
     const payload = {
       sucursal: sucursalId,
       paciente,
       profesional: profesional.id,
       fecha,
       hora,
-      tipo_turno: tipoTurno,
+      tipo_turno_catalogo: tipoTurnoId,
       descripcion: '',
       estado: 'pendiente',
-      duracion: `${String(Math.floor(tipo.minutos / 60)).padStart(2, '0')}:${String(tipo.minutos % 60).padStart(2, '0')}:00`,
+      duracion: `${String(Math.floor(tipo.duracion_minutos / 60)).padStart(2, '0')}:${String(tipo.duracion_minutos % 60).padStart(2, '0')}:00`,
     }
     if (planDisponible === false) {
-      payload.monto_cobrado = precioTurno
+      payload.monto_cobrado = tipo.precio
     }
 
     try {
@@ -115,33 +119,27 @@ export default function NuevoTurnoModal({ profesional, sucursalId, fecha, hora, 
                 Este turno va a descontar una sesión del plan activo de {pacienteSeleccionado?.nombre} {pacienteSeleccionado?.apellido}.
               </p>
             )}
-            {planDisponible === false && (
-              <div className="mt-2">
-                <label className="block text-sm text-slate-600 mb-1">Precio de este turno</label>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={precioTurno}
-                  onChange={(e) => setPrecioTurno(e.target.value)}
-                  className="w-full border border-slate-300 rounded px-3 py-2"
-                  required
-                />
-              </div>
+            {planDisponible === false && tipo && (
+              <p className="text-xs text-slate-500 mt-1">Se va a cobrar ${tipo.precio} por este turno.</p>
             )}
           </div>
 
           <div>
             <label className="block text-sm text-slate-600 mb-1">Tipo de turno</label>
-            <select
-              value={tipoTurno}
-              onChange={(e) => setTipoTurno(e.target.value)}
-              className="w-full border border-slate-300 rounded px-3 py-2"
-            >
-              {TIPOS_TURNO.map((t) => (
-                <option key={t.value} value={t.value}>{t.label}</option>
-              ))}
-            </select>
+            {tiposTurno.length === 0 ? (
+              <p className="text-red-600 text-xs">No hay tipos de turno configurados — cargalos en Valores turnos.</p>
+            ) : (
+              <select
+                value={tipoTurnoId}
+                onChange={(e) => setTipoTurnoId(e.target.value)}
+                className="w-full border border-slate-300 rounded px-3 py-2"
+                required
+              >
+                {tiposTurno.map((t) => (
+                  <option key={t.id} value={t.id}>{t.nombre} — {t.duracion_minutos} min — ${t.precio}</option>
+                ))}
+              </select>
+            )}
           </div>
 
           <button
