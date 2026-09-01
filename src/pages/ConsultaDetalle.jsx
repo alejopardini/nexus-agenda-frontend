@@ -556,7 +556,7 @@ export default function ConsultaDetalle() {
                   onClickSegmento={handleClickSegmento}
                 />
 
-                <div>
+                <div className="sticky top-4 self-start">
                   {datosSegmentoActivo ? (
                     <div className="bg-slate-50 rounded p-3 text-sm">
                       <p className="font-medium text-slate-700 mb-2">
