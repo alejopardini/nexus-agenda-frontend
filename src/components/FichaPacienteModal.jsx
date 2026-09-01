@@ -176,7 +176,7 @@ export default function FichaPacienteModal({ pacienteId, onClose }) {
             merged[a.segmento] = {
               ajustado: previo.ajustado || a.ajustado,
               tipo_ajuste: Array.from(new Set([...previo.tipo_ajuste, ...(a.tipo_ajuste || [])])),
-              tecnica: Array.from(new Set([...previo.tecnica, ...(a.tecnica || [])])),
+              tecnica: Array.from(new Set([...previo.tecnica, ...(a.tecnica ? [a.tecnica] : [])])),
               direccion: a.direccion != null ? a.direccion : previo.direccion,
               bloqueada: a.bloqueada,
             }
@@ -682,9 +682,9 @@ export default function FichaPacienteModal({ pacienteId, onClose }) {
                                   {a.bloqueada ? 'Bloqueada' : a.ajustado ? 'Ajustado' : 'Sin ajustar'}
                                 </span>
                               </div>
-                              {(a.tipo_ajuste?.length > 0 || a.tecnica?.length > 0 || a.direccion) && (
+                              {(a.tipo_ajuste?.length > 0 || a.tecnica || a.direccion) && (
                                 <p className="text-slate-600 text-xs mt-0.5">
-                                  {[a.tipo_ajuste?.join(', '), a.tecnica?.join(', '), a.direccion]
+                                  {[a.tipo_ajuste?.join(', '), a.tecnica, a.direccion]
                                     .filter(Boolean)
                                     .join(' — ')}
                                 </p>
