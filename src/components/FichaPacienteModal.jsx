@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import apiClient from '../api/client'
 import AnotadorArchivo from './AnotadorArchivo'
 import ColumnaVertebral from './ColumnaVertebral'
+import SelectorPlantillaPlan from './SelectorPlantillaPlan'
 
 const TABS = [
   { key: 'datos', label: 'Datos' },
@@ -58,6 +59,7 @@ export default function FichaPacienteModal({ pacienteId, onClose }) {
   const [planes, setPlanes] = useState([])
   const [planesError, setPlanesError] = useState(false)
   const [formPlan, setFormPlan] = useState({ sesiones_totales: '', precio: '', notas: '' })
+  const [plantillasPlan, setPlantillasPlan] = useState([])
   const [guardandoPlan, setGuardandoPlan] = useState(false)
   const [errorPlan, setErrorPlan] = useState('')
   const [editandoPlanId, setEditandoPlanId] = useState(null)
@@ -136,6 +138,11 @@ export default function FichaPacienteModal({ pacienteId, onClose }) {
 
     cargarArchivos()
     cargarPlanes()
+
+    apiClient
+      .get('/plantillas-plan/')
+      .then((res) => { if (activo) setPlantillasPlan(res.data.filter((pl) => pl.activo)) })
+      .catch(() => {})
 
     return () => { activo = false }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -484,29 +491,13 @@ export default function FichaPacienteModal({ pacienteId, onClose }) {
 
                     {!mostrarPlanesArchivados && (
                     <form onSubmit={handleSubmitPlan} className="flex flex-wrap gap-2 items-end bg-slate-50 rounded p-3">
-                      <div>
-                        <label className="block text-xs text-slate-500 mb-1">Sesiones</label>
-                        <input
-                          type="number"
-                          min="1"
-                          value={formPlan.sesiones_totales}
-                          onChange={(e) => setFormPlan({ ...formPlan, sesiones_totales: e.target.value })}
-                          className="w-24 text-sm border border-slate-300 rounded px-2 py-1.5"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs text-slate-500 mb-1">Precio</label>
-                        <input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={formPlan.precio}
-                          onChange={(e) => setFormPlan({ ...formPlan, precio: e.target.value })}
-                          className="w-28 text-sm border border-slate-300 rounded px-2 py-1.5"
-                          required
-                        />
-                      </div>
+                      <SelectorPlantillaPlan
+                        plantillas={plantillasPlan}
+                        sesiones={formPlan.sesiones_totales}
+                        precio={formPlan.precio}
+                        onChangeSesiones={(v) => setFormPlan((prev) => ({ ...prev, sesiones_totales: v }))}
+                        onChangePrecio={(v) => setFormPlan((prev) => ({ ...prev, precio: v }))}
+                      />
                       <div className="flex-1 min-w-[140px]">
                         <label className="block text-xs text-slate-500 mb-1">Notas (opcional)</label>
                         <input

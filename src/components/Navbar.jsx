@@ -63,6 +63,7 @@ export default function Navbar() {
     { to: '/pacientes', label: 'Ver lista' },
     ...(auth.rol !== 'profesional' || auth.puede_crear_pacientes === true ? [{ to: '/pacientes/nuevo', label: 'Nuevo paciente' }] : []),
     { to: '/pacientes/sin-turno', label: 'Sin turno reciente' },
+    { to: '/planes', label: 'Planes' },
   ]
   const itemsTurnos = [
     { to: '/turnos/lista', label: 'Ver lista' },

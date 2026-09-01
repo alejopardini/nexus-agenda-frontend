@@ -27,6 +27,7 @@ import PacientesSinTurno from './pages/PacientesSinTurno'
 import Camillas from './pages/Camillas'
 import CamposPersonalizados from './pages/CamposPersonalizados'
 import Estadisticas from './pages/Estadisticas'
+import Planes from './pages/Planes'
 
 function App() {
   return (
@@ -57,6 +58,7 @@ function App() {
           <Route path="/secretarias/nueva" element={<ProtectedRoute><NuevaSecretaria /></ProtectedRoute>} />
           <Route path="/soporte" element={<ProtectedRoute><Soporte /></ProtectedRoute>} />
           <Route path="/pacientes/sin-turno" element={<ProtectedRoute><PacientesSinTurno /></ProtectedRoute>} />
+          <Route path="/planes" element={<ProtectedRoute><Planes /></ProtectedRoute>} />
           <Route path="/camillas" element={<ProtectedRoute><Camillas /></ProtectedRoute>} />
           <Route path="/campos-personalizados" element={<ProtectedRoute><CamposPersonalizados /></ProtectedRoute>} />
           <Route path="/estadisticas" element={<ProtectedRoute><Estadisticas /></ProtectedRoute>} />
