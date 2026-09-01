@@ -72,6 +72,7 @@ export default function Navbar() {
     { to: '/turnos/historial', label: 'Historial' },
     { to: '/disponibilidad', label: 'Disponibilidad' },
     ...(auth.rol === 'profesional' ? [{ to: '/campos-personalizados', label: 'Campos personalizados' }] : []),
+    ...(esDueño ? [{ to: '/turnos/valores', label: 'Valores turnos' }] : []),
   ]
   const itemsProfesionales = [
     { to: '/profesionales', label: 'Ver lista' },

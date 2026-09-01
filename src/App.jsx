@@ -27,6 +27,7 @@ import PacientesSinTurno from './pages/PacientesSinTurno'
 import Camillas from './pages/Camillas'
 import CamposPersonalizados from './pages/CamposPersonalizados'
 import Estadisticas from './pages/Estadisticas'
+import ValoresTurnos from './pages/ValoresTurnos'
 import Planes from './pages/Planes'
 
 function App() {
@@ -47,6 +48,7 @@ function App() {
           <Route path="/turnos/nuevo" element={<ProtectedRoute><NuevoTurno /></ProtectedRoute>} />
           <Route path="/turnos/cancelados" element={<ProtectedRoute><TurnosCancelados /></ProtectedRoute>} />
           <Route path="/turnos/historial" element={<ProtectedRoute><HistorialTurnos /></ProtectedRoute>} />
+          <Route path="/turnos/valores" element={<ProtectedRoute><ValoresTurnos /></ProtectedRoute>} />
           <Route path="/consultas" element={<ProtectedRoute><Consultas /></ProtectedRoute>} />
           <Route path="/consultas/:id" element={<ProtectedRoute><ConsultaDetalle /></ProtectedRoute>} />
           <Route path="/disponibilidad" element={<ProtectedRoute><Disponibilidad /></ProtectedRoute>} />
