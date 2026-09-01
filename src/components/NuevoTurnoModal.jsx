@@ -1,0 +1,168 @@
+import { useEffect, useState } from 'react'
+import apiClient from '../api/client'
+import BuscadorPaciente from './BuscadorPaciente'
+import NuevoPacienteModal from './NuevoPacienteModal'
+
+const TIPOS_TURNO = [
+  { value: 'primera_vez', label: 'Primera vez (20 min + 5 margen)', minutos: 25 },
+  { value: 'chequeo', label: 'Chequeo (10 min + 5 margen)', minutos: 15 },
+  { value: 'reactivacion', label: 'Reactivación (15 min + 5 margen)', minutos: 20 },
+]
+
+export default function NuevoTurnoModal({ profesional, sucursalId, fecha, hora, onClose, onCreado }) {
+  const [pacientes, setPacientes] = useState([])
+  const [loadingPacientes, setLoadingPacientes] = useState(true)
+  const [paciente, setPaciente] = useState('')
+  const [tipoTurno, setTipoTurno] = useState('primera_vez')
+  const [error, setError] = useState('')
+  const [guardando, setGuardando] = useState(false)
+  const [modalNuevoPacienteAbierto, setModalNuevoPacienteAbierto] = useState(false)
+  const [planDisponible, setPlanDisponible] = useState(null)
+  const [precioTurno, setPrecioTurno] = useState('')
+
+  useEffect(() => {
+    apiClient
+      .get('/pacientes/')
+      .then((res) => setPacientes(res.data))
+      .catch(() => setError('No se pudieron cargar los pacientes.'))
+      .finally(() => setLoadingPacientes(false))
+  }, [])
+
+  useEffect(() => {
+    setPrecioTurno('')
+    if (!paciente) {
+      setPlanDisponible(null)
+      return
+    }
+    setPlanDisponible(null)
+    apiClient
+      .get(`/planes/?paciente=${paciente}`)
+      .then((res) => {
+        const tienePlan = res.data.some((p) => p.activo && p.sesiones_usadas < p.sesiones_totales)
+        setPlanDisponible(tienePlan)
+      })
+      .catch(() => setPlanDisponible(false))
+  }, [paciente])
+
+  const pacienteSeleccionado = pacientes.find((p) => String(p.id) === String(paciente))
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setError('')
+    if (!paciente) {
+      setError('Elegí un paciente.')
+      return
+    }
+    if (planDisponible === false && !precioTurno) {
+      setError('Ingresá el precio de este turno.')
+      return
+    }
+
+    setGuardando(true)
+    const tipo = TIPOS_TURNO.find((t) => t.value === tipoTurno)
+    const payload = {
+      sucursal: sucursalId,
+      paciente,
+      profesional: profesional.id,
+      fecha,
+      hora,
+      tipo_turno: tipoTurno,
+      descripcion: '',
+      estado: 'pendiente',
+      duracion: `${String(Math.floor(tipo.minutos / 60)).padStart(2, '0')}:${String(tipo.minutos % 60).padStart(2, '0')}:00`,
+    }
+    if (planDisponible === false) {
+      payload.monto_cobrado = precioTurno
+    }
+
+    try {
+      const res = await apiClient.post('/turnos/', payload)
+      onCreado(res.data)
+    } catch (err) {
+      const data = err.response?.data
+      const mensaje = data ? Object.values(data).flat().join(' ') : 'No se pudo crear el turno.'
+      setError(mensaje)
+    } finally {
+      setGuardando(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-lg shadow-xl max-w-sm w-full p-4">
+        <div className="flex justify-between items-start mb-3">
+          <h2 className="font-bold text-slate-800 text-lg">Nuevo turno</h2>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 text-2xl leading-none">×</button>
+        </div>
+
+        <p className="text-sm text-slate-500 mb-3">
+          {profesional.nombre} {profesional.apellido} — {fecha} — {hora}
+        </p>
+
+        {error && <p className="text-red-600 text-sm mb-3">{error}</p>}
+
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <div>
+            <label className="block text-sm text-slate-600 mb-1">Paciente</label>
+            <BuscadorPaciente
+              pacientes={pacientes}
+              value={paciente}
+              onChange={setPaciente}
+              onNuevoPaciente={() => setModalNuevoPacienteAbierto(true)}
+            />
+            {planDisponible === true && (
+              <p className="text-xs text-slate-500 mt-1">
+                Este turno va a descontar una sesión del plan activo de {pacienteSeleccionado?.nombre} {pacienteSeleccionado?.apellido}.
+              </p>
+            )}
+            {planDisponible === false && (
+              <div className="mt-2">
+                <label className="block text-sm text-slate-600 mb-1">Precio de este turno</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={precioTurno}
+                  onChange={(e) => setPrecioTurno(e.target.value)}
+                  className="w-full border border-slate-300 rounded px-3 py-2"
+                  required
+                />
+              </div>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm text-slate-600 mb-1">Tipo de turno</label>
+            <select
+              value={tipoTurno}
+              onChange={(e) => setTipoTurno(e.target.value)}
+              className="w-full border border-slate-300 rounded px-3 py-2"
+            >
+              {TIPOS_TURNO.map((t) => (
+                <option key={t.value} value={t.value}>{t.label}</option>
+              ))}
+            </select>
+          </div>
+
+          <button
+            type="submit"
+            disabled={guardando || loadingPacientes}
+            className="w-full bg-blue-600 text-white rounded py-2 font-medium hover:bg-blue-700 disabled:opacity-50"
+          >
+            {guardando ? 'Guardando...' : 'Crear turno'}
+          </button>
+        </form>
+      </div>
+
+      {modalNuevoPacienteAbierto && (
+        <NuevoPacienteModal
+          onClose={() => setModalNuevoPacienteAbierto(false)}
+          onCreado={(p) => {
+            setPacientes((prev) => [...prev, p])
+            setPaciente(p.id)
+          }}
+        />
+      )}
+    </div>
+  )
+}

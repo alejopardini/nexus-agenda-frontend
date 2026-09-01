@@ -49,6 +49,8 @@ export default function NuevoTurno() {
     descripcion: '',
     estado: 'pendiente',
   }))
+  const [planDisponible, setPlanDisponible] = useState(null)
+  const [precioTurno, setPrecioTurno] = useState('')
 
   useEffect(() => {
     Promise.all([
@@ -74,6 +76,22 @@ export default function NuevoTurno() {
       .finally(() => setLoading(false))
   }, [])
 
+  useEffect(() => {
+    setPrecioTurno('')
+    if (!form.paciente) {
+      setPlanDisponible(null)
+      return
+    }
+    setPlanDisponible(null)
+    apiClient
+      .get(`/planes/?paciente=${form.paciente}`)
+      .then((res) => {
+        const tienePlan = res.data.some((p) => p.activo && p.sesiones_usadas < p.sesiones_totales)
+        setPlanDisponible(tienePlan)
+      })
+      .catch(() => setPlanDisponible(false))
+  }, [form.paciente])
+
   if (auth.rol === 'profesional' && auth.puede_crear_turnos !== true) {
     return (
       <Layout>
@@ -82,6 +100,8 @@ export default function NuevoTurno() {
       </Layout>
     )
   }
+
+  const pacienteSeleccionado = pacientes.find((p) => String(p.id) === String(form.paciente))
 
   const idsConDisponibilidad = new Set(todaDisponibilidad.map((d) => String(d.profesional)))
   const profesionalesElegibles = profesionales.filter((p) => idsConDisponibilidad.has(String(p.id)))
@@ -169,6 +189,10 @@ export default function NuevoTurno() {
       setError('Elegí un horario.')
       return
     }
+    if (planDisponible === false && !precioTurno) {
+      setError('Ingresá el precio de este turno.')
+      return
+    }
 
     setGuardando(true)
 
@@ -182,6 +206,9 @@ export default function NuevoTurno() {
       descripcion: form.descripcion,
       estado: form.estado,
       duracion: `${String(Math.floor(tipo.minutos / 60)).padStart(2, '0')}:${String(tipo.minutos % 60).padStart(2, '0')}:00`,
+    }
+    if (planDisponible === false) {
+      payload.monto_cobrado = precioTurno
     }
 
     try {
@@ -239,6 +266,25 @@ export default function NuevoTurno() {
                 onChange={(id) => setForm({ ...form, paciente: id })}
                 onNuevoPaciente={() => setModalNuevoPacienteAbierto(true)}
               />
+              {planDisponible === true && (
+                <p className="text-xs text-slate-500 mt-1">
+                  Este turno va a descontar una sesión del plan activo de {pacienteSeleccionado?.nombre} {pacienteSeleccionado?.apellido}.
+                </p>
+              )}
+              {planDisponible === false && (
+                <div className="mt-2">
+                  <label className="block text-sm text-slate-600 mb-1">Precio de este turno</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={precioTurno}
+                    onChange={(e) => setPrecioTurno(e.target.value)}
+                    className="w-full border border-slate-300 rounded px-3 py-2"
+                    required
+                  />
+                </div>
+              )}
             </div>
 
             <div>

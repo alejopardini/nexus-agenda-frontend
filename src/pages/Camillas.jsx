@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
 import FichaPacienteModal from '../components/FichaPacienteModal'
+import FichaCamillaModal from '../components/FichaCamillaModal'
 import ColumnaVertebralMini from '../components/ColumnaVertebralMini'
 import BuscadorPaciente from '../components/BuscadorPaciente'
 import NuevoPacienteModal from '../components/NuevoPacienteModal'
@@ -45,11 +46,14 @@ export default function Camillas() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [pacienteAbiertoId, setPacienteAbiertoId] = useState(null)
+  const [consultaCamillaAbiertaId, setConsultaCamillaAbiertaId] = useState(null)
   const [walkInProfesionalId, setWalkInProfesionalId] = useState(null)
   const [walkInPaciente, setWalkInPaciente] = useState('')
   const [walkInSucursal, setWalkInSucursal] = useState('')
   const [walkInError, setWalkInError] = useState('')
   const [walkInGuardando, setWalkInGuardando] = useState(false)
+  const [walkInPlanDisponible, setWalkInPlanDisponible] = useState(null)
+  const [walkInPrecio, setWalkInPrecio] = useState('')
   const [modalNuevoPacienteAbierto, setModalNuevoPacienteAbierto] = useState(false)
 
   const hoy = new Date().toISOString().split('T')[0]
@@ -106,21 +110,47 @@ export default function Camillas() {
     setWalkInPaciente('')
     setWalkInSucursal(sucursales[0]?.id || '')
     setWalkInError('')
+    setWalkInPlanDisponible(null)
+    setWalkInPrecio('')
   }
+
+  useEffect(() => {
+    setWalkInPrecio('')
+    if (!walkInPaciente) {
+      setWalkInPlanDisponible(null)
+      return
+    }
+    setWalkInPlanDisponible(null)
+    apiClient
+      .get(`/planes/?paciente=${walkInPaciente}`)
+      .then((res) => {
+        const tienePlan = res.data.some((p) => p.activo && p.sesiones_usadas < p.sesiones_totales)
+        setWalkInPlanDisponible(tienePlan)
+      })
+      .catch(() => setWalkInPlanDisponible(false))
+  }, [walkInPaciente])
 
   const confirmarWalkIn = async () => {
     if (!walkInPaciente) {
       setWalkInError('Elegí un paciente.')
       return
     }
+    if (walkInPlanDisponible === false && !walkInPrecio) {
+      setWalkInError('Ingresá el precio de este turno.')
+      return
+    }
     setWalkInGuardando(true)
     setWalkInError('')
     try {
-      await apiClient.post('/turnos/walk_in/', {
+      const payload = {
         paciente: walkInPaciente,
         profesional: walkInProfesionalId,
         sucursal: walkInSucursal,
-      })
+      }
+      if (walkInPlanDisponible === false) {
+        payload.monto_cobrado = walkInPrecio
+      }
+      await apiClient.post('/turnos/walk_in/', payload)
       setWalkInProfesionalId(null)
       cargarDatos()
     } catch (err) {
@@ -184,16 +214,16 @@ export default function Camillas() {
   const profesionalesPorId = {}
   profesionales.forEach((p) => { profesionalesPorId[p.id] = p })
 
+  const walkInPacienteSeleccionado = pacientes.find((p) => String(p.id) === String(walkInPaciente))
+
   const turnosConfirmadosHoy = turnosHoy.filter((t) => t.estado === 'confirmado')
   const enCamillaPorProfesional = calcularEnCamillaPorProfesional(turnosConfirmadosHoy)
 
   const idsAMostrar = auth.rol === 'profesional'
     ? (auth.profesional_id ? [auth.profesional_id] : [])
-    : [...new Set(turnosConfirmadosHoy.map((t) => t.profesional))].sort((a, b) => {
-        const na = profesionalesPorId[a] ? `${profesionalesPorId[a].nombre} ${profesionalesPorId[a].apellido}` : ''
-        const nb = profesionalesPorId[b] ? `${profesionalesPorId[b].nombre} ${profesionalesPorId[b].apellido}` : ''
-        return na.localeCompare(nb)
-      })
+    : [...profesionales]
+        .sort((a, b) => `${a.nombre} ${a.apellido}`.localeCompare(`${b.nombre} ${b.apellido}`))
+        .map((p) => p.id)
 
   const tarjetas = idsAMostrar.map((profId) => {
     const { enCamilla, proximos } = enCamillaPorProfesional[profId] || { enCamilla: null, proximos: [] }
@@ -281,7 +311,7 @@ export default function Camillas() {
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4">
         <div>
           {tarjetas.length === 0 ? (
-            <p className="text-slate-500">No hay pacientes confirmados para hoy.</p>
+            <p className="text-slate-500">No hay profesionales cargados.</p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {tarjetas.map((t) => (
@@ -306,7 +336,7 @@ export default function Camillas() {
                         <p className="text-xs text-slate-500 mb-2">{t.enCamilla.hora}</p>
                         <div className="space-x-2">
                           <button
-                            onClick={() => setPacienteAbiertoId(t.enCamilla.paciente)}
+                            onClick={() => setConsultaCamillaAbiertaId(t.enCamilla.consulta_pendiente_id)}
                             className="text-xs text-blue-600 hover:underline"
                           >
                             Ver ficha
@@ -349,6 +379,15 @@ export default function Camillas() {
                               </button>
                             </div>
                           </div>
+                        ) : auth.rol !== 'profesional' ? (
+                          <button
+                            key={`vacio-${i}`}
+                            onClick={() => abrirWalkIn(t.profesionalId)}
+                            title="Agregar sin turno"
+                            className="border border-dashed border-slate-200 rounded p-3 flex items-center justify-center text-slate-300 hover:text-blue-500 hover:border-blue-300 hover:bg-blue-50 text-lg font-medium min-h-[76px] transition-colors"
+                          >
+                            +
+                          </button>
                         ) : (
                           <div
                             key={`vacio-${i}`}
@@ -407,6 +446,13 @@ export default function Camillas() {
         <FichaPacienteModal pacienteId={pacienteAbiertoId} onClose={() => setPacienteAbiertoId(null)} />
       )}
 
+      {consultaCamillaAbiertaId && (
+        <FichaCamillaModal
+          consultaId={consultaCamillaAbiertaId}
+          onClose={() => setConsultaCamillaAbiertaId(null)}
+        />
+      )}
+
       {walkInProfesionalId && (
         <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-sm w-full p-4">
@@ -431,6 +477,25 @@ export default function Camillas() {
                   onChange={setWalkInPaciente}
                   onNuevoPaciente={() => setModalNuevoPacienteAbierto(true)}
                 />
+                {walkInPlanDisponible === true && (
+                  <p className="text-xs text-slate-500 mt-1">
+                    Este turno va a descontar una sesión del plan activo de {walkInPacienteSeleccionado?.nombre} {walkInPacienteSeleccionado?.apellido}.
+                  </p>
+                )}
+                {walkInPlanDisponible === false && (
+                  <div className="mt-2">
+                    <label className="block text-sm text-slate-600 mb-1">Precio de este turno</label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={walkInPrecio}
+                      onChange={(e) => setWalkInPrecio(e.target.value)}
+                      className="w-full border border-slate-300 rounded px-3 py-2"
+                      required
+                    />
+                  </div>
+                )}
               </div>
 
               {sucursales.length > 1 && (

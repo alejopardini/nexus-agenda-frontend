@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
+import NuevoTurnoModal from '../components/NuevoTurnoModal'
 import { hmAMinutos, minutosAHM, duracionAMinutos, diaSemanaBackend, fechaToStr } from '../utils/fechas'
 
 export default function CalendarioTurnos() {
-  const navigate = useNavigate()
   const [profesionales, setProfesionales] = useState([])
   const [disponibilidad, setDisponibilidad] = useState([])
   const [turnos, setTurnos] = useState([])
@@ -15,6 +15,7 @@ export default function CalendarioTurnos() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [fecha, setFecha] = useState(new Date())
+  const [celdaModal, setCeldaModal] = useState(null)
 
   useEffect(() => {
     Promise.all([
@@ -36,6 +37,13 @@ export default function CalendarioTurnos() {
       .catch(() => setError('No se pudieron cargar los datos del calendario.'))
       .finally(() => setLoading(false))
   }, [])
+
+  const recargarTurnos = () => {
+    apiClient
+      .get('/turnos/')
+      .then((res) => setTurnos(res.data.filter((t) => t.estado !== 'cancelado')))
+      .catch(() => {})
+  }
 
   const cambiarDia = (delta) => {
     const nueva = new Date(fecha)
@@ -61,6 +69,10 @@ export default function CalendarioTurnos() {
 
   const fechaStr = fechaToStr(fecha)
   const diaSemana = diaSemanaBackend(fecha)
+  const esHoy = fechaStr === fechaToStr(new Date())
+  const ahoraMin = new Date().getHours() * 60 + new Date().getMinutes()
+  // mismo margen que usa NuevoTurno.jsx (MARGEN_MINUTOS_MINIMO) para no ofrecer franjas ya vencidas
+  const MARGEN_MINUTOS_MINIMO = 30
 
   const sucursalesPorId = {}
   sucursales.forEach((s) => { sucursalesPorId[s.id] = s.nombre })
@@ -122,7 +134,15 @@ export default function CalendarioTurnos() {
 
   const handleClickCelda = (profesionalId, disponible, ocupado, minuto) => {
     if (!disponible || ocupado) return
-    navigate(`/turnos/nuevo?profesional=${profesionalId}&fecha=${fechaStr}&hora=${minutosAHM(minuto)}`)
+    const columna = columnas.find((c) => String(c.profesional.id) === String(profesionalId))
+    const bloque = columna?.bloques.find((b) => minuto >= b.inicio && minuto < b.fin)
+    if (!columna || !bloque) return
+    setCeldaModal({
+      profesional: columna.profesional,
+      sucursalId: bloque.sucursal,
+      fecha: fechaStr,
+      hora: minutosAHM(minuto),
+    })
   }
 
   return (
@@ -199,15 +219,18 @@ export default function CalendarioTurnos() {
                       const turno = turnoQueOcupa(profesional.id, minuto)
                       const ocupado = Boolean(turno)
                       const esInicioTurno = ocupado && hmAMinutos(turno.hora.slice(0, 5)) === minuto
+                      const pasado = esHoy && minuto < ahoraMin + MARGEN_MINUTOS_MINIMO
 
                       let claseColor = 'bg-slate-50'
-                      if (disponible && !ocupado) claseColor = 'bg-green-100 hover:bg-green-200 cursor-pointer'
+                      if (disponible && !ocupado) {
+                        claseColor = pasado ? 'bg-slate-200' : 'bg-green-100 hover:bg-green-200 cursor-pointer'
+                      }
                       if (ocupado) claseColor = 'bg-red-100'
 
                       return (
                         <td
                           key={profesional.id}
-                          onClick={() => handleClickCelda(profesional.id, disponible, ocupado, minuto)}
+                          onClick={() => handleClickCelda(profesional.id, disponible && !pasado, ocupado, minuto)}
                           className={`border-b border-slate-50 px-2 py-1 align-top ${claseColor}`}
                         >
                           {esInicioTurno && (
@@ -223,6 +246,20 @@ export default function CalendarioTurnos() {
           )}
         </div>
       </div>
+
+      {celdaModal && (
+        <NuevoTurnoModal
+          profesional={celdaModal.profesional}
+          sucursalId={celdaModal.sucursalId}
+          fecha={celdaModal.fecha}
+          hora={celdaModal.hora}
+          onClose={() => setCeldaModal(null)}
+          onCreado={() => {
+            setCeldaModal(null)
+            recargarTurnos()
+          }}
+        />
+      )}
     </Layout>
   )
 }
