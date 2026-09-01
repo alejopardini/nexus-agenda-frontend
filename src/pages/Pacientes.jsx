@@ -50,7 +50,7 @@ export default function Pacientes() {
               onChange={(e) => setBusqueda(e.target.value)}
               className="flex-1 max-w-xs border border-slate-300 rounded px-3 py-1.5 text-sm"
             />
-            {auth.rol !== 'profesional' && (
+            {(auth.rol !== 'profesional' || auth.puede_crear_pacientes === true) && (
               <Link
                 to="/pacientes/nuevo"
                 className="bg-blue-600 text-white rounded px-4 py-2 text-sm hover:bg-blue-700 whitespace-nowrap"

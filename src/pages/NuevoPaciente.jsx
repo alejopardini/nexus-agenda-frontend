@@ -2,9 +2,20 @@ import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 import BotonVolver from '../components/BotonVolver'
 import PacienteForm from '../components/PacienteForm'
+import { useAuth } from '../context/AuthContext'
 
 export default function NuevoPaciente() {
   const navigate = useNavigate()
+  const { auth } = useAuth()
+
+  if (auth.rol === 'profesional' && auth.puede_crear_pacientes !== true) {
+    return (
+      <Layout>
+        <BotonVolver to="/pacientes" />
+        <p className="text-red-600">No tenés permiso para crear pacientes. Pedile a la secretaría o al dueño que lo haga.</p>
+      </Layout>
+    )
+  }
 
   return (
     <Layout>

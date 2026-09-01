@@ -18,6 +18,7 @@ export default function NuevoProfesional() {
 
   const [form, setForm] = useState({
     username: '', password: '', email: '', nombre: '', apellido: '',
+    puede_crear_turnos: false, puede_crear_pacientes: false,
   })
 
   const [cargarHorario, setCargarHorario] = useState(false)
@@ -34,7 +35,10 @@ export default function NuevoProfesional() {
       .catch(() => {})
   }, [])
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value })
+  const handleChange = (e) => {
+    const { name, type, checked, value } = e.target
+    setForm({ ...form, [name]: type === 'checkbox' ? checked : value })
+  }
   const handleChangeHorario = (e) => setHorario({ ...horario, [e.target.name]: e.target.value })
 
   const handleSubmit = async (e) => {
@@ -113,6 +117,23 @@ export default function NuevoProfesional() {
             </div>
 
             <hr className="border-slate-100" />
+
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox" name="puede_crear_turnos" checked={form.puede_crear_turnos}
+                  onChange={handleChange} id="puede-crear-turnos"
+                />
+                <label htmlFor="puede-crear-turnos" className="text-sm text-slate-700">Puede crear turnos</label>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox" name="puede_crear_pacientes" checked={form.puede_crear_pacientes}
+                  onChange={handleChange} id="puede-crear-pacientes"
+                />
+                <label htmlFor="puede-crear-pacientes" className="text-sm text-slate-700">Puede crear pacientes</label>
+              </div>
+            </div>
 
             <div className="flex items-center gap-2">
               <input

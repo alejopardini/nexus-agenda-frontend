@@ -74,7 +74,7 @@ export default function NuevoTurno() {
       .finally(() => setLoading(false))
   }, [])
 
-  if (auth.rol === 'profesional') {
+  if (auth.rol === 'profesional' && auth.puede_crear_turnos !== true) {
     return (
       <Layout>
         <BotonVolver to="/turnos/lista" />

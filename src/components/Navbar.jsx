@@ -61,12 +61,12 @@ export default function Navbar() {
 
   const itemsPacientes = [
     { to: '/pacientes', label: 'Ver lista' },
-    ...(auth.rol !== 'profesional' ? [{ to: '/pacientes/nuevo', label: 'Nuevo paciente' }] : []),
+    ...(auth.rol !== 'profesional' || auth.puede_crear_pacientes === true ? [{ to: '/pacientes/nuevo', label: 'Nuevo paciente' }] : []),
     { to: '/pacientes/sin-turno', label: 'Sin turno reciente' },
   ]
   const itemsTurnos = [
     { to: '/turnos/lista', label: 'Ver lista' },
-    ...(auth.rol !== 'profesional' ? [{ to: '/turnos/nuevo', label: 'Nuevo turno' }] : []),
+    ...(auth.rol !== 'profesional' || auth.puede_crear_turnos === true ? [{ to: '/turnos/nuevo', label: 'Nuevo turno' }] : []),
     { to: '/turnos', label: 'Ver calendario' },
     { to: '/turnos/historial', label: 'Historial' },
     { to: '/disponibilidad', label: 'Disponibilidad' },

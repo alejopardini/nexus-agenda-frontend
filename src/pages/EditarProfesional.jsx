@@ -61,7 +61,8 @@ export default function EditarProfesional() {
   }, [id])
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value })
+    const { name, type, checked, value } = e.target
+    setForm({ ...form, [name]: type === 'checkbox' ? checked : value })
   }
 
   const handleChangeHorario = (e) => setHorario({ ...horario, [e.target.name]: e.target.value })
@@ -102,7 +103,8 @@ export default function EditarProfesional() {
       await apiClient.patch(`/profesionales/${id}/`, {
         nombre: form.nombre,
         apellido: form.apellido,
-        
+        puede_crear_turnos: form.puede_crear_turnos,
+        puede_crear_pacientes: form.puede_crear_pacientes,
       })
       navigate('/profesionales')
     } catch (err) {
@@ -151,6 +153,23 @@ export default function EditarProfesional() {
                   className="w-full border border-slate-300 rounded px-3 py-2"
                   required
                 />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox" name="puede_crear_turnos" checked={!!form.puede_crear_turnos}
+                  onChange={handleChange} id="puede-crear-turnos"
+                />
+                <label htmlFor="puede-crear-turnos" className="text-sm text-slate-700">Puede crear turnos</label>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox" name="puede_crear_pacientes" checked={!!form.puede_crear_pacientes}
+                  onChange={handleChange} id="puede-crear-pacientes"
+                />
+                <label htmlFor="puede-crear-pacientes" className="text-sm text-slate-700">Puede crear pacientes</label>
               </div>
             </div>
 
