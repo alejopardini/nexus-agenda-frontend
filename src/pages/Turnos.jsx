@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
+import FichaPacienteModal from '../components/FichaPacienteModal'
 
 const COLOR_ESTADO = {
   pendiente: 'bg-yellow-100 text-yellow-800',
@@ -13,6 +14,7 @@ export default function Turnos() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [busqueda, setBusqueda] = useState('')
+  const [pacienteAbiertoId, setPacienteAbiertoId] = useState(null)
 
   const hoy = new Date().toISOString().split('T')[0]
 
@@ -99,7 +101,14 @@ export default function Turnos() {
                   <tr key={t.id} className="border-b border-slate-100">
                     <td className="py-2">{t.fecha}</td>
                     <td className="py-2">{t.hora}</td>
-                    <td className="py-2">{t.paciente_nombre}</td>
+                    <td className="py-2">
+                      <button
+                        onClick={() => setPacienteAbiertoId(t.paciente)}
+                        className="text-blue-600 hover:underline"
+                      >
+                        {t.paciente_nombre}
+                      </button>
+                    </td>
                     <td className="py-2">{t.profesional_nombre}</td>
                     <td className="py-2">
                       <span className={`px-2 py-1 rounded text-xs font-medium ${COLOR_ESTADO[t.estado] || ''}`}>
@@ -136,6 +145,13 @@ export default function Turnos() {
             </div>
           )}
         </div>
+      )}
+
+      {pacienteAbiertoId && (
+        <FichaPacienteModal
+          pacienteId={pacienteAbiertoId}
+          onClose={() => setPacienteAbiertoId(null)}
+        />
       )}
     </Layout>
   )

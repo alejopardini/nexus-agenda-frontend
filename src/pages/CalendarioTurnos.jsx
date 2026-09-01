@@ -1,9 +1,21 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import DatePicker from 'react-datepicker'
+import 'react-datepicker/dist/react-datepicker.css'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
 import NuevoTurnoModal from '../components/NuevoTurnoModal'
+import FichaPacienteModal from '../components/FichaPacienteModal'
+import PanelFranjasHorarias from '../components/PanelFranjasHorarias'
 import { hmAMinutos, minutosAHM, duracionAMinutos, diaSemanaBackend, fechaToStr } from '../utils/fechas'
+
+function diaClassName(date) {
+  const strDia = fechaToStr(date)
+  const strHoy = fechaToStr(new Date())
+  if (strDia === strHoy) return 'dia-hoy'
+  if (strDia < strHoy) return 'dia-pasado'
+  return undefined
+}
 
 export default function CalendarioTurnos() {
   const [profesionales, setProfesionales] = useState([])
@@ -15,7 +27,9 @@ export default function CalendarioTurnos() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [fecha, setFecha] = useState(new Date())
+  const [fechaLateral, setFechaLateral] = useState(new Date())
   const [celdaModal, setCeldaModal] = useState(null)
+  const [pacienteAbiertoId, setPacienteAbiertoId] = useState(null)
 
   useEffect(() => {
     Promise.all([
@@ -132,8 +146,12 @@ export default function CalendarioTurnos() {
     })
   })
 
-  const handleClickCelda = (profesionalId, disponible, ocupado, minuto) => {
-    if (!disponible || ocupado) return
+  const handleClickCelda = (profesionalId, disponible, turno, minuto) => {
+    if (turno) {
+      setPacienteAbiertoId(turno.paciente)
+      return
+    }
+    if (!disponible) return
     const columna = columnas.find((c) => String(c.profesional.id) === String(profesionalId))
     const bloque = columna?.bloques.find((b) => minuto >= b.inicio && minuto < b.fin)
     if (!columna || !bloque) return
@@ -141,6 +159,17 @@ export default function CalendarioTurnos() {
       profesional: columna.profesional,
       sucursalId: bloque.sucursal,
       fecha: fechaStr,
+      hora: minutosAHM(minuto),
+    })
+  }
+
+  const handleClickLibrePanel = (profesionalId, sucursalId, minuto) => {
+    const profesional = profesionales.find((p) => String(p.id) === String(profesionalId))
+    if (!profesional) return
+    setCeldaModal({
+      profesional,
+      sucursalId,
+      fecha: fechaToStr(fechaLateral),
       hora: minutosAHM(minuto),
     })
   }
@@ -192,58 +221,84 @@ export default function CalendarioTurnos() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-4 overflow-x-auto">
-          {columnas.length === 0 ? (
-            <p className="text-slate-500 text-sm">Nadie atiende este día.</p>
-          ) : (
-            <table className="w-full text-xs border-collapse">
-              <thead>
-                <tr>
-                  <th className="w-16 text-left text-slate-500 border-b border-slate-200 pb-2">Hora</th>
-                  {columnas.map(({ profesional, bloques }) => (
-                    <th key={profesional.id} className="text-left text-slate-700 border-b border-slate-200 pb-2 px-2 min-w-[140px]">
-                      <div>{profesional.nombre} {profesional.apellido}</div>
-                      {sucursalesPorId[bloques[0].sucursal] && (
-                        <div className="text-[10px] font-normal text-slate-400">{sucursalesPorId[bloques[0].sucursal]}</div>
-                      )}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {franjas.map((minuto) => (
-                  <tr key={minuto}>
-                    <td className="text-slate-500 py-1 pr-2 align-top border-b border-slate-50">{minutosAHM(minuto)}</td>
-                    {columnas.map(({ profesional, bloques }) => {
-                      const disponible = estaEnBloque(bloques, minuto)
-                      const turno = turnoQueOcupa(profesional.id, minuto)
-                      const ocupado = Boolean(turno)
-                      const esInicioTurno = ocupado && hmAMinutos(turno.hora.slice(0, 5)) === minuto
-                      const pasado = esHoy && minuto < ahoraMin + MARGEN_MINUTOS_MINIMO
-
-                      let claseColor = 'bg-slate-50'
-                      if (disponible && !ocupado) {
-                        claseColor = pasado ? 'bg-slate-200' : 'bg-green-100 hover:bg-green-200 cursor-pointer'
-                      }
-                      if (ocupado) claseColor = 'bg-red-100'
-
-                      return (
-                        <td
-                          key={profesional.id}
-                          onClick={() => handleClickCelda(profesional.id, disponible && !pasado, ocupado, minuto)}
-                          className={`border-b border-slate-50 px-2 py-1 align-top ${claseColor}`}
-                        >
-                          {esInicioTurno && (
-                            <span className="text-[10px] text-red-800 leading-tight block">{turno.paciente_nombre}</span>
-                          )}
-                        </td>
-                      )
-                    })}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4">
+          <div className="bg-white rounded-lg shadow-md p-4 overflow-x-auto">
+            {columnas.length === 0 ? (
+              <p className="text-slate-500 text-sm">Nadie atiende este día.</p>
+            ) : (
+              <table className="w-full text-xs border-collapse">
+                <thead>
+                  <tr>
+                    <th className="w-16 text-left text-slate-500 border-b border-slate-200 pb-2">Hora</th>
+                    {columnas.map(({ profesional, bloques }) => (
+                      <th key={profesional.id} className="text-left text-slate-700 border-b border-slate-200 pb-2 px-2 min-w-[140px]">
+                        <div>{profesional.nombre} {profesional.apellido}</div>
+                        {sucursalesPorId[bloques[0].sucursal] && (
+                          <div className="text-[10px] font-normal text-slate-400">{sucursalesPorId[bloques[0].sucursal]}</div>
+                        )}
+                      </th>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
+                </thead>
+                <tbody>
+                  {franjas.map((minuto) => (
+                    <tr key={minuto}>
+                      <td className="text-slate-500 py-1 pr-2 align-top border-b border-slate-50">{minutosAHM(minuto)}</td>
+                      {columnas.map(({ profesional, bloques }) => {
+                        const disponible = estaEnBloque(bloques, minuto)
+                        const turno = turnoQueOcupa(profesional.id, minuto)
+                        const ocupado = Boolean(turno)
+                        const esInicioTurno = ocupado && hmAMinutos(turno.hora.slice(0, 5)) === minuto
+                        const pasado = esHoy && minuto < ahoraMin + MARGEN_MINUTOS_MINIMO
+
+                        let claseColor = 'bg-slate-50'
+                        if (disponible && !ocupado) {
+                          claseColor = pasado ? 'bg-slate-200' : 'bg-green-100 hover:bg-green-200 cursor-pointer'
+                        }
+                        if (ocupado) claseColor = 'bg-red-100'
+
+                        return (
+                          <td
+                            key={profesional.id}
+                            onClick={() => handleClickCelda(profesional.id, disponible && !pasado, turno, minuto)}
+                            className={`border-b border-slate-50 px-2 py-1 align-top ${claseColor}`}
+                          >
+                            {esInicioTurno && (
+                              <span className="text-[10px] text-red-800 leading-tight block">{turno.paciente_nombre}</span>
+                            )}
+                          </td>
+                        )
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+
+          <div className="space-y-4">
+            <div className="bg-white rounded-lg shadow-md p-4 h-fit">
+              <DatePicker
+                inline
+                selected={fechaLateral}
+                onChange={(nueva) => setFechaLateral(nueva)}
+                dayClassName={diaClassName}
+              />
+            </div>
+
+            <PanelFranjasHorarias
+              titulo="Turnos del día"
+              fecha={fechaLateral}
+              idsRelevantes={profesionales.map((p) => p.id)}
+              disponibilidad={disponibilidad}
+              excepciones={excepciones}
+              cierres={cierres}
+              turnos={turnos}
+              mostrarProfesional
+              profesionales={profesionales}
+              onClickLibre={handleClickLibrePanel}
+            />
+          </div>
         </div>
       </div>
 
@@ -258,6 +313,13 @@ export default function CalendarioTurnos() {
             setCeldaModal(null)
             recargarTurnos()
           }}
+        />
+      )}
+
+      {pacienteAbiertoId && (
+        <FichaPacienteModal
+          pacienteId={pacienteAbiertoId}
+          onClose={() => setPacienteAbiertoId(null)}
         />
       )}
     </Layout>

@@ -1,1 +1,10 @@
 @import "tailwindcss";
+
+.react-datepicker__day.dia-hoy {
+  box-shadow: inset 0 0 0 2px #f59e0b;
+  border-radius: 0.3rem;
+}
+
+.react-datepicker__day.dia-pasado:not(.react-datepicker__day--selected) {
+  color: #94a3b8;
+}

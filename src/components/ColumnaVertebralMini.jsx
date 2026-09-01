@@ -40,7 +40,21 @@ function offsetPorDireccion(datos) {
   return 0
 }
 
-function OvaloFila({ segmento, datos }) {
+function datosCombinados(segmento, ajustes) {
+  const izq = ajustes[`${segmento}_IZQ`]
+  const der = ajustes[`${segmento}_DER`]
+  const bloqueada = Boolean(izq?.bloqueada || der?.bloqueada)
+  const ajustado = Boolean(izq?.ajustado || der?.ajustado)
+  let direccion = null
+  if (!bloqueada) {
+    if (der?.ajustado && !izq?.ajustado) direccion = 'derecha'
+    else if (izq?.ajustado && !der?.ajustado) direccion = 'izquierda'
+  }
+  return { bloqueada, ajustado, direccion }
+}
+
+function OvaloFila({ segmento, ajustes }) {
+  const datos = datosCombinados(segmento, ajustes)
   const offset = offsetPorDireccion(datos)
   return (
     <div className="relative h-4 w-full">
@@ -79,16 +93,16 @@ export default function ColumnaVertebralMini({ ajustes }) {
   return (
     <div className="mx-auto" style={{ width: ANCHO_CONTENEDOR }}>
       {SEGMENTOS_COLUMNA.map((seg) => (
-        <OvaloFila key={seg} segmento={seg} datos={ajustes[seg]} />
+        <OvaloFila key={seg} segmento={seg} ajustes={ajustes} />
       ))}
       <div className="flex items-center justify-center gap-1 pt-1">
         <OvaloPelvis segmento="ILION_IZQ" datos={ajustes.ILION_IZQ} ancho={PELVIS_OVALO_ANCHO} alto={PELVIS_OVALO_ALTO} />
         <OvaloPelvis
           segmento="SACRO"
-          datos={ajustes.SACRO}
+          datos={datosCombinados('SACRO', ajustes)}
           ancho={OVALO_ANCHO}
           alto={OVALO_ALTO}
-          offset={offsetPorDireccion(ajustes.SACRO)}
+          offset={0}
         />
         <OvaloPelvis segmento="ILION_DER" datos={ajustes.ILION_DER} ancho={PELVIS_OVALO_ANCHO} alto={PELVIS_OVALO_ALTO} />
       </div>

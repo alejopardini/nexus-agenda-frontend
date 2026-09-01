@@ -8,7 +8,7 @@ import ColumnaVertebralMini from '../components/ColumnaVertebralMini'
 import BuscadorPaciente from '../components/BuscadorPaciente'
 import NuevoPacienteModal from '../components/NuevoPacienteModal'
 import { useAuth } from '../context/AuthContext'
-import { hmAMinutos, minutosAHM, duracionAMinutos, diaSemanaBackend } from '../utils/fechas'
+import PanelFranjasHorarias from '../components/PanelFranjasHorarias'
 
 function calcularEnCamillaPorProfesional(turnosConfirmadosHoy) {
   const porProfesional = {}
@@ -229,10 +229,12 @@ export default function Camillas() {
     const { enCamilla, proximos } = enCamillaPorProfesional[profId] || { enCamilla: null, proximos: [] }
 
     let ultimoAjusteMapa = null
+    let tieneConsultaCompletada = false
     if (enCamilla) {
       const consultaReciente = consultas.find(
         (c) => String(c.paciente) === String(enCamilla.paciente) && c.estado === 'completada'
       )
+      tieneConsultaCompletada = Boolean(consultaReciente)
       const ajustesArray = consultaReciente ? ajustesPorConsultaId[consultaReciente.id] : null
       if (ajustesArray && ajustesArray.length > 0) {
         ultimoAjusteMapa = {}
@@ -240,69 +242,12 @@ export default function Camillas() {
       }
     }
 
-    return { profesionalId: profId, profesional: profesionalesPorId[profId], enCamilla, proximos, ultimoAjusteMapa }
+    return { profesionalId: profId, profesional: profesionalesPorId[profId], enCamilla, proximos, ultimoAjusteMapa, tieneConsultaCompletada }
   })
 
   const idsRelevantesPanel = auth.rol === 'profesional'
     ? (auth.profesional_id ? [auth.profesional_id] : [])
     : profesionales.map((p) => p.id)
-
-  const diaSemana = diaSemanaBackend(new Date())
-
-  const bloquesDelDia = []
-  idsRelevantesPanel.forEach((profId) => {
-    const tieneExcepcion = excepciones.some(
-      (ex) => String(ex.profesional) === String(profId) && ex.fecha === hoy
-    )
-    if (tieneExcepcion) return
-    disponibilidad
-      .filter((d) => String(d.profesional) === String(profId) && d.dia_semana === diaSemana)
-      .filter((d) => !cierres.some((c) => String(c.sucursal) === String(d.sucursal) && c.fecha === hoy))
-      .forEach((d) => {
-        bloquesDelDia.push({
-          inicio: hmAMinutos(d.hora_inicio.slice(0, 5)),
-          fin: hmAMinutos(d.hora_fin.slice(0, 5)),
-        })
-      })
-  })
-
-  let minInicio = null
-  let maxFin = null
-  bloquesDelDia.forEach((b) => {
-    if (minInicio === null || b.inicio < minInicio) minInicio = b.inicio
-    if (maxFin === null || b.fin > maxFin) maxFin = b.fin
-  })
-
-  const franjas = []
-  if (minInicio !== null && maxFin !== null) {
-    for (let m = minInicio; m < maxFin; m += 15) franjas.push(m)
-  }
-
-  const turnosPanel = turnosHoy.filter(
-    (t) => (t.estado === 'confirmado' || t.estado === 'pendiente')
-      && idsRelevantesPanel.map(String).includes(String(t.profesional))
-  )
-
-  const turnosEnFranja = (minuto) => turnosPanel.filter((t) => {
-    const inicio = hmAMinutos(t.hora.slice(0, 5))
-    const fin = inicio + duracionAMinutos(t.duracion)
-    return minuto >= inicio && minuto < fin
-  })
-
-  const filasPanel = []
-  franjas.forEach((minuto) => {
-    const ocupantes = turnosEnFranja(minuto)
-    if (ocupantes.length === 0) {
-      const ultima = filasPanel[filasPanel.length - 1]
-      if (ultima && ultima.tipo === 'libre' && ultima.fin === minuto) {
-        ultima.fin = minuto + 15
-      } else {
-        filasPanel.push({ tipo: 'libre', inicio: minuto, fin: minuto + 15 })
-      }
-    } else {
-      filasPanel.push({ tipo: 'ocupada', minuto, ocupantes })
-    }
-  })
 
   return (
     <Layout>
@@ -357,6 +302,11 @@ export default function Camillas() {
                             <ColumnaVertebralMini ajustes={t.ultimoAjusteMapa} />
                           </div>
                         )}
+                        {!t.ultimoAjusteMapa && !t.tieneConsultaCompletada && (
+                          <div className="mt-2 pt-2 border-t border-blue-100">
+                            <p className="text-[10px] text-slate-400 italic">Sin historial previo.</p>
+                          </div>
+                        )}
                       </div>
                       {[0, 1, 2].map((i) => {
                         const turno = t.proximos[i]
@@ -407,39 +357,16 @@ export default function Camillas() {
           )}
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-3 h-fit">
-          <h2 className="font-bold text-slate-800 mb-3 text-sm">Próximos pacientes hoy</h2>
-          {franjas.length === 0 ? (
-            <p className="text-slate-400 text-xs">Sin disponibilidad configurada para hoy.</p>
-          ) : (
-            <div className="max-h-[70vh] overflow-y-auto">
-              {filasPanel.map((fila, idx) =>
-                fila.tipo === 'libre' ? (
-                  <div key={`libre-${idx}`} className="text-sm text-slate-300 py-2 border-b border-slate-50">
-                    {minutosAHM(fila.inicio)} - {minutosAHM(fila.fin)} — libre
-                  </div>
-                ) : (
-                  <div key={fila.minuto} className="flex items-start gap-2 text-sm py-2 border-b border-slate-50">
-                    <span className="text-slate-400 w-12 shrink-0">{minutosAHM(fila.minuto)}</span>
-                    <div className="flex-1 space-y-1">
-                      {fila.ocupantes.map((t) => (
-                        <div
-                          key={t.id}
-                          className={`rounded px-1.5 py-1 ${
-                            t.estado === 'confirmado' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'
-                          }`}
-                        >
-                          {t.paciente_nombre}
-                          {auth.rol !== 'profesional' && ` — ${t.profesional_nombre}`}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )
-              )}
-            </div>
-          )}
-        </div>
+        <PanelFranjasHorarias
+          titulo="Próximos pacientes hoy"
+          fecha={new Date()}
+          idsRelevantes={idsRelevantesPanel}
+          disponibilidad={disponibilidad}
+          excepciones={excepciones}
+          cierres={cierres}
+          turnos={turnosHoy}
+          mostrarProfesional={auth.rol !== 'profesional'}
+        />
       </div>
 
       {pacienteAbiertoId && (
