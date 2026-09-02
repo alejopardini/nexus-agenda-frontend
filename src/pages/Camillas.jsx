@@ -9,6 +9,7 @@ import BuscadorPaciente from '../components/BuscadorPaciente'
 import NuevoPacienteModal from '../components/NuevoPacienteModal'
 import { useAuth } from '../context/AuthContext'
 import PanelFranjasHorarias from '../components/PanelFranjasHorarias'
+import { fechaToStr } from '../utils/fechas'
 
 function calcularEnCamillaPorProfesional(turnosConfirmadosHoy) {
   const porProfesional = {}
@@ -57,7 +58,7 @@ export default function Camillas() {
   const [walkInTipoTurnoId, setWalkInTipoTurnoId] = useState('')
   const [modalNuevoPacienteAbierto, setModalNuevoPacienteAbierto] = useState(false)
 
-  const hoy = new Date().toISOString().split('T')[0]
+  const hoy = fechaToStr(new Date())
 
   const cargarDatos = () => {
     return Promise.all([
