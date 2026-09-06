@@ -58,6 +58,10 @@ export default function Login() {
         </button>
 
         <p className="text-sm text-slate-500 mt-4 text-center">
+          <Link to="/olvide-password" className="text-blue-600 hover:underline">¿Olvidaste tu contraseña?</Link>
+        </p>
+
+        <p className="text-sm text-slate-500 mt-2 text-center">
           ¿Sos dueño/a de una clínica? <Link to="/registro" className="text-blue-600 hover:underline">Creá tu cuenta</Link>
         </p>
       </form>

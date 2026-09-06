@@ -4,6 +4,9 @@ import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/Login'
 import Registro from './pages/Registro'
 import Terminos from './pages/Terminos'
+import OlvidePassword from './pages/OlvidePassword'
+import RestablecerPassword from './pages/RestablecerPassword'
+import MiPerfil from './pages/MiPerfil'
 import Pacientes from './pages/Pacientes'
 import NuevoPaciente from './pages/NuevoPaciente'
 import DetallePaciente from './pages/DetallePaciente'
@@ -38,6 +41,9 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/registro" element={<Registro />} />
           <Route path="/terminos" element={<Terminos />} />
+          <Route path="/olvide-password" element={<OlvidePassword />} />
+          <Route path="/reset-password/:uidb64/:token" element={<RestablecerPassword />} />
+          <Route path="/mi-perfil" element={<ProtectedRoute><MiPerfil /></ProtectedRoute>} />
           <Route path="/" element={<ProtectedRoute><CalendarioTurnos /></ProtectedRoute>} />
           <Route path="/pacientes" element={<ProtectedRoute><Pacientes /></ProtectedRoute>} />
           <Route path="/pacientes/nuevo" element={<ProtectedRoute><NuevoPaciente /></ProtectedRoute>} />

@@ -112,10 +112,10 @@ export default function Navbar() {
           >
             🛟
           </Link>
-          <div className="hidden md:flex flex-col items-end">
+          <Link to="/mi-perfil" className="hidden md:flex flex-col items-end hover:text-blue-600">
             <span className="text-xs text-slate-400">{auth.organizacion_nombre}</span>
-            <span className="text-sm text-slate-500">{auth.username} ({auth.rol})</span>
-          </div>
+            <span className="text-sm text-slate-500 hover:text-blue-600">{auth.username} ({auth.rol})</span>
+          </Link>
           <NotificationBell />
           <button
             onClick={handleLogout}
@@ -170,7 +170,13 @@ export default function Navbar() {
           </Link>
           <div className="border-t border-slate-100 pt-3 px-1">
             <p className="text-xs text-slate-400">{auth.organizacion_nombre}</p>
-            <p className="text-sm text-slate-500 mb-2">{auth.username} ({auth.rol})</p>
+            <Link
+              to="/mi-perfil"
+              onClick={() => setMobileOpen(false)}
+              className="block text-sm text-slate-500 hover:text-blue-600 mb-2"
+            >
+              {auth.username} ({auth.rol})
+            </Link>
             <button
               onClick={handleLogout}
               className="w-full text-sm bg-red-600 text-white rounded px-3 py-2 hover:bg-red-700"
