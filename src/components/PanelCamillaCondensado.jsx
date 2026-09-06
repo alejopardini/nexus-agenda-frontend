@@ -3,11 +3,18 @@ import { useNavigate } from 'react-router-dom'
 import apiClient from '../api/client'
 import EditorColumnaVertebral from './EditorColumnaVertebral'
 import FichaPacienteModal from './FichaPacienteModal'
+import GestionArchivosPaciente from './GestionArchivosPaciente'
 
 const ETAPA_CUIDADO_OPCIONES = [
   ['aguda', 'Aguda'],
   ['moderada', 'Moderada'],
   ['mantenimiento', 'Mantenimiento'],
+]
+
+const PANEL_TABS = [
+  { key: 'informacion', label: 'Información' },
+  { key: 'notas', label: 'Notas' },
+  { key: 'archivos', label: 'Archivos' },
 ]
 
 export default function PanelCamillaCondensado({ pacienteId, consultaId, onClose }) {
@@ -22,6 +29,12 @@ export default function PanelCamillaCondensado({ pacienteId, consultaId, onClose
   const [error, setError] = useState('')
   const [marcandoCompletada, setMarcandoCompletada] = useState(false)
   const [verFichaCompleta, setVerFichaCompleta] = useState(false)
+  const [panelTab, setPanelTab] = useState('informacion')
+  const [historiaClinica, setHistoriaClinica] = useState('')
+  const [notas, setNotas] = useState([])
+  const [notasError, setNotasError] = useState(false)
+  const [notaTexto, setNotaTexto] = useState('')
+  const [guardandoNota, setGuardandoNota] = useState(false)
 
   useEffect(() => {
     let activo = true
@@ -32,8 +45,10 @@ export default function PanelCamillaCondensado({ pacienteId, consultaId, onClose
       apiClient.get(`/planes/?paciente=${pacienteId}`).catch(() => ({ data: [] })),
       apiClient.get(`/pacientes/${pacienteId}/seguimiento_quiropractico/`).catch(() => ({ data: null })),
       apiClient.get('/consultas/').catch(() => ({ data: [] })),
+      apiClient.get(`/pacientes/${pacienteId}/`).catch(() => ({ data: null })),
+      apiClient.get(`/notas-paciente/?paciente=${pacienteId}`).catch(() => ({ data: null })),
     ])
-      .then(([consultaRes, ajustesRes, planesRes, seguimientoRes, consultasRes]) => {
+      .then(([consultaRes, ajustesRes, planesRes, seguimientoRes, consultasRes, pacienteRes, notasRes]) => {
         if (!activo) return
         setConsulta(consultaRes.data)
 
@@ -59,6 +74,14 @@ export default function PanelCamillaCondensado({ pacienteId, consultaId, onClose
         const completadas = consultasRes.data
           .filter((c) => String(c.paciente) === String(pacienteId) && c.estado === 'completada')
         setHistorial(completadas.slice(0, 5))
+
+        if (pacienteRes.data) setHistoriaClinica(pacienteRes.data.historia_clinica || '')
+
+        if (notasRes.data) {
+          setNotas(notasRes.data)
+        } else {
+          setNotasError(true)
+        }
       })
       .catch(() => { if (activo) setError('No se pudo cargar la consulta.') })
       .finally(() => { if (activo) setLoading(false) })
@@ -95,6 +118,27 @@ export default function PanelCamillaCondensado({ pacienteId, consultaId, onClose
 
   const handleBlurFrecuencia = () => {
     guardarSeguimiento(etapaCuidado, frecuenciaSeguimiento)
+  }
+
+  const guardarHistoriaClinica = () => {
+    apiClient.patch(`/pacientes/${pacienteId}/`, { historia_clinica: historiaClinica }).catch(() => {
+      setError('No se pudo guardar la información. Probá de nuevo.')
+    })
+  }
+
+  const agregarNota = async () => {
+    const texto = notaTexto.trim()
+    if (!texto) return
+    setGuardandoNota(true)
+    try {
+      const res = await apiClient.post('/notas-paciente/', { paciente: pacienteId, texto })
+      setNotas((prev) => [res.data, ...prev])
+      setNotaTexto('')
+    } catch {
+      setError('No se pudo guardar la nota.')
+    } finally {
+      setGuardandoNota(false)
+    }
   }
 
   const marcarCompletada = async () => {
@@ -189,6 +233,79 @@ export default function PanelCamillaCondensado({ pacienteId, consultaId, onClose
                   onChangeAjustes={setAjustes}
                   onGuardarSegmento={guardarAjustesConsulta}
                 />
+              </div>
+
+              <div className="pt-3 border-t border-slate-100">
+                <div className="flex gap-1 mb-3">
+                  {PANEL_TABS.map((t) => (
+                    <button
+                      key={t.key}
+                      onClick={() => setPanelTab(t.key)}
+                      className={`text-xs px-3 py-1.5 rounded-t ${
+                        panelTab === t.key ? 'bg-blue-600 text-white' : 'text-slate-600 hover:bg-slate-100'
+                      }`}
+                    >
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+
+                {panelTab === 'informacion' && (
+                  <textarea
+                    value={historiaClinica}
+                    onChange={(e) => setHistoriaClinica(e.target.value)}
+                    onBlur={guardarHistoriaClinica}
+                    rows={4}
+                    placeholder="Historia clínica del paciente..."
+                    className="w-full border border-slate-300 rounded px-3 py-2 text-sm"
+                  />
+                )}
+
+                {panelTab === 'notas' && (
+                  <div>
+                    {notasError ? (
+                      <p className="text-slate-400 text-sm">No se pudieron cargar las notas.</p>
+                    ) : (
+                      <>
+                        <div className="max-h-48 overflow-y-auto space-y-2 mb-3">
+                          {notas.length === 0 ? (
+                            <p className="text-slate-400 text-sm italic">Sin notas cargadas todavía.</p>
+                          ) : (
+                            notas.map((n) => (
+                              <div key={n.id} className="bg-slate-50 rounded p-2 text-sm">
+                                <p className="text-slate-800 whitespace-pre-wrap">{n.texto}</p>
+                                <p className="text-xs text-slate-400 mt-1">
+                                  {n.autor_nombre || 'Desconocido'} — {new Date(n.fecha_hora).toLocaleString()}
+                                </p>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={notaTexto}
+                            onChange={(e) => setNotaTexto(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') { e.preventDefault(); agregarNota() }
+                            }}
+                            placeholder="Escribir una nota..."
+                            className="flex-1 border border-slate-300 rounded px-3 py-2 text-sm"
+                          />
+                          <button
+                            onClick={agregarNota}
+                            disabled={guardandoNota || !notaTexto.trim()}
+                            className="bg-blue-600 text-white rounded px-4 py-2 text-sm hover:bg-blue-700 disabled:opacity-50"
+                          >
+                            Enviar
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+
+                {panelTab === 'archivos' && <GestionArchivosPaciente pacienteId={pacienteId} />}
               </div>
 
               {consulta.estado !== 'completada' && (

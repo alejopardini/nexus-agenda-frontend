@@ -4,23 +4,27 @@ import apiClient from '../api/client'
 import Layout from '../components/Layout'
 import FichaPacienteModal from '../components/FichaPacienteModal'
 import FichaCamillaModal from '../components/FichaCamillaModal'
+import PanelCamillaCondensado from '../components/PanelCamillaCondensado'
 import ColumnaVertebralMini from '../components/ColumnaVertebralMini'
 import BuscadorPaciente from '../components/BuscadorPaciente'
 import NuevoPacienteModal from '../components/NuevoPacienteModal'
 import { useAuth } from '../context/AuthContext'
 import PanelFranjasHorarias from '../components/PanelFranjasHorarias'
+import SelectorPlantillaPlan from '../components/SelectorPlantillaPlan'
 import { fechaToStr } from '../utils/fechas'
 
-function calcularEnCamillaPorProfesional(turnosConfirmadosHoy) {
+function calcularEnCamillaPorProfesional(turnosBase) {
   const porProfesional = {}
-  turnosConfirmadosHoy.forEach((t) => {
+  turnosBase.forEach((t) => {
     if (!porProfesional[t.profesional]) porProfesional[t.profesional] = []
     porProfesional[t.profesional].push(t)
   })
   const resultado = {}
   Object.entries(porProfesional).forEach(([profId, lista]) => {
-    const pendientes = lista.filter((t) => t.consulta_pendiente_id)
-    const ordenados = [...pendientes].sort((a, b) => a.hora.localeCompare(b.hora))
+    // Pendientes (sin confirmar) siempre entran a la cola: todavía no generaron consulta.
+    // Confirmados solo entran si su consulta sigue abierta (si ya se completó, ya fueron atendidos).
+    const activos = lista.filter((t) => t.estado === 'pendiente' || t.consulta_pendiente_id)
+    const ordenados = [...activos].sort((a, b) => a.hora.localeCompare(b.hora))
     const llamados = ordenados.filter((t) => t.hora_llamado)
     const enCamilla = llamados.length > 0
       ? llamados.reduce((mas, actual) => (new Date(actual.hora_llamado) > new Date(mas.hora_llamado) ? actual : mas))
@@ -48,6 +52,7 @@ export default function Camillas() {
   const [error, setError] = useState('')
   const [pacienteAbiertoId, setPacienteAbiertoId] = useState(null)
   const [consultaCamillaAbiertaId, setConsultaCamillaAbiertaId] = useState(null)
+  const [panelCondensado, setPanelCondensado] = useState(null)
   const [walkInProfesionalId, setWalkInProfesionalId] = useState(null)
   const [walkInPaciente, setWalkInPaciente] = useState('')
   const [walkInSucursal, setWalkInSucursal] = useState('')
@@ -56,6 +61,10 @@ export default function Camillas() {
   const [walkInPlanDisponible, setWalkInPlanDisponible] = useState(null)
   const [tiposTurno, setTiposTurno] = useState([])
   const [walkInTipoTurnoId, setWalkInTipoTurnoId] = useState('')
+  const [walkInModo, setWalkInModo] = useState('individual')
+  const [plantillasPlan, setPlantillasPlan] = useState([])
+  const [nuevoPlanSesiones, setNuevoPlanSesiones] = useState('')
+  const [nuevoPlanPrecio, setNuevoPlanPrecio] = useState('')
   const [modalNuevoPacienteAbierto, setModalNuevoPacienteAbierto] = useState(false)
 
   const hoy = fechaToStr(new Date())
@@ -71,8 +80,9 @@ export default function Camillas() {
       apiClient.get('/pacientes/'),
       apiClient.get('/sucursales/'),
       apiClient.get('/tipos-turno/'),
+      apiClient.get('/plantillas-plan/'),
     ])
-      .then(([turnosRes, profesionalesRes, disponibilidadRes, excepcionesRes, cierresRes, consultasRes, pacientesRes, sucursalesRes, tiposTurnoRes]) => {
+      .then(([turnosRes, profesionalesRes, disponibilidadRes, excepcionesRes, cierresRes, consultasRes, pacientesRes, sucursalesRes, tiposTurnoRes, plantillasRes]) => {
         setTurnosHoy(turnosRes.data.filter((t) => t.fecha === hoy && t.estado !== 'cancelado'))
         setProfesionales(profesionalesRes.data)
         setDisponibilidad(disponibilidadRes.data)
@@ -82,6 +92,7 @@ export default function Camillas() {
         setPacientes(pacientesRes.data)
         setSucursales(sucursalesRes.data)
         setTiposTurno(tiposTurnoRes.data.filter((t) => t.activo))
+        setPlantillasPlan(plantillasRes.data.filter((pl) => pl.activo))
       })
       .catch(() => setError('No se pudieron cargar los datos de camillas.'))
   }
@@ -109,6 +120,15 @@ export default function Camillas() {
     }
   }
 
+  const confirmarTurno = async (turnoId) => {
+    try {
+      await apiClient.post(`/turnos/${turnoId}/confirmar/`)
+      cargarDatos()
+    } catch {
+      alert('No se pudo confirmar el turno.')
+    }
+  }
+
   const abrirWalkIn = (profId) => {
     setWalkInProfesionalId(profId)
     setWalkInPaciente('')
@@ -116,6 +136,9 @@ export default function Camillas() {
     setWalkInError('')
     setWalkInPlanDisponible(null)
     setWalkInTipoTurnoId(tiposTurno[0]?.id || '')
+    setWalkInModo('individual')
+    setNuevoPlanSesiones('')
+    setNuevoPlanPrecio('')
   }
 
   useEffect(() => {
@@ -123,15 +146,30 @@ export default function Camillas() {
       setWalkInPlanDisponible(null)
       return
     }
+    let cancelado = false
     setWalkInPlanDisponible(null)
     apiClient
       .get(`/planes/?paciente=${walkInPaciente}`)
       .then((res) => {
+        if (cancelado) return
         const tienePlan = res.data.some((p) => p.activo && p.sesiones_usadas < p.sesiones_totales)
         setWalkInPlanDisponible(tienePlan)
       })
-      .catch(() => setWalkInPlanDisponible(false))
+      .catch(() => {
+        if (!cancelado) setWalkInPlanDisponible(false)
+      })
+    return () => {
+      cancelado = true
+    }
   }, [walkInPaciente])
+
+  useEffect(() => {
+    if (walkInPlanDisponible !== false) {
+      setWalkInModo('individual')
+      setNuevoPlanSesiones('')
+      setNuevoPlanPrecio('')
+    }
+  }, [walkInPlanDisponible])
 
   const walkInTipo = tiposTurno.find((t) => String(t.id) === String(walkInTipoTurnoId))
 
@@ -140,21 +178,34 @@ export default function Camillas() {
       setWalkInError('Elegí un paciente.')
       return
     }
-    if (!walkInTipo) {
+    if (walkInModo === 'individual' && !walkInTipo) {
       setWalkInError('Elegí un tipo de turno.')
+      return
+    }
+    if (walkInModo === 'plan_nuevo' && (!nuevoPlanSesiones || !nuevoPlanPrecio)) {
+      setWalkInError('Completá las sesiones y el precio del plan nuevo.')
       return
     }
     setWalkInGuardando(true)
     setWalkInError('')
     try {
+      if (walkInModo === 'plan_nuevo') {
+        await apiClient.post('/planes/', {
+          paciente: walkInPaciente,
+          sesiones_totales: nuevoPlanSesiones,
+          precio: nuevoPlanPrecio,
+        })
+      }
       const payload = {
         paciente: walkInPaciente,
         profesional: walkInProfesionalId,
         sucursal: walkInSucursal,
-        tipo_turno_catalogo: walkInTipoTurnoId,
       }
-      if (walkInPlanDisponible === false) {
-        payload.monto_cobrado = walkInTipo.precio
+      if (walkInModo === 'individual') {
+        payload.tipo_turno_catalogo = walkInTipoTurnoId
+        if (walkInPlanDisponible === false) {
+          payload.monto_cobrado = walkInTipo.precio
+        }
       }
       await apiClient.post('/turnos/walk_in/', payload)
       setWalkInProfesionalId(null)
@@ -169,8 +220,8 @@ export default function Camillas() {
   }
 
   useEffect(() => {
-    const turnosConfirmados = turnosHoy.filter((t) => t.estado === 'confirmado')
-    const porProfesional = calcularEnCamillaPorProfesional(turnosConfirmados)
+    const turnosActivosHoy = turnosHoy.filter((t) => t.estado === 'pendiente' || t.estado === 'confirmado')
+    const porProfesional = calcularEnCamillaPorProfesional(turnosActivosHoy)
     const idsPacienteEnCamilla = new Set(
       Object.values(porProfesional).map((v) => v.enCamilla?.paciente).filter(Boolean)
     )
@@ -222,8 +273,8 @@ export default function Camillas() {
 
   const walkInPacienteSeleccionado = pacientes.find((p) => String(p.id) === String(walkInPaciente))
 
-  const turnosConfirmadosHoy = turnosHoy.filter((t) => t.estado === 'confirmado')
-  const enCamillaPorProfesional = calcularEnCamillaPorProfesional(turnosConfirmadosHoy)
+  const turnosActivosHoy = turnosHoy.filter((t) => t.estado === 'pendiente' || t.estado === 'confirmado')
+  const enCamillaPorProfesional = calcularEnCamillaPorProfesional(turnosActivosHoy)
 
   const idsAMostrar = auth.rol === 'profesional'
     ? (auth.profesional_id ? [auth.profesional_id] : [])
@@ -233,6 +284,8 @@ export default function Camillas() {
 
   const tarjetas = idsAMostrar.map((profId) => {
     const { enCamilla, proximos } = enCamillaPorProfesional[profId] || { enCamilla: null, proximos: [] }
+    const destacado = enCamilla || proximos[0] || null
+    const fila = enCamilla ? proximos : proximos.slice(1)
 
     let ultimoAjusteMapa = null
     let tieneConsultaCompletada = false
@@ -248,7 +301,7 @@ export default function Camillas() {
       }
     }
 
-    return { profesionalId: profId, profesional: profesionalesPorId[profId], enCamilla, proximos, ultimoAjusteMapa, tieneConsultaCompletada }
+    return { profesionalId: profId, profesional: profesionalesPorId[profId], enCamilla, destacado, fila, ultimoAjusteMapa, tieneConsultaCompletada }
   })
 
   const idsRelevantesPanel = auth.rol === 'profesional'
@@ -279,45 +332,116 @@ export default function Camillas() {
                     </button>
                   )}
 
-                  {t.enCamilla ? (
+                  {t.destacado ? (
                     <div className="grid grid-cols-2 gap-2">
-                      <div className="bg-blue-50 border border-blue-200 rounded p-3">
-                        <p className="text-xs text-blue-600 font-semibold uppercase mb-1">En camilla ahora</p>
-                        <p className="font-medium text-slate-800 text-sm">{t.enCamilla.paciente_nombre}</p>
-                        <p className="text-xs text-slate-500 mb-2">{t.enCamilla.hora}</p>
-                        <div className="space-x-2">
-                          <button
-                            onClick={() => setConsultaCamillaAbiertaId(t.enCamilla.consulta_pendiente_id)}
-                            className="text-xs text-blue-600 hover:underline"
-                          >
-                            Ver ficha
-                          </button>
-                          <Link to={`/consultas/${t.enCamilla.consulta_pendiente_id}`} className="text-xs text-blue-600 hover:underline">
-                            Ir a la consulta
-                          </Link>
-                          <button
-                            onClick={() => sacarDeCamilla(t.enCamilla.id)}
-                            className="text-xs text-red-600 hover:underline"
-                          >
-                            Sacar de camilla
-                          </button>
+                      {t.enCamilla && t.destacado.id === t.enCamilla.id ? (
+                        <div className="bg-blue-50 border border-blue-200 rounded p-3">
+                          <p className="text-xs text-blue-600 font-semibold uppercase mb-1">En camilla ahora</p>
+                          <p className="font-medium text-slate-800 text-sm">{t.enCamilla.paciente_nombre}</p>
+                          <p className="text-xs text-slate-500 mb-2">{t.enCamilla.hora}</p>
+                          <div className="space-x-2">
+                            <button
+                              onClick={() => setConsultaCamillaAbiertaId(t.enCamilla.consulta_pendiente_id)}
+                              className="text-xs text-blue-600 hover:underline"
+                            >
+                              Ver ficha
+                            </button>
+                            {t.tieneConsultaCompletada ? (
+                              <button
+                                onClick={() => setPanelCondensado({
+                                  pacienteId: t.enCamilla.paciente,
+                                  consultaId: t.enCamilla.consulta_pendiente_id,
+                                })}
+                                className="text-xs text-blue-600 hover:underline"
+                              >
+                                Ir a la consulta
+                              </button>
+                            ) : (
+                              <Link to={`/consultas/${t.enCamilla.consulta_pendiente_id}`} className="text-xs text-blue-600 hover:underline">
+                                Ir a la consulta
+                              </Link>
+                            )}
+                            <button
+                              onClick={() => sacarDeCamilla(t.enCamilla.id)}
+                              className="text-xs text-red-600 hover:underline"
+                            >
+                              Sacar de camilla
+                            </button>
+                          </div>
+                          {t.ultimoAjusteMapa && (
+                            <div className="mt-2 pt-2 border-t border-blue-100">
+                              <p className="text-[10px] text-blue-500 uppercase mb-1">Último ajuste</p>
+                              <ColumnaVertebralMini ajustes={t.ultimoAjusteMapa} />
+                            </div>
+                          )}
+                          {!t.ultimoAjusteMapa && !t.tieneConsultaCompletada && (
+                            <div className="mt-2 pt-2 border-t border-blue-100">
+                              <p className="text-[10px] text-slate-400 italic">Sin historial previo.</p>
+                            </div>
+                          )}
                         </div>
-                        {t.ultimoAjusteMapa && (
-                          <div className="mt-2 pt-2 border-t border-blue-100">
-                            <p className="text-[10px] text-blue-500 uppercase mb-1">Último ajuste</p>
-                            <ColumnaVertebralMini ajustes={t.ultimoAjusteMapa} />
+                      ) : t.destacado.estado === 'pendiente' ? (
+                        <div className="bg-amber-50 border border-amber-300 rounded p-3">
+                          <p className="text-xs text-amber-700 font-semibold uppercase mb-1">
+                            Próximo{' '}
+                            <span className="text-[10px] bg-amber-200 text-amber-800 px-1.5 py-0.5 rounded font-medium normal-case">
+                              Sin confirmar
+                            </span>
+                          </p>
+                          <p className="font-medium text-slate-800 text-sm">{t.destacado.paciente_nombre}</p>
+                          <p className="text-xs text-slate-500 mb-2">{t.destacado.hora}</p>
+                          <div className="space-x-2">
+                            <button
+                              onClick={() => setPacienteAbiertoId(t.destacado.paciente)}
+                              className="text-xs text-blue-600 hover:underline"
+                            >
+                              Ver ficha
+                            </button>
+                            <button
+                              onClick={() => confirmarTurno(t.destacado.id)}
+                              className="text-xs text-amber-700 font-semibold hover:underline"
+                            >
+                              Confirmar
+                            </button>
                           </div>
-                        )}
-                        {!t.ultimoAjusteMapa && !t.tieneConsultaCompletada && (
-                          <div className="mt-2 pt-2 border-t border-blue-100">
-                            <p className="text-[10px] text-slate-400 italic">Sin historial previo.</p>
+                        </div>
+                      ) : (
+                        <div className="bg-slate-50 border border-slate-200 rounded p-3">
+                          <p className="text-xs text-slate-500 font-semibold uppercase mb-1">Próximo</p>
+                          <p className="font-medium text-slate-800 text-sm">{t.destacado.paciente_nombre}</p>
+                          <p className="text-xs text-slate-500 mb-2">{t.destacado.hora}</p>
+                          <div className="space-x-2">
+                            <button
+                              onClick={() => setPacienteAbiertoId(t.destacado.paciente)}
+                              className="text-xs text-blue-600 hover:underline"
+                            >
+                              Ver ficha
+                            </button>
+                            <button
+                              onClick={() => llamar(t.destacado.id)}
+                              className="text-xs text-green-600 hover:underline"
+                            >
+                              Llamar
+                            </button>
                           </div>
-                        )}
-                      </div>
+                        </div>
+                      )}
                       {[0, 1, 2].map((i) => {
-                        const turno = t.proximos[i]
+                        const turno = t.fila[i]
                         return turno ? (
-                          <div key={turno.id} className="bg-slate-50 border border-slate-200 rounded p-3">
+                          <div
+                            key={turno.id}
+                            className={
+                              turno.estado === 'pendiente'
+                                ? 'bg-amber-50 border border-amber-300 rounded p-3'
+                                : 'bg-slate-50 border border-slate-200 rounded p-3'
+                            }
+                          >
+                            {turno.estado === 'pendiente' && (
+                              <span className="inline-block text-[10px] bg-amber-200 text-amber-800 px-1.5 py-0.5 rounded font-medium mb-1">
+                                Sin confirmar
+                              </span>
+                            )}
                             <p className="text-sm font-medium text-slate-700">{turno.paciente_nombre}</p>
                             <p className="text-xs text-slate-500 mb-1">{turno.hora}</p>
                             <div className="space-x-2">
@@ -327,12 +451,21 @@ export default function Camillas() {
                               >
                                 Ver ficha
                               </button>
-                              <button
-                                onClick={() => llamar(turno.id)}
-                                className="text-xs text-green-600 hover:underline"
-                              >
-                                Llamar
-                              </button>
+                              {turno.estado === 'pendiente' ? (
+                                <button
+                                  onClick={() => confirmarTurno(turno.id)}
+                                  className="text-xs text-amber-700 font-medium hover:underline"
+                                >
+                                  Confirmar
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => llamar(turno.id)}
+                                  className="text-xs text-green-600 hover:underline"
+                                >
+                                  Llamar
+                                </button>
+                              )}
                             </div>
                           </div>
                         ) : auth.rol !== 'profesional' ? (
@@ -355,7 +488,7 @@ export default function Camillas() {
                       })}
                     </div>
                   ) : (
-                    <p className="text-slate-500 text-sm">Sin pacientes en camilla por ahora.</p>
+                    <p className="text-slate-500 text-sm">Sin turnos para hoy.</p>
                   )}
                 </div>
               ))}
@@ -383,6 +516,17 @@ export default function Camillas() {
         <FichaCamillaModal
           consultaId={consultaCamillaAbiertaId}
           onClose={() => setConsultaCamillaAbiertaId(null)}
+        />
+      )}
+
+      {panelCondensado && (
+        <PanelCamillaCondensado
+          pacienteId={panelCondensado.pacienteId}
+          consultaId={panelCondensado.consultaId}
+          onClose={() => {
+            setPanelCondensado(null)
+            cargarDatos()
+          }}
         />
       )}
 
@@ -415,28 +559,66 @@ export default function Camillas() {
                     Este turno va a descontar una sesión del plan activo de {walkInPacienteSeleccionado?.nombre} {walkInPacienteSeleccionado?.apellido}.
                   </p>
                 )}
-                {walkInPlanDisponible === false && walkInTipo && (
+                {walkInPlanDisponible === false && walkInModo === 'individual' && walkInTipo && (
                   <p className="text-xs text-slate-500 mt-1">Se va a cobrar ${walkInTipo.precio} por este turno.</p>
                 )}
               </div>
 
-              <div>
-                <label className="block text-sm text-slate-600 mb-1">Tipo de turno</label>
-                {tiposTurno.length === 0 ? (
-                  <p className="text-red-600 text-xs">No hay tipos de turno configurados — cargalos en Valores turnos.</p>
-                ) : (
-                  <select
-                    value={walkInTipoTurnoId}
-                    onChange={(e) => setWalkInTipoTurnoId(e.target.value)}
-                    className="w-full border border-slate-300 rounded px-3 py-2"
-                    required
-                  >
-                    {tiposTurno.map((t) => (
-                      <option key={t.id} value={t.id}>{t.nombre} — {t.duracion_minutos} min — ${t.precio}</option>
-                    ))}
-                  </select>
-                )}
-              </div>
+              {walkInPlanDisponible === false && (
+                <div className="flex gap-4 text-sm text-slate-700">
+                  <label className="flex items-center gap-1.5">
+                    <input
+                      type="radio"
+                      name="walkInModo"
+                      checked={walkInModo === 'individual'}
+                      onChange={() => setWalkInModo('individual')}
+                    />
+                    Turno individual
+                  </label>
+                  <label className="flex items-center gap-1.5">
+                    <input
+                      type="radio"
+                      name="walkInModo"
+                      checked={walkInModo === 'plan_nuevo'}
+                      onChange={() => setWalkInModo('plan_nuevo')}
+                    />
+                    Iniciar plan nuevo
+                  </label>
+                </div>
+              )}
+
+              {walkInModo === 'individual' ? (
+                <div>
+                  <label className="block text-sm text-slate-600 mb-1">Tipo de turno</label>
+                  {tiposTurno.length === 0 ? (
+                    <p className="text-red-600 text-xs">No hay tipos de turno configurados — cargalos en Valores turnos.</p>
+                  ) : (
+                    <select
+                      value={walkInTipoTurnoId}
+                      onChange={(e) => setWalkInTipoTurnoId(e.target.value)}
+                      className="w-full border border-slate-300 rounded px-3 py-2"
+                      required
+                    >
+                      {tiposTurno.map((t) => (
+                        <option key={t.id} value={t.id}>
+                          {t.nombre} — {t.duracion_minutos} min
+                          {walkInPlanDisponible !== true && ` — $${t.precio}`}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  <SelectorPlantillaPlan
+                    plantillas={plantillasPlan}
+                    sesiones={nuevoPlanSesiones}
+                    precio={nuevoPlanPrecio}
+                    onChangeSesiones={setNuevoPlanSesiones}
+                    onChangePrecio={setNuevoPlanPrecio}
+                  />
+                </div>
+              )}
 
               {sucursales.length > 1 && (
                 <div>

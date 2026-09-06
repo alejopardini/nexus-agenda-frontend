@@ -7,10 +7,12 @@ import Layout from '../components/Layout'
 import BotonVolver from '../components/BotonVolver'
 import BuscadorPaciente from '../components/BuscadorPaciente'
 import NuevoPacienteModal from '../components/NuevoPacienteModal'
+import SelectorPlantillaPlan from '../components/SelectorPlantillaPlan'
 import { useAuth } from '../context/AuthContext'
 import { hmAMinutos, minutosAHM, duracionAMinutos, diaSemanaBackend, fechaToStr } from '../utils/fechas'
 
 const MARGEN_MINUTOS_MINIMO = 30
+const DURACION_PLAN_NUEVO_MINUTOS = 30
 
 export default function NuevoTurno() {
   const { auth } = useAuth()
@@ -45,6 +47,10 @@ export default function NuevoTurno() {
     estado: 'pendiente',
   }))
   const [planDisponible, setPlanDisponible] = useState(null)
+  const [modo, setModo] = useState('individual')
+  const [plantillasPlan, setPlantillasPlan] = useState([])
+  const [nuevoPlanSesiones, setNuevoPlanSesiones] = useState('')
+  const [nuevoPlanPrecio, setNuevoPlanPrecio] = useState('')
 
   useEffect(() => {
     Promise.all([
@@ -56,8 +62,9 @@ export default function NuevoTurno() {
       apiClient.get('/excepciones/'),
       apiClient.get('/cierres/'),
       apiClient.get('/tipos-turno/'),
+      apiClient.get('/plantillas-plan/'),
     ])
-      .then(([sucursalesRes, pacientesRes, profesionalesRes, disponibilidadRes, turnosRes, excepcionesRes, cierresRes, tiposTurnoRes]) => {
+      .then(([sucursalesRes, pacientesRes, profesionalesRes, disponibilidadRes, turnosRes, excepcionesRes, cierresRes, tiposTurnoRes, plantillasRes]) => {
         setSucursales(sucursalesRes.data)
         setPacientes(pacientesRes.data)
         setProfesionales(profesionalesRes.data)
@@ -67,6 +74,7 @@ export default function NuevoTurno() {
         setTodosCierres(cierresRes.data)
         const activos = tiposTurnoRes.data.filter((t) => t.activo)
         setTiposTurno(activos)
+        setPlantillasPlan(plantillasRes.data.filter((pl) => pl.activo))
         setForm((prev) => ({ ...prev, sucursal: sucursalesRes.data[0]?.id || '', tipoTurnoId: activos[0]?.id || '' }))
       })
       .catch(() => setError('No se pudieron cargar los datos del formulario.'))
@@ -78,15 +86,30 @@ export default function NuevoTurno() {
       setPlanDisponible(null)
       return
     }
+    let cancelado = false
     setPlanDisponible(null)
     apiClient
       .get(`/planes/?paciente=${form.paciente}`)
       .then((res) => {
+        if (cancelado) return
         const tienePlan = res.data.some((p) => p.activo && p.sesiones_usadas < p.sesiones_totales)
         setPlanDisponible(tienePlan)
       })
-      .catch(() => setPlanDisponible(false))
+      .catch(() => {
+        if (!cancelado) setPlanDisponible(false)
+      })
+    return () => {
+      cancelado = true
+    }
   }, [form.paciente])
+
+  useEffect(() => {
+    if (planDisponible !== false) {
+      setModo('individual')
+      setNuevoPlanSesiones('')
+      setNuevoPlanPrecio('')
+    }
+  }, [planDisponible])
 
   if (auth.rol === 'profesional' && auth.puede_crear_turnos !== true) {
     return (
@@ -140,13 +163,14 @@ export default function NuevoTurno() {
   let horariosDisponibles = []
   const esHoy = fechaSeleccionada && fechaToStr(fechaSeleccionada) === fechaToStr(hoy)
   const minutosAhora = hoy.getHours() * 60 + hoy.getMinutes()
-  if (tipo) {
+  const duracionMinutos = modo === 'plan_nuevo' ? DURACION_PLAN_NUEVO_MINUTOS : tipo?.duracion_minutos
+  if (duracionMinutos) {
     disponibilidadDelDia.forEach((d) => {
       const inicioMin = hmAMinutos(d.hora_inicio.slice(0, 5))
       const finMin = hmAMinutos(d.hora_fin.slice(0, 5))
-      for (let m = inicioMin; m + tipo.duracion_minutos <= finMin; m += 15) {
+      for (let m = inicioMin; m + duracionMinutos <= finMin; m += 15) {
         const slotInicio = m
-        const slotFin = m + tipo.duracion_minutos
+        const slotFin = m + duracionMinutos
         if (esHoy && slotInicio < minutosAhora + MARGEN_MINUTOS_MINIMO) continue
         const ocupado = turnosDelDia.some((t) => {
           const tInicio = hmAMinutos(t.hora.slice(0, 5))
@@ -187,29 +211,46 @@ export default function NuevoTurno() {
       setError('Elegí un horario.')
       return
     }
-    if (!tipo) {
+    if (modo === 'individual' && !tipo) {
       setError('Elegí un tipo de turno.')
+      return
+    }
+    if (modo === 'plan_nuevo' && (!nuevoPlanSesiones || !nuevoPlanPrecio)) {
+      setError('Completá las sesiones y el precio del plan nuevo.')
       return
     }
 
     setGuardando(true)
 
-    const payload = {
-      sucursal: form.sucursal,
-      paciente: form.paciente,
-      profesional: form.profesional,
-      fecha: fechaStr,
-      hora: form.hora,
-      tipo_turno_catalogo: form.tipoTurnoId,
-      descripcion: form.descripcion,
-      estado: form.estado,
-      duracion: `${String(Math.floor(tipo.duracion_minutos / 60)).padStart(2, '0')}:${String(tipo.duracion_minutos % 60).padStart(2, '0')}:00`,
-    }
-    if (planDisponible === false) {
-      payload.monto_cobrado = tipo.precio
-    }
-
     try {
+      if (modo === 'plan_nuevo') {
+        await apiClient.post('/planes/', {
+          paciente: form.paciente,
+          sesiones_totales: nuevoPlanSesiones,
+          precio: nuevoPlanPrecio,
+        })
+      }
+
+      const payload = {
+        sucursal: form.sucursal,
+        paciente: form.paciente,
+        profesional: form.profesional,
+        fecha: fechaStr,
+        hora: form.hora,
+        descripcion: form.descripcion,
+        estado: form.estado,
+        duracion:
+          modo === 'plan_nuevo'
+            ? `00:${String(DURACION_PLAN_NUEVO_MINUTOS).padStart(2, '0')}:00`
+            : `${String(Math.floor(tipo.duracion_minutos / 60)).padStart(2, '0')}:${String(tipo.duracion_minutos % 60).padStart(2, '0')}:00`,
+      }
+      if (modo === 'individual') {
+        payload.tipo_turno_catalogo = form.tipoTurnoId
+        if (planDisponible === false) {
+          payload.monto_cobrado = tipo.precio
+        }
+      }
+
       await apiClient.post('/turnos/', payload)
       navigate('/turnos')
     } catch (err) {
@@ -269,7 +310,7 @@ export default function NuevoTurno() {
                   Este turno va a descontar una sesión del plan activo de {pacienteSeleccionado?.nombre} {pacienteSeleccionado?.apellido}.
                 </p>
               )}
-              {planDisponible === false && tipo && (
+              {planDisponible === false && modo === 'individual' && tipo && (
                 <p className="text-xs text-slate-500 mt-1">Se va a cobrar ${tipo.precio} por este turno.</p>
               )}
             </div>
@@ -295,24 +336,59 @@ export default function NuevoTurno() {
               )}
             </div>
 
-            <div>
-              <label className="block text-sm text-slate-600 mb-1">Tipo de turno</label>
-              {tiposTurno.length === 0 ? (
-                <p className="text-red-600 text-xs">No hay tipos de turno configurados — cargalos en Valores turnos.</p>
-              ) : (
-                <select
-                  name="tipoTurnoId"
-                  value={form.tipoTurnoId}
-                  onChange={handleChange}
-                  className="w-full border border-slate-300 rounded px-3 py-2"
-                  required
-                >
-                  {tiposTurno.map((t) => (
-                    <option key={t.id} value={t.id}>{t.nombre} — {t.duracion_minutos} min — ${t.precio}</option>
-                  ))}
-                </select>
-              )}
-            </div>
+            {planDisponible === false && (
+              <div className="flex gap-4 text-sm text-slate-700">
+                <label className="flex items-center gap-1.5">
+                  <input
+                    type="radio"
+                    name="modo"
+                    checked={modo === 'individual'}
+                    onChange={() => setModo('individual')}
+                  />
+                  Turno individual
+                </label>
+                <label className="flex items-center gap-1.5">
+                  <input
+                    type="radio"
+                    name="modo"
+                    checked={modo === 'plan_nuevo'}
+                    onChange={() => setModo('plan_nuevo')}
+                  />
+                  Iniciar plan nuevo
+                </label>
+              </div>
+            )}
+
+            {modo === 'individual' ? (
+              <div>
+                <label className="block text-sm text-slate-600 mb-1">Tipo de turno</label>
+                {tiposTurno.length === 0 ? (
+                  <p className="text-red-600 text-xs">No hay tipos de turno configurados — cargalos en Valores turnos.</p>
+                ) : (
+                  <select
+                    name="tipoTurnoId"
+                    value={form.tipoTurnoId}
+                    onChange={handleChange}
+                    className="w-full border border-slate-300 rounded px-3 py-2"
+                    required
+                  >
+                    {tiposTurno.map((t) => (
+                      <option key={t.id} value={t.id}>{t.nombre} — {t.duracion_minutos} min — ${t.precio}</option>
+                    ))}
+                  </select>
+                )}
+              </div>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                <SelectorPlantillaPlan
+                  plantillas={plantillasPlan}
+                  sesiones={nuevoPlanSesiones}
+                  precio={nuevoPlanPrecio}
+                  onChangeSesiones={setNuevoPlanSesiones}
+                  onChangePrecio={setNuevoPlanPrecio}
+                />
+              </div>
+            )}
 
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1">

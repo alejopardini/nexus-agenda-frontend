@@ -4,8 +4,8 @@ const NIVELES = [
   'L1', 'L2', 'L3', 'L4', 'L5',
 ]
 
-const OVALO_ANCHO = 64
-const OVALO_ALTO = 28
+const OVALO_ANCHO = 54
+const OVALO_ALTO = 22
 const PELVIS_OVALO_ANCHO = 70
 const PELVIS_OVALO_ALTO = 40
 const ILION_CAJA_ANCHO = PELVIS_OVALO_ANCHO + 16
@@ -19,12 +19,17 @@ const COLOR_REGION = {
 const COLOR_AJUSTADO = '#f59e0b'
 const COLOR_BLOQUEADA = '#ef4444'
 const DESPLAZAMIENTO_AJUSTE = 24
+const CODIGOS_SIN_DESPLAZAMIENTO = ['PI', 'PI-R', 'PI-L']
 
 function regionDe(nivel) {
   if (nivel.startsWith('C')) return 'cervical'
   if (nivel.startsWith('T')) return 'toracica'
   if (nivel.startsWith('L')) return 'lumbar'
   return 'pelvis' // SACRO, ILION
+}
+
+function tieneCodigoSinDesplazamiento(tipoAjuste) {
+  return (tipoAjuste || []).some((t) => CODIGOS_SIN_DESPLAZAMIENTO.includes(t))
 }
 
 function colorEstado(nivel, datos) {
@@ -64,9 +69,9 @@ function OvaloPartido({ nivel, ajustes, onClick, ancho = OVALO_ANCHO, alto = OVA
   const desplazamiento = sinDesplazamiento || bloqueada
     ? 0
     : ajustadoDer
-      ? DESPLAZAMIENTO_AJUSTE
+      ? (tieneCodigoSinDesplazamiento(ajustes[claveDer]?.tipo_ajuste) ? 0 : DESPLAZAMIENTO_AJUSTE)
       : ajustadoIzq
-        ? -DESPLAZAMIENTO_AJUSTE
+        ? (tieneCodigoSinDesplazamiento(ajustes[claveIzq]?.tipo_ajuste) ? 0 : -DESPLAZAMIENTO_AJUSTE)
         : 0
 
   return (
@@ -107,7 +112,7 @@ function OvaloPartido({ nivel, ajustes, onClick, ancho = OVALO_ANCHO, alto = OVA
           }}
         />
         <span
-          className="absolute inset-0 flex items-center justify-center pointer-events-none text-[10px] font-bold leading-none"
+          className="absolute inset-0 flex items-center justify-center pointer-events-none text-[9px] font-bold leading-none"
           style={{ color: '#1e293b' }}
         >
           {nivel}
