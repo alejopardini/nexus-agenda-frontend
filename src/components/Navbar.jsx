@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import apiClient from '../api/client'
 import NotificationBell from './NotificationBell'
 import logoQnexus from '../assets/logo_qnexus.png'
 
@@ -52,7 +53,12 @@ export default function Navbar() {
   const navigate = useNavigate()
   const [mobileOpen, setMobileOpen] = useState(false)
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await apiClient.post('/logout/')
+    } catch {
+      // si falla el POST (red, token ya vencido, etc.) igual deslogueamos del lado del cliente
+    }
     logout()
     navigate('/login')
   }
