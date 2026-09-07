@@ -59,13 +59,15 @@ export default function BuscadorPaciente({ pacientes, value, onChange, onNuevoPa
           {resultados.length === 0 && (
             <p className="px-3 py-2 text-xs text-slate-400">Sin resultados.</p>
           )}
-          <button
-            type="button"
-            onClick={crearNuevo}
-            className="block w-full text-left px-3 py-2 text-sm text-blue-600 font-medium hover:bg-blue-50 border-t border-slate-100"
-          >
-            + Crear nuevo paciente
-          </button>
+          {onNuevoPaciente && (
+            <button
+              type="button"
+              onClick={crearNuevo}
+              className="block w-full text-left px-3 py-2 text-sm text-blue-600 font-medium hover:bg-blue-50 border-t border-slate-100"
+            >
+              + Crear nuevo paciente
+            </button>
+          )}
         </div>
       )}
     </div>
