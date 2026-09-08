@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
 import FichaPacienteModal from '../components/FichaPacienteModal'
+import PanelCamillaCondensado from '../components/PanelCamillaCondensado'
+import { buscarConsultaCompletadaPrevia } from '../utils/consultas'
 
 const COLOR_ESTADO = {
   pendiente: 'bg-yellow-100 text-yellow-800',
@@ -11,19 +13,21 @@ const COLOR_ESTADO = {
 
 export default function Turnos() {
   const [turnos, setTurnos] = useState([])
+  const [consultas, setConsultas] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [busqueda, setBusqueda] = useState('')
   const [pacienteAbiertoId, setPacienteAbiertoId] = useState(null)
+  const [panelCondensado, setPanelCondensado] = useState(null)
 
   const hoy = new Date().toISOString().split('T')[0]
 
   const cargarTurnos = () => {
-    apiClient
-      .get('/turnos/')
-      .then((res) =>
-        setTurnos(res.data.filter((t) => t.estado !== 'cancelado' && t.fecha >= hoy))
-      )
+    Promise.all([apiClient.get('/turnos/'), apiClient.get('/consultas/')])
+      .then(([turnosRes, consultasRes]) => {
+        setTurnos(turnosRes.data.filter((t) => t.estado !== 'cancelado' && t.fecha >= hoy))
+        setConsultas(consultasRes.data)
+      })
       .catch(() => setError('No se pudieron cargar los turnos.'))
       .finally(() => setLoading(false))
   }
@@ -115,11 +119,19 @@ export default function Turnos() {
                         {t.estado}
                       </span>
                       {t.consulta_pendiente_id && (
-                        <Link
-                          to={`/consultas/${t.consulta_pendiente_id}`}
-                          className="inline-block w-2 h-2 rounded-full bg-red-500 ml-2 align-middle"
-                          title="Completar consulta pendiente"
-                        />
+                        buscarConsultaCompletadaPrevia(consultas, t.paciente) ? (
+                          <button
+                            onClick={() => setPanelCondensado({ pacienteId: t.paciente, consultaId: t.consulta_pendiente_id })}
+                            className="inline-block w-2 h-2 rounded-full bg-red-500 ml-2 align-middle"
+                            title="Completar consulta pendiente"
+                          />
+                        ) : (
+                          <Link
+                            to={`/consultas/${t.consulta_pendiente_id}`}
+                            className="inline-block w-2 h-2 rounded-full bg-red-500 ml-2 align-middle"
+                            title="Completar consulta pendiente"
+                          />
+                        )
                       )}
                     </td>
                     <td className="py-2 space-x-2">
@@ -151,6 +163,17 @@ export default function Turnos() {
         <FichaPacienteModal
           pacienteId={pacienteAbiertoId}
           onClose={() => setPacienteAbiertoId(null)}
+        />
+      )}
+
+      {panelCondensado && (
+        <PanelCamillaCondensado
+          pacienteId={panelCondensado.pacienteId}
+          consultaId={panelCondensado.consultaId}
+          onClose={() => {
+            setPanelCondensado(null)
+            cargarTurnos()
+          }}
         />
       )}
     </Layout>
