@@ -138,17 +138,24 @@ export default function GestionArchivosPaciente({ pacienteId }) {
       </div>
 
       {!mostrarArchivados && (
-        <form onSubmit={handleUpload} className="flex gap-2 mb-4">
+        <form onSubmit={handleUpload} className="flex flex-col gap-2 mb-4">
+          <label
+            htmlFor="archivo-input-camilla"
+            className="w-full text-sm border border-slate-300 rounded px-3 py-2 text-slate-600 truncate cursor-pointer hover:bg-slate-50"
+          >
+            {archivoFile ? archivoFile.name : 'Elegir archivo...'}
+          </label>
           <input
+            id="archivo-input-camilla"
             type="file"
             ref={inputArchivoRef}
             onChange={(e) => setArchivoFile(e.target.files[0])}
-            className="flex-1 text-sm border border-slate-300 rounded px-3 py-2"
+            className="sr-only"
           />
           <button
             type="submit"
             disabled={!archivoFile || subiendo}
-            className="bg-blue-600 text-white rounded px-4 py-2 text-sm hover:bg-blue-700 disabled:opacity-50"
+            className="w-full bg-blue-600 text-white rounded px-4 py-2 text-sm hover:bg-blue-700 disabled:opacity-50"
           >
             {subiendo ? 'Subiendo...' : 'Subir'}
           </button>
