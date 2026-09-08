@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
 import FichaPacienteModal from '../components/FichaPacienteModal'
-import FichaCamillaModal from '../components/FichaCamillaModal'
 import PanelCamillaCondensado from '../components/PanelCamillaCondensado'
 import ColumnaVertebralMini from '../components/ColumnaVertebralMini'
 import BuscadorPaciente from '../components/BuscadorPaciente'
@@ -12,6 +11,7 @@ import { useAuth } from '../context/AuthContext'
 import PanelFranjasHorarias from '../components/PanelFranjasHorarias'
 import SelectorPlantillaPlan from '../components/SelectorPlantillaPlan'
 import { fechaToStr } from '../utils/fechas'
+import { buscarConsultaCompletadaPrevia } from '../utils/consultas'
 
 function calcularEnCamillaPorProfesional(turnosBase) {
   const porProfesional = {}
@@ -24,15 +24,15 @@ function calcularEnCamillaPorProfesional(turnosBase) {
     // Pendientes (sin confirmar) siempre entran a la cola: todavía no generaron consulta.
     // Confirmados solo entran si su consulta sigue abierta (si ya se completó, ya fueron atendidos).
     const activos = lista.filter((t) => t.estado === 'pendiente' || t.consulta_pendiente_id)
-    const ordenados = [...activos].sort((a, b) => a.hora.localeCompare(b.hora))
-    const llamados = ordenados.filter((t) => t.hora_llamado)
-    const enCamilla = llamados.length > 0
-      ? llamados.reduce((mas, actual) => (new Date(actual.hora_llamado) > new Date(mas.hora_llamado) ? actual : mas))
-      : null
-    resultado[profId] = {
-      enCamilla,
-      proximos: ordenados.filter((t) => t.id !== enCamilla?.id),
-    }
+    // Cualquier turno con hora_llamado sigue "en camilla" hasta que lo saquen a mano
+    // o se complete la consulta (momento en que sale de "activos" más arriba).
+    const llamados = activos
+      .filter((t) => t.hora_llamado)
+      .sort((a, b) => new Date(a.hora_llamado) - new Date(b.hora_llamado))
+    const sinLlamar = activos
+      .filter((t) => !t.hora_llamado)
+      .sort((a, b) => a.hora.localeCompare(b.hora))
+    resultado[profId] = { llamados, sinLlamar }
   })
   return resultado
 }
@@ -51,7 +51,6 @@ export default function Camillas() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [pacienteAbiertoId, setPacienteAbiertoId] = useState(null)
-  const [consultaCamillaAbiertaId, setConsultaCamillaAbiertaId] = useState(null)
   const [panelCondensado, setPanelCondensado] = useState(null)
   const [walkInProfesionalId, setWalkInProfesionalId] = useState(null)
   const [walkInPaciente, setWalkInPaciente] = useState('')
@@ -117,6 +116,16 @@ export default function Camillas() {
       cargarDatos()
     } catch {
       alert('No se pudo sacar de camilla.')
+    }
+  }
+
+  const quitarTurno = async (turnoId) => {
+    if (!confirm('¿Quitar este turno de Camillas? Se cancela y el casillero queda libre para otro paciente.')) return
+    try {
+      await apiClient.post(`/turnos/${turnoId}/cancelar/`)
+      cargarDatos()
+    } catch {
+      alert('No se pudo quitar el turno.')
     }
   }
 
@@ -223,14 +232,12 @@ export default function Camillas() {
     const turnosActivosHoy = turnosHoy.filter((t) => t.estado === 'pendiente' || t.estado === 'confirmado')
     const porProfesional = calcularEnCamillaPorProfesional(turnosActivosHoy)
     const idsPacienteEnCamilla = new Set(
-      Object.values(porProfesional).map((v) => v.enCamilla?.paciente).filter(Boolean)
+      Object.values(porProfesional).flatMap((v) => v.llamados.map((t) => t.paciente))
     )
 
     const idsConsultaAPedir = []
     idsPacienteEnCamilla.forEach((pacId) => {
-      const consultaReciente = consultas.find(
-        (c) => String(c.paciente) === String(pacId) && c.estado === 'completada'
-      )
+      const consultaReciente = buscarConsultaCompletadaPrevia(consultas, pacId)
       if (consultaReciente && !(consultaReciente.id in ajustesPorConsultaId)) {
         idsConsultaAPedir.push(consultaReciente.id)
       }
@@ -283,25 +290,29 @@ export default function Camillas() {
         .map((p) => p.id)
 
   const tarjetas = idsAMostrar.map((profId) => {
-    const { enCamilla, proximos } = enCamillaPorProfesional[profId] || { enCamilla: null, proximos: [] }
-    const destacado = enCamilla || proximos[0] || null
-    const fila = enCamilla ? proximos : proximos.slice(1)
+    const { llamados, sinLlamar } = enCamillaPorProfesional[profId] || { llamados: [], sinLlamar: [] }
 
-    let ultimoAjusteMapa = null
-    let tieneConsultaCompletada = false
-    if (enCamilla) {
-      const consultaReciente = consultas.find(
-        (c) => String(c.paciente) === String(enCamilla.paciente) && c.estado === 'completada'
-      )
-      tieneConsultaCompletada = Boolean(consultaReciente)
+    const itemsLlamados = llamados.map((turno) => {
+      const consultaReciente = buscarConsultaCompletadaPrevia(consultas, turno.paciente)
+      const tieneConsultaCompletada = Boolean(consultaReciente)
       const ajustesArray = consultaReciente ? ajustesPorConsultaId[consultaReciente.id] : null
+      let ultimoAjusteMapa = null
       if (ajustesArray && ajustesArray.length > 0) {
         ultimoAjusteMapa = {}
         ajustesArray.forEach((a) => { ultimoAjusteMapa[a.segmento] = a })
       }
-    }
+      return { tipo: 'llamado', turno, ultimoAjusteMapa, tieneConsultaCompletada }
+    })
+    const itemsSinLlamar = sinLlamar.map((turno) => ({
+      tipo: turno.estado,
+      turno,
+      tieneConsultaCompletada: Boolean(buscarConsultaCompletadaPrevia(consultas, turno.paciente)),
+    }))
 
-    return { profesionalId: profId, profesional: profesionalesPorId[profId], enCamilla, destacado, fila, ultimoAjusteMapa, tieneConsultaCompletada }
+    // Azules primero, después relleno con lo que falte hasta completar los 4 casilleros.
+    const items = [...itemsLlamados, ...itemsSinLlamar].slice(0, 4)
+
+    return { profesionalId: profId, profesional: profesionalesPorId[profId], items }
   })
 
   const idsRelevantesPanel = auth.rol === 'profesional'
@@ -332,103 +343,92 @@ export default function Camillas() {
                     </button>
                   )}
 
-                  {t.destacado ? (
+                  {t.items.length > 0 ? (
                     <div className="grid grid-cols-2 gap-2">
-                      {t.enCamilla && t.destacado.id === t.enCamilla.id ? (
-                        <div className="bg-blue-50 border border-blue-200 rounded p-3">
-                          <p className="text-xs text-blue-600 font-semibold uppercase mb-1">En camilla ahora</p>
-                          <p className="font-medium text-slate-800 text-sm">{t.enCamilla.paciente_nombre}</p>
-                          <p className="text-xs text-slate-500 mb-2">{t.enCamilla.hora}</p>
-                          <div className="space-x-2">
+                      {[0, 1, 2, 3].map((i) => {
+                        const item = t.items[i]
+
+                        if (!item) {
+                          return auth.rol !== 'profesional' ? (
                             <button
-                              onClick={() => setConsultaCamillaAbiertaId(t.enCamilla.consulta_pendiente_id)}
-                              className="text-xs text-blue-600 hover:underline"
+                              key={`vacio-${i}`}
+                              onClick={() => abrirWalkIn(t.profesionalId)}
+                              title="Agregar sin turno"
+                              className="border border-dashed border-slate-200 rounded p-3 flex items-center justify-center text-slate-300 hover:text-blue-500 hover:border-blue-300 hover:bg-blue-50 text-lg font-medium min-h-[76px] transition-colors"
                             >
-                              Ver ficha
+                              +
                             </button>
-                            {t.tieneConsultaCompletada ? (
-                              <button
-                                onClick={() => setPanelCondensado({
-                                  pacienteId: t.enCamilla.paciente,
-                                  consultaId: t.enCamilla.consulta_pendiente_id,
-                                })}
-                                className="text-xs text-blue-600 hover:underline"
-                              >
-                                Ir a la consulta
-                              </button>
-                            ) : (
-                              <Link to={`/consultas/${t.enCamilla.consulta_pendiente_id}`} className="text-xs text-blue-600 hover:underline">
-                                Ir a la consulta
-                              </Link>
-                            )}
-                            <button
-                              onClick={() => sacarDeCamilla(t.enCamilla.id)}
-                              className="text-xs text-red-600 hover:underline"
+                          ) : (
+                            <div
+                              key={`vacio-${i}`}
+                              className="border border-dashed border-slate-200 rounded p-3 flex items-center justify-center text-slate-300 text-sm min-h-[76px]"
                             >
-                              Sacar de camilla
-                            </button>
-                          </div>
-                          {t.ultimoAjusteMapa && (
-                            <div className="mt-2 pt-2 border-t border-blue-100">
-                              <p className="text-[10px] text-blue-500 uppercase mb-1">Último ajuste</p>
-                              <ColumnaVertebralMini ajustes={t.ultimoAjusteMapa} />
+                              —
                             </div>
-                          )}
-                          {!t.ultimoAjusteMapa && !t.tieneConsultaCompletada && (
-                            <div className="mt-2 pt-2 border-t border-blue-100">
-                              <p className="text-[10px] text-slate-400 italic">Sin historial previo.</p>
+                          )
+                        }
+
+                        if (item.tipo === 'llamado') {
+                          const turno = item.turno
+                          return (
+                            <div key={turno.id} className="bg-blue-50 border border-blue-200 rounded p-3">
+                              <p className="text-xs text-blue-600 font-semibold uppercase mb-1">En camilla ahora</p>
+                              <p className="font-medium text-slate-800 text-sm">{turno.paciente_nombre}</p>
+                              <p className="text-xs text-slate-500 mb-2">{turno.hora}</p>
+                              <div className="space-x-2">
+                                <button
+                                  onClick={() => setPacienteAbiertoId(turno.paciente)}
+                                  className="text-xs text-blue-600 hover:underline"
+                                >
+                                  Ver ficha
+                                </button>
+                                {item.tieneConsultaCompletada ? (
+                                  <button
+                                    onClick={() => setPanelCondensado({
+                                      pacienteId: turno.paciente,
+                                      consultaId: turno.consulta_pendiente_id,
+                                    })}
+                                    className="text-xs text-blue-600 hover:underline"
+                                  >
+                                    Ir a la consulta
+                                  </button>
+                                ) : (
+                                  <Link to={`/consultas/${turno.consulta_pendiente_id}`} className="text-xs text-blue-600 hover:underline">
+                                    Ir a la consulta
+                                  </Link>
+                                )}
+                                <button
+                                  onClick={() => sacarDeCamilla(turno.id)}
+                                  title="Vuelve a la cola de espera, sigue en la lista de hoy"
+                                  className="text-xs text-red-600 hover:underline"
+                                >
+                                  Sacar de camilla
+                                </button>
+                                <button
+                                  onClick={() => quitarTurno(turno.id)}
+                                  title="Cancela el turno y libera este lugar para otro paciente"
+                                  className="text-xs text-red-600 hover:underline"
+                                >
+                                  Quitar
+                                </button>
+                              </div>
+                              {item.ultimoAjusteMapa && (
+                                <div className="mt-2 pt-2 border-t border-blue-100">
+                                  <p className="text-[10px] text-blue-500 uppercase mb-1">Último ajuste</p>
+                                  <ColumnaVertebralMini ajustes={item.ultimoAjusteMapa} />
+                                </div>
+                              )}
+                              {!item.ultimoAjusteMapa && !item.tieneConsultaCompletada && (
+                                <div className="mt-2 pt-2 border-t border-blue-100">
+                                  <p className="text-[10px] text-slate-400 italic">Sin historial previo.</p>
+                                </div>
+                              )}
                             </div>
-                          )}
-                        </div>
-                      ) : t.destacado.estado === 'pendiente' ? (
-                        <div className="bg-amber-50 border border-amber-300 rounded p-3">
-                          <p className="text-xs text-amber-700 font-semibold uppercase mb-1">
-                            Próximo{' '}
-                            <span className="text-[10px] bg-amber-200 text-amber-800 px-1.5 py-0.5 rounded font-medium normal-case">
-                              Sin confirmar
-                            </span>
-                          </p>
-                          <p className="font-medium text-slate-800 text-sm">{t.destacado.paciente_nombre}</p>
-                          <p className="text-xs text-slate-500 mb-2">{t.destacado.hora}</p>
-                          <div className="space-x-2">
-                            <button
-                              onClick={() => setPacienteAbiertoId(t.destacado.paciente)}
-                              className="text-xs text-blue-600 hover:underline"
-                            >
-                              Ver ficha
-                            </button>
-                            <button
-                              onClick={() => confirmarTurno(t.destacado.id)}
-                              className="text-xs text-amber-700 font-semibold hover:underline"
-                            >
-                              Confirmar
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="bg-slate-50 border border-slate-200 rounded p-3">
-                          <p className="text-xs text-slate-500 font-semibold uppercase mb-1">Próximo</p>
-                          <p className="font-medium text-slate-800 text-sm">{t.destacado.paciente_nombre}</p>
-                          <p className="text-xs text-slate-500 mb-2">{t.destacado.hora}</p>
-                          <div className="space-x-2">
-                            <button
-                              onClick={() => setPacienteAbiertoId(t.destacado.paciente)}
-                              className="text-xs text-blue-600 hover:underline"
-                            >
-                              Ver ficha
-                            </button>
-                            <button
-                              onClick={() => llamar(t.destacado.id)}
-                              className="text-xs text-green-600 hover:underline"
-                            >
-                              Llamar
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                      {[0, 1, 2].map((i) => {
-                        const turno = t.fila[i]
-                        return turno ? (
+                          )
+                        }
+
+                        const turno = item.turno
+                        return (
                           <div
                             key={turno.id}
                             className={
@@ -459,30 +459,38 @@ export default function Camillas() {
                                   Confirmar
                                 </button>
                               ) : (
-                                <button
-                                  onClick={() => llamar(turno.id)}
-                                  className="text-xs text-green-600 hover:underline"
-                                >
-                                  Llamar
-                                </button>
+                                <>
+                                  {item.tieneConsultaCompletada ? (
+                                    <button
+                                      onClick={() => setPanelCondensado({
+                                        pacienteId: turno.paciente,
+                                        consultaId: turno.consulta_pendiente_id,
+                                      })}
+                                      className="text-xs text-blue-600 hover:underline"
+                                    >
+                                      Ir a la consulta
+                                    </button>
+                                  ) : (
+                                    <Link to={`/consultas/${turno.consulta_pendiente_id}`} className="text-xs text-blue-600 hover:underline">
+                                      Ir a la consulta
+                                    </Link>
+                                  )}
+                                  <button
+                                    onClick={() => llamar(turno.id)}
+                                    className="text-xs text-green-600 hover:underline"
+                                  >
+                                    Llamar
+                                  </button>
+                                </>
                               )}
+                              <button
+                                onClick={() => quitarTurno(turno.id)}
+                                title="Cancela el turno y libera este lugar para otro paciente"
+                                className="text-xs text-red-600 hover:underline"
+                              >
+                                Quitar
+                              </button>
                             </div>
-                          </div>
-                        ) : auth.rol !== 'profesional' ? (
-                          <button
-                            key={`vacio-${i}`}
-                            onClick={() => abrirWalkIn(t.profesionalId)}
-                            title="Agregar sin turno"
-                            className="border border-dashed border-slate-200 rounded p-3 flex items-center justify-center text-slate-300 hover:text-blue-500 hover:border-blue-300 hover:bg-blue-50 text-lg font-medium min-h-[76px] transition-colors"
-                          >
-                            +
-                          </button>
-                        ) : (
-                          <div
-                            key={`vacio-${i}`}
-                            className="border border-dashed border-slate-200 rounded p-3 flex items-center justify-center text-slate-300 text-sm min-h-[76px]"
-                          >
-                            —
                           </div>
                         )
                       })}
@@ -510,13 +518,6 @@ export default function Camillas() {
 
       {pacienteAbiertoId && (
         <FichaPacienteModal pacienteId={pacienteAbiertoId} onClose={() => setPacienteAbiertoId(null)} />
-      )}
-
-      {consultaCamillaAbiertaId && (
-        <FichaCamillaModal
-          consultaId={consultaCamillaAbiertaId}
-          onClose={() => setConsultaCamillaAbiertaId(null)}
-        />
       )}
 
       {panelCondensado && (
