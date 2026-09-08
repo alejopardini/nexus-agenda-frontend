@@ -28,28 +28,32 @@ function MenuDropdown({ titulo, items }) {
 }
 
 function MenuSeccionMobile({ titulo, items, onNavegar }) {
+  const [abierto, setAbierto] = useState(false)
   if (items.length === 0) return null
   return (
     <div className="px-1">
-      <Link
-        to={items[0].to}
-        onClick={onNavegar}
-        className="block text-xs font-semibold text-slate-400 hover:text-blue-600 uppercase mb-1"
+      <button
+        type="button"
+        onClick={() => setAbierto((prev) => !prev)}
+        className="w-full flex items-center justify-between text-xs font-semibold text-slate-400 hover:text-blue-600 uppercase mb-1"
       >
         {titulo}
-      </Link>
-      <div className="space-y-1">
-        {items.map((item) => (
-          <Link
-            key={item.to}
-            to={item.to}
-            onClick={onNavegar}
-            className="block text-sm text-slate-600 hover:text-blue-600 py-1"
-          >
-            {item.label}
-          </Link>
-        ))}
-      </div>
+        <span className={`transition-transform ${abierto ? 'rotate-180' : ''}`}>▾</span>
+      </button>
+      {abierto && (
+        <div className="space-y-1">
+          {items.map((item) => (
+            <Link
+              key={item.to}
+              to={item.to}
+              onClick={onNavegar}
+              className="block text-sm text-slate-600 hover:text-blue-600 py-1"
+            >
+              {item.label}
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
