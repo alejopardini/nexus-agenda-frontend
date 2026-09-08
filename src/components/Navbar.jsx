@@ -9,9 +9,9 @@ function MenuDropdown({ titulo, items }) {
   if (items.length === 0) return null
   return (
     <div className="relative group">
-      <button className="text-sm text-slate-600 hover:text-blue-600 py-2">
+      <Link to={items[0].to} className="text-sm text-slate-600 hover:text-blue-600 py-2">
         {titulo}
-      </button>
+      </Link>
       <div className="absolute left-0 top-full hidden group-hover:block bg-white border border-slate-200 rounded-lg shadow-lg py-1 w-48 z-10">
         {items.map((item) => (
           <Link
@@ -31,7 +31,13 @@ function MenuSeccionMobile({ titulo, items, onNavegar }) {
   if (items.length === 0) return null
   return (
     <div className="px-1">
-      <p className="text-xs font-semibold text-slate-400 uppercase mb-1">{titulo}</p>
+      <Link
+        to={items[0].to}
+        onClick={onNavegar}
+        className="block text-xs font-semibold text-slate-400 hover:text-blue-600 uppercase mb-1"
+      >
+        {titulo}
+      </Link>
       <div className="space-y-1">
         {items.map((item) => (
           <Link
