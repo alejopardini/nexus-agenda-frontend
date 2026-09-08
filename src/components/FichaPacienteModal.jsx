@@ -602,6 +602,16 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
                         Segmentos ajustados alguna vez, acumulado de todas las consultas completadas.
                         La dirección y el estado de bloqueo reflejan la consulta más reciente.
                       </p>
+                      <ul className="divide-y divide-slate-100 mb-4">
+                        {consultas.filter((c) => c.estado === 'completada').map((c) => (
+                          <li key={c.id} className="py-1.5 flex justify-between items-center text-sm">
+                            <span className="text-slate-700">{c.fecha}</span>
+                            <Link to={`/consultas/${c.id}`} onClick={onClose} className="text-xs text-blue-600 hover:underline">
+                              Ver consulta →
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
                       <ColumnaVertebral ajustes={historialAjustes} segmentoActivo={null} onClickSegmento={() => {}} />
                     </div>
                   )}
