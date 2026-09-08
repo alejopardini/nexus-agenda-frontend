@@ -73,7 +73,7 @@ export default function PanelCamillaCondensado({ pacienteId, consultaId, onClose
 
         const completadas = consultasRes.data
           .filter((c) => String(c.paciente) === String(pacienteId) && c.estado === 'completada')
-        setHistorial(completadas.slice(0, 5))
+        setHistorial(completadas.slice(0, 1))
 
         if (pacienteRes.data) setHistoriaClinica(pacienteRes.data.historia_clinica || '')
 
@@ -160,8 +160,8 @@ export default function PanelCamillaCondensado({ pacienteId, consultaId, onClose
 
   return (
     <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-start p-4 border-b border-slate-200">
+      <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+        <div className="shrink-0 flex justify-between items-start p-4 border-b border-slate-200">
           <div>
             <h2 className="font-bold text-slate-800 text-lg">{consulta ? consulta.paciente_nombre : 'Consulta'}</h2>
             {consulta && (
@@ -173,59 +173,13 @@ export default function PanelCamillaCondensado({ pacienteId, consultaId, onClose
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600 text-2xl leading-none">×</button>
         </div>
 
-        <div className="p-4 space-y-4">
+        <div className="flex-1 min-h-0 flex flex-col overflow-y-auto lg:overflow-hidden p-4 space-y-4 lg:space-y-0">
           {loading && <p className="text-slate-500 text-sm">Cargando...</p>}
           {error && <p className="text-red-600 text-sm">{error}</p>}
 
           {!loading && consulta && (
-            <>
-              {planActivo && (
-                <div className="bg-blue-50 border border-blue-200 rounded p-3 text-sm">
-                  <p className="text-blue-800 font-medium">
-                    Quedan {planActivo.sesiones_restantes} de {planActivo.sesiones_totales} sesiones
-                  </p>
-                </div>
-              )}
-
-              <div className="flex gap-4">
-                <div className="flex-1">
-                  <label className="block text-sm text-slate-600 mb-1">Etapa de cuidado</label>
-                  <select
-                    value={etapaCuidado}
-                    onChange={(e) => handleChangeEtapa(e.target.value)}
-                    className="w-full border border-slate-300 rounded px-3 py-2 text-sm"
-                  >
-                    <option value="">Sin definir</option>
-                    {ETAPA_CUIDADO_OPCIONES.map(([valor, label]) => (
-                      <option key={valor} value={valor}>{label}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="flex-1">
-                  <label className="block text-sm text-slate-600 mb-1">Frecuencia recomendada</label>
-                  <input
-                    type="text"
-                    placeholder="Ej: 1 vez por semana"
-                    value={frecuenciaSeguimiento}
-                    onChange={(e) => setFrecuenciaSeguimiento(e.target.value)}
-                    onBlur={handleBlurFrecuencia}
-                    className="w-full border border-slate-300 rounded px-3 py-2 text-sm"
-                  />
-                </div>
-              </div>
-
-              {historial.length > 0 && (
-                <div>
-                  <p className="text-xs text-slate-500 mb-1">Consultas anteriores</p>
-                  <ul className="divide-y divide-slate-100 text-sm">
-                    {historial.map((c) => (
-                      <li key={c.id} className="py-1.5 text-slate-700">{c.fecha}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              <div className="pt-3 border-t border-slate-100">
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] lg:grid-rows-[minmax(0,1fr)] gap-4 lg:flex-1 lg:min-h-0">
+              <div className="lg:min-h-0 lg:overflow-y-auto lg:pr-1">
                 <p className="text-sm font-semibold text-slate-700 mb-1">Ajustes vertebrales</p>
                 <p className="text-xs text-slate-500 mb-3">Click en una vértebra para marcarla. Se guarda solo.</p>
                 <EditorColumnaVertebral
@@ -235,104 +189,147 @@ export default function PanelCamillaCondensado({ pacienteId, consultaId, onClose
                 />
               </div>
 
-              <div className="pt-3 border-t border-slate-100">
-                <div className="flex gap-1 mb-3">
-                  {PANEL_TABS.map((t) => (
-                    <button
-                      key={t.key}
-                      onClick={() => setPanelTab(t.key)}
-                      className={`text-xs px-3 py-1.5 rounded-t ${
-                        panelTab === t.key ? 'bg-blue-600 text-white' : 'text-slate-600 hover:bg-slate-100'
-                      }`}
-                    >
-                      {t.label}
-                    </button>
-                  ))}
-                </div>
-
-                {panelTab === 'informacion' && (
-                  <textarea
-                    value={historiaClinica}
-                    onChange={(e) => setHistoriaClinica(e.target.value)}
-                    onBlur={guardarHistoriaClinica}
-                    rows={4}
-                    placeholder="Historia clínica del paciente..."
-                    className="w-full border border-slate-300 rounded px-3 py-2 text-sm"
-                  />
-                )}
-
-                {panelTab === 'notas' && (
-                  <div>
-                    {notasError ? (
-                      <p className="text-slate-400 text-sm">No se pudieron cargar las notas.</p>
-                    ) : (
-                      <>
-                        <div className="max-h-48 overflow-y-auto space-y-2 mb-3">
-                          {notas.length === 0 ? (
-                            <p className="text-slate-400 text-sm italic">Sin notas cargadas todavía.</p>
-                          ) : (
-                            notas.map((n) => (
-                              <div key={n.id} className="bg-slate-50 rounded p-2 text-sm">
-                                <p className="text-slate-800 whitespace-pre-wrap">{n.texto}</p>
-                                <p className="text-xs text-slate-400 mt-1">
-                                  {n.autor_nombre || 'Desconocido'} — {new Date(n.fecha_hora).toLocaleString()}
-                                </p>
-                              </div>
-                            ))
-                          )}
-                        </div>
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            value={notaTexto}
-                            onChange={(e) => setNotaTexto(e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') { e.preventDefault(); agregarNota() }
-                            }}
-                            placeholder="Escribir una nota..."
-                            className="flex-1 border border-slate-300 rounded px-3 py-2 text-sm"
-                          />
-                          <button
-                            onClick={agregarNota}
-                            disabled={guardandoNota || !notaTexto.trim()}
-                            className="bg-blue-600 text-white rounded px-4 py-2 text-sm hover:bg-blue-700 disabled:opacity-50"
-                          >
-                            Enviar
-                          </button>
-                        </div>
-                      </>
-                    )}
+              <div className="flex flex-col gap-4 lg:min-h-0 lg:overflow-y-auto lg:pr-1">
+                {planActivo && (
+                  <div className="bg-blue-50 border border-blue-200 rounded p-3 text-sm">
+                    <p className="text-blue-800 font-medium">
+                      Quedan {planActivo.sesiones_restantes} de {planActivo.sesiones_totales} sesiones
+                    </p>
                   </div>
                 )}
 
-                {panelTab === 'archivos' && <GestionArchivosPaciente pacienteId={pacienteId} />}
-              </div>
+                <div className="flex flex-wrap gap-3">
+                  <div>
+                    <label className="block text-xs text-slate-600 mb-1">Etapa de cuidado</label>
+                    <select
+                      value={etapaCuidado}
+                      onChange={(e) => handleChangeEtapa(e.target.value)}
+                      className="w-32 border border-slate-300 rounded px-2 py-1.5 text-sm"
+                    >
+                      <option value="">Sin definir</option>
+                      {ETAPA_CUIDADO_OPCIONES.map(([valor, label]) => (
+                        <option key={valor} value={valor}>{label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-600 mb-1">Frecuencia</label>
+                    <input
+                      type="text"
+                      placeholder="Ej: cada 15 días"
+                      value={frecuenciaSeguimiento}
+                      onChange={(e) => setFrecuenciaSeguimiento(e.target.value)}
+                      onBlur={handleBlurFrecuencia}
+                      className="w-44 border border-slate-300 rounded px-2 py-1.5 text-sm"
+                    />
+                  </div>
+                  {historial.length > 0 && (
+                    <div>
+                      <p className="block text-xs text-slate-600 mb-1">Última consulta</p>
+                      <p className="text-sm text-slate-700 px-1 py-1.5">{historial[0].fecha}</p>
+                    </div>
+                  )}
+                </div>
 
-              {consulta.estado !== 'completada' && (
-                <button
-                  onClick={marcarCompletada}
-                  disabled={marcandoCompletada}
-                  className="w-full bg-green-600 text-white rounded py-2 font-medium hover:bg-green-700 disabled:opacity-50 text-sm"
-                >
-                  {marcandoCompletada ? 'Guardando...' : 'Marcar visita como completada'}
-                </button>
-              )}
+                <div className="pt-3 border-t border-slate-100">
+                  <div className="flex gap-1 mb-3">
+                    {PANEL_TABS.map((t) => (
+                      <button
+                        key={t.key}
+                        onClick={() => setPanelTab(t.key)}
+                        className={`text-xs px-3 py-1.5 rounded-t ${
+                          panelTab === t.key ? 'bg-blue-600 text-white' : 'text-slate-600 hover:bg-slate-100'
+                        }`}
+                      >
+                        {t.label}
+                      </button>
+                    ))}
+                  </div>
 
-              <div className="flex justify-between pt-2 text-sm">
-                <button onClick={() => setVerFichaCompleta(true)} className="text-blue-600 hover:underline">
-                  Ver ficha completa del paciente
-                </button>
-                <button onClick={irAConsultaCompleta} className="text-blue-600 hover:underline">
-                  Editar consulta completa
-                </button>
+                  {panelTab === 'informacion' && (
+                    <textarea
+                      value={historiaClinica}
+                      onChange={(e) => setHistoriaClinica(e.target.value)}
+                      onBlur={guardarHistoriaClinica}
+                      rows={4}
+                      placeholder="Historia clínica del paciente..."
+                      className="w-full border border-slate-300 rounded px-3 py-2 text-sm"
+                    />
+                  )}
+
+                  {panelTab === 'notas' && (
+                    <div>
+                      {notasError ? (
+                        <p className="text-slate-400 text-sm">No se pudieron cargar las notas.</p>
+                      ) : (
+                        <>
+                          <div className="max-h-48 overflow-y-auto space-y-2 mb-3">
+                            {notas.length === 0 ? (
+                              <p className="text-slate-400 text-sm italic">Sin notas cargadas todavía.</p>
+                            ) : (
+                              notas.map((n) => (
+                                <div key={n.id} className="bg-slate-50 rounded p-2 text-sm">
+                                  <p className="text-slate-800 whitespace-pre-wrap">{n.texto}</p>
+                                  <p className="text-xs text-slate-400 mt-1">
+                                    {n.autor_nombre || 'Desconocido'} — {new Date(n.fecha_hora).toLocaleString()}
+                                  </p>
+                                </div>
+                              ))
+                            )}
+                          </div>
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              value={notaTexto}
+                              onChange={(e) => setNotaTexto(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') { e.preventDefault(); agregarNota() }
+                              }}
+                              placeholder="Escribir una nota..."
+                              className="flex-1 border border-slate-300 rounded px-3 py-2 text-sm"
+                            />
+                            <button
+                              onClick={agregarNota}
+                              disabled={guardandoNota || !notaTexto.trim()}
+                              className="bg-blue-600 text-white rounded px-4 py-2 text-sm hover:bg-blue-700 disabled:opacity-50"
+                            >
+                              Enviar
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )}
+
+                  {panelTab === 'archivos' && <GestionArchivosPaciente pacienteId={pacienteId} />}
+                </div>
+
+                {consulta.estado !== 'completada' && (
+                  <button
+                    onClick={marcarCompletada}
+                    disabled={marcandoCompletada}
+                    className="w-full bg-green-600 text-white rounded py-2 font-medium hover:bg-green-700 disabled:opacity-50 text-sm"
+                  >
+                    {marcandoCompletada ? 'Guardando...' : 'Marcar visita como completada'}
+                  </button>
+                )}
+
+                <div className="flex justify-between pt-2 text-sm mt-auto">
+                  <button onClick={() => setVerFichaCompleta(true)} className="text-blue-600 hover:underline">
+                    Ver ficha completa del paciente
+                  </button>
+                  <button onClick={irAConsultaCompleta} className="text-blue-600 hover:underline">
+                    Editar consulta completa
+                  </button>
+                </div>
               </div>
-            </>
+            </div>
           )}
         </div>
       </div>
 
       {verFichaCompleta && (
-        <FichaPacienteModal pacienteId={pacienteId} onClose={() => setVerFichaCompleta(false)} />
+        <FichaPacienteModal pacienteId={pacienteId} onClose={() => setVerFichaCompleta(false)} ocultarEditar />
       )}
     </div>
   )
