@@ -10,6 +10,10 @@ const ESTADOS_EDITABLES = [
   { value: 'ausente', label: 'Ausente' },
 ]
 
+function turnoYaOcurrio(turno) {
+  return new Date(`${turno.fecha}T${turno.hora}`) < new Date()
+}
+
 export default function HistorialTurnos() {
   const [turnos, setTurnos] = useState([])
   const [loading, setLoading] = useState(true)
@@ -89,7 +93,7 @@ export default function HistorialTurnos() {
               </thead>
               <tbody>
                 {turnosFiltrados.map((t) => {
-                  const sinCompletar = Boolean(t.consulta_pendiente_id)
+                  const sinCompletar = Boolean(t.consulta_pendiente_id) && turnoYaOcurrio(t)
                   return (
                     <tr
                       key={t.id}
