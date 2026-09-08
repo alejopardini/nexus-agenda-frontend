@@ -36,7 +36,7 @@ function resumenUltimaConsulta(consulta, etapaCuidado, frecuenciaSeguimiento) {
   return partes.join(' ')
 }
 
-export default function FichaPacienteModal({ pacienteId, onClose }) {
+export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar = false }) {
   const [paciente, setPaciente] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -255,7 +255,7 @@ export default function FichaPacienteModal({ pacienteId, onClose }) {
             <h2 className="font-bold text-slate-800 text-lg">
               {paciente ? `${paciente.nombre} ${paciente.apellido}` : 'Ficha del paciente'}
             </h2>
-            {tieneAcceso && (
+            {tieneAcceso && !ocultarEditar && (
               <Link
                 to={`/pacientes/${pacienteId}/editar`}
                 onClick={onClose}
