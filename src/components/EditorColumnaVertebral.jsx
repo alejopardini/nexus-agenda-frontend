@@ -37,6 +37,9 @@ const LISTADOS_POR_SEGMENTO = {
 const TECNICAS = ['SUP', 'GC', 'GNC', 'SP', 'TR', 'FS', 'PIE', 'PRO', 'THO', 'ACT']
 
 function segmentoHermano(segmento) {
+  // Ilión izquierdo y derecho son dos huesos distintos, no dos mitades de
+  // uno solo como las vértebras — no deben sincronizarse entre sí.
+  if (segmento.startsWith('ILION_')) return null
   if (segmento.endsWith('_DER')) return segmento.slice(0, -4) + '_IZQ'
   if (segmento.endsWith('_IZQ')) return segmento.slice(0, -4) + '_DER'
   return null
