@@ -111,12 +111,14 @@ function OvaloPartido({ nivel, ajustes, onClick, ancho = OVALO_ANCHO, alto = OVA
             borderBottomRightRadius: radioExterior,
           }}
         />
-        <span
-          className="absolute inset-0 flex items-center justify-center pointer-events-none text-[9px] font-bold leading-none"
-          style={{ color: '#1e293b' }}
-        >
-          {nivel}
-        </span>
+        {nivel !== 'SACRO' && (
+          <span
+            className="absolute inset-0 flex items-center justify-center pointer-events-none text-[9px] font-bold leading-none"
+            style={{ color: '#1e293b' }}
+          >
+            {nivel}
+          </span>
+        )}
       </div>
       {(resumenIzq || resumenDer) && (
         <div className="flex" style={{ width: ancho }}>
@@ -132,8 +134,8 @@ function OvaloPartido({ nivel, ajustes, onClick, ancho = OVALO_ANCHO, alto = OVA
   )
 }
 
-function VertebraPelvis({ segmento, datos, seleccionado, onClick, ancho, ovaloAlto, lineas }) {
-  const { color, texto } = colorEstado(segmento, datos)
+function VertebraPelvis({ segmento, datos, seleccionado, onClick, ancho, ovaloAlto }) {
+  const { color } = colorEstado(segmento, datos)
   const resumen = resumenAjuste(datos)
 
   return (
@@ -142,18 +144,15 @@ function VertebraPelvis({ segmento, datos, seleccionado, onClick, ancho, ovaloAl
         type="button"
         onClick={() => onClick(segmento)}
         title={segmento}
-        className="flex flex-col items-center justify-center leading-none text-[10px] font-bold"
+        className="relative"
         style={{
           width: ancho,
           height: ovaloAlto,
           borderRadius: 9999,
           backgroundColor: color,
-          color: texto,
           border: seleccionado ? '2px solid #1d4ed8' : '1px solid rgba(100,116,139,0.4)',
         }}
-      >
-        {lineas.map((linea) => <span key={linea}>{linea}</span>)}
-      </button>
+      />
       {resumen && (
         <span
           className="absolute text-[10px] text-slate-500 text-center whitespace-nowrap"
@@ -195,7 +194,6 @@ export default function ColumnaVertebral({ ajustes, segmentoActivo, onClickSegme
           onClick={onClickSegmento}
           ancho={PELVIS_OVALO_ANCHO}
           ovaloAlto={PELVIS_OVALO_ALTO}
-          lineas={['ILIÓN', 'IZQ']}
         />
         <OvaloPartido nivel="SACRO" ajustes={ajustes} onClick={onClickSegmento} sinDesplazamiento />
         <VertebraPelvis
@@ -205,7 +203,6 @@ export default function ColumnaVertebral({ ajustes, segmentoActivo, onClickSegme
           onClick={onClickSegmento}
           ancho={PELVIS_OVALO_ANCHO}
           ovaloAlto={PELVIS_OVALO_ALTO}
-          lineas={['ILIÓN', 'DER']}
         />
       </div>
     </div>
