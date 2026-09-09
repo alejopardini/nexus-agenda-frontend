@@ -11,8 +11,8 @@ const RANGOS = [
 
 const MESES_CORTOS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
 
-const COLOR_NUEVOS = '#2a78d6'
-const COLOR_RECURRENTES = '#eb6834'
+const COLOR_NUEVOS = '#26457a'
+const COLOR_RECURRENTES = '#59c2bf'
 
 const formatMonto = (monto) =>
   `$${Number(monto).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
@@ -125,19 +125,19 @@ export default function Estadisticas() {
         {!loading && !error && datos && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <div className="bg-white rounded-lg shadow-md p-4 text-center">
-              <p className="text-2xl font-bold text-slate-800">{datos.total_pacientes}</p>
+              <p className="text-2xl font-bold text-primary">{datos.total_pacientes}</p>
               <p className="text-xs text-slate-500 mt-1">Pacientes</p>
             </div>
             <div className="bg-white rounded-lg shadow-md p-4 text-center">
-              <p className="text-2xl font-bold text-slate-800">{datos.total_visitas}</p>
+              <p className="text-2xl font-bold text-primary">{datos.total_visitas}</p>
               <p className="text-xs text-slate-500 mt-1">Visitas</p>
             </div>
             <div className="bg-white rounded-lg shadow-md p-4 text-center">
-              <p className="text-2xl font-bold text-slate-800">{formatMonto(datos.total_facturado)}</p>
+              <p className="text-2xl font-bold text-primary">{formatMonto(datos.total_facturado)}</p>
               <p className="text-xs text-slate-500 mt-1">Facturado</p>
             </div>
             <div className="bg-white rounded-lg shadow-md p-4 text-center">
-              <p className="text-2xl font-bold text-slate-800">{formatMonto(datos.total_cobrado)}</p>
+              <p className="text-2xl font-bold text-primary">{formatMonto(datos.total_cobrado)}</p>
               <p className="text-xs text-slate-500 mt-1">Cobrado</p>
             </div>
           </div>
@@ -145,7 +145,7 @@ export default function Estadisticas() {
 
         {!loading && !error && datos && (
           <div className="bg-white rounded-lg shadow-md p-4">
-            <h2 className="text-sm font-semibold text-slate-700 mb-3">
+            <h2 className="text-sm font-semibold text-primary mb-3">
               {esAnual ? 'Evolución mensual' : 'Evolución diaria'}
             </h2>
             <ResponsiveContainer width="100%" height={280}>
@@ -194,7 +194,7 @@ export default function Estadisticas() {
         {!loading && !error && datos && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-white rounded-lg shadow-md p-4">
-              <h2 className="text-sm font-semibold text-slate-700 mb-3">Top pacientes</h2>
+              <h2 className="text-sm font-semibold text-primary mb-3">Top pacientes</h2>
               {datos.top_pacientes.length === 0 ? (
                 <p className="text-sm text-slate-400 italic">Sin datos facturados en este rango.</p>
               ) : (
@@ -213,7 +213,7 @@ export default function Estadisticas() {
             </div>
 
             <div className="bg-white rounded-lg shadow-md p-4">
-              <h2 className="text-sm font-semibold text-slate-700 mb-3">Top tipos de turno</h2>
+              <h2 className="text-sm font-semibold text-primary mb-3">Top tipos de turno</h2>
               {datos.top_tipos_turno.length === 0 ? (
                 <p className="text-sm text-slate-400 italic">Sin turnos con tipo cargado en este rango.</p>
               ) : (
@@ -226,7 +226,7 @@ export default function Estadisticas() {
                       </div>
                       <div className="w-full bg-slate-100 rounded h-2">
                         <div
-                          className="bg-blue-600 h-2 rounded"
+                          className="bg-primary h-2 rounded"
                           style={{ width: `${(t.cantidad / maxTipoTurno) * 100}%` }}
                         />
                       </div>
