@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { Bell } from 'lucide-react'
 import apiClient from '../api/client'
 import useClickOutside from '../hooks/useClickOutside'
 
@@ -44,7 +45,7 @@ export default function NotificationBell() {
   return (
     <div className="relative" ref={ref}>
       <button onClick={toggle} className="relative text-slate-600 hover:text-slate-900">
-        🔔
+        <Bell size={20} strokeWidth={2} aria-hidden="true" />
         {sinVer.length > 0 && (
           <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center">
             {sinVer.length}
