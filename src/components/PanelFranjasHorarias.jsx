@@ -1,4 +1,6 @@
 import { hmAMinutos, minutosAHM, duracionAMinutos, diaSemanaBackend, fechaToStr } from '../utils/fechas'
+import { abreviarPaciente, inicialesDe } from '../utils/nombres'
+import Tooltip from './Tooltip'
 
 const MARGEN_MINUTOS_MINIMO = 30
 
@@ -133,12 +135,18 @@ export default function PanelFranjasHorarias({
                   {fila.ocupantes.map((t) => (
                     <div
                       key={t.id}
-                      className={`rounded px-1.5 py-1 ${
+                      className={`rounded px-1.5 py-1 flex items-center gap-1.5 ${
                         t.estado === 'confirmado' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'
                       }`}
                     >
-                      {t.paciente_nombre}
-                      {mostrarProfesional && ` — ${t.profesional_nombre}`}
+                      <span className="truncate min-w-0">{abreviarPaciente(t.paciente_nombre)}</span>
+                      {mostrarProfesional && (
+                        <Tooltip texto={t.profesional_nombre} className="shrink-0">
+                          <span className="w-3.5 h-3.5 rounded-full bg-white/70 text-[8px] flex items-center justify-center font-bold">
+                            {inicialesDe(t.profesional_nombre)}
+                          </span>
+                        </Tooltip>
+                      )}
                     </div>
                   ))}
                 </div>
