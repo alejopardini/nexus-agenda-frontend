@@ -7,7 +7,9 @@ import Layout from '../components/Layout'
 import NuevoTurnoModal from '../components/NuevoTurnoModal'
 import FichaPacienteModal from '../components/FichaPacienteModal'
 import PanelFranjasHorarias from '../components/PanelFranjasHorarias'
-import { hmAMinutos, minutosAHM, duracionAMinutos, diaSemanaBackend, fechaToStr } from '../utils/fechas'
+import CalendarioSemanal from '../components/CalendarioSemanal'
+import PopoverTurno from '../components/PopoverTurno'
+import { hmAMinutos, minutosAHM, duracionAMinutos, diaSemanaBackend, fechaToStr, inicioDeSemana } from '../utils/fechas'
 
 function diaClassName(date) {
   const strDia = fechaToStr(date)
@@ -17,10 +19,69 @@ function diaClassName(date) {
   return undefined
 }
 
+// Mismo algoritmo que usa la vista diaria para "turnos libres" (columnas por
+// disponibilidad + franjas de 15 min), pero parametrizado por fecha para poder
+// sumarlo sobre los 7 días de la semana en la tarjeta de resumen. No reemplaza
+// ni toca el cálculo de la vista diaria (columnas/franjas más abajo en el
+// componente) — es una función aparte, de solo lectura, para el agregado semanal.
+function contarTurnosLibresEnFecha(fechaObjetivo, { profesionales, excepciones, disponibilidad, cierres, turnos }) {
+  const fechaStr = fechaToStr(fechaObjetivo)
+  const diaSemana = diaSemanaBackend(fechaObjetivo)
+
+  const columnas = []
+  profesionales.forEach((p) => {
+    const tieneExcepcion = excepciones.some(
+      (ex) => String(ex.profesional) === String(p.id) && ex.fecha === fechaStr
+    )
+    if (tieneExcepcion) return
+    const bloques = disponibilidad
+      .filter((d) => String(d.profesional) === String(p.id) && d.dia_semana === diaSemana)
+      .filter((d) => !cierres.some((c) => String(c.sucursal) === String(d.sucursal) && c.fecha === fechaStr))
+      .map((d) => ({
+        inicio: hmAMinutos(d.hora_inicio.slice(0, 5)),
+        fin: hmAMinutos(d.hora_fin.slice(0, 5)),
+      }))
+    if (bloques.length > 0) columnas.push({ profesionalId: p.id, bloques })
+  })
+
+  let minInicio = null
+  let maxFin = null
+  columnas.forEach(({ bloques }) => bloques.forEach((b) => {
+    if (minInicio === null || b.inicio < minInicio) minInicio = b.inicio
+    if (maxFin === null || b.fin > maxFin) maxFin = b.fin
+  }))
+
+  const franjas = []
+  if (minInicio !== null && maxFin !== null) {
+    for (let m = minInicio; m < maxFin; m += 15) franjas.push(m)
+  }
+
+  const turnosDelDia = turnos.filter((t) => t.fecha === fechaStr)
+  const estaEnBloque = (bloques, minuto) => bloques.some((b) => minuto >= b.inicio && minuto < b.fin)
+  const turnoQueOcupa = (profesionalId, minuto) => turnosDelDia.find((t) => {
+    if (String(t.profesional) !== String(profesionalId)) return false
+    const inicio = hmAMinutos(t.hora.slice(0, 5))
+    const fin = inicio + duracionAMinutos(t.duracion)
+    return minuto >= inicio && minuto < fin
+  })
+
+  let libres = 0
+  columnas.forEach(({ profesionalId, bloques }) => {
+    franjas.forEach((minuto) => {
+      if (estaEnBloque(bloques, minuto) && !turnoQueOcupa(profesionalId, minuto)) libres += 1
+    })
+  })
+  return libres
+}
+
 export default function CalendarioTurnos() {
   const [profesionales, setProfesionales] = useState([])
   const [disponibilidad, setDisponibilidad] = useState([])
   const [turnos, setTurnos] = useState([])
+  // Copia sin filtrar (incluye cancelados) para la vista semanal, que sí
+  // distingue "cancelado" con su propio color. La vista diaria sigue usando
+  // `turnos` (filtrado) tal como estaba — no se toca su comportamiento.
+  const [turnosTodos, setTurnosTodos] = useState([])
   const [excepciones, setExcepciones] = useState([])
   const [cierres, setCierres] = useState([])
   const [sucursales, setSucursales] = useState([])
@@ -30,6 +91,8 @@ export default function CalendarioTurnos() {
   const [fechaLateral, setFechaLateral] = useState(new Date())
   const [celdaModal, setCeldaModal] = useState(null)
   const [pacienteAbiertoId, setPacienteAbiertoId] = useState(null)
+  const [popoverTurno, setPopoverTurno] = useState(null)
+  const [vista, setVista] = useState('semana') // 'dia' | 'semana'
 
   useEffect(() => {
     Promise.all([
@@ -44,6 +107,7 @@ export default function CalendarioTurnos() {
         setProfesionales(profesionalesRes.data)
         setDisponibilidad(disponibilidadRes.data)
         setTurnos(turnosRes.data.filter((t) => t.estado !== 'cancelado'))
+        setTurnosTodos(turnosRes.data)
         setExcepciones(excepcionesRes.data)
         setCierres(cierresRes.data)
         setSucursales(sucursalesRes.data)
@@ -55,14 +119,22 @@ export default function CalendarioTurnos() {
   const recargarTurnos = () => {
     apiClient
       .get('/turnos/')
-      .then((res) => setTurnos(res.data.filter((t) => t.estado !== 'cancelado')))
+      .then((res) => {
+        setTurnos(res.data.filter((t) => t.estado !== 'cancelado'))
+        setTurnosTodos(res.data)
+      })
       .catch(() => {})
   }
 
   const cambiarDia = (delta) => {
     const nueva = new Date(fecha)
-    nueva.setDate(nueva.getDate() + delta)
+    nueva.setDate(nueva.getDate() + delta * (vista === 'semana' ? 7 : 1))
     setFecha(nueva)
+  }
+
+  const irADiaDesdeSemana = (dia) => {
+    setFecha(dia)
+    setVista('dia')
   }
 
   if (loading) {
@@ -146,9 +218,69 @@ export default function CalendarioTurnos() {
     })
   })
 
-  const handleClickCelda = (profesionalId, disponible, turno, minuto) => {
+  // Agregado semanal para las mismas 3 tarjetas, cuando el modo activo es
+  // "semana". No reemplaza los cálculos de arriba (que siguen siendo los que
+  // usa/necesita la vista diaria) — son cifras adicionales, solo para mostrar.
+  const diasDeLaSemana = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(inicioDeSemana(fecha))
+    d.setDate(d.getDate() + i)
+    return d
+  })
+  const diasSemanaStr = diasDeLaSemana.map(fechaToStr)
+  const turnosDeLaSemana = turnos.filter((t) => diasSemanaStr.includes(t.fecha))
+  const turnosSemana = turnosDeLaSemana.length
+  const atendidosSemana = turnosDeLaSemana.filter((t) => t.consulta_id && !t.consulta_pendiente_id).length
+  const turnosLibresSemana = diasDeLaSemana.reduce(
+    (total, dia) => total + contarTurnosLibresEnFecha(dia, { profesionales, excepciones, disponibilidad, cierres, turnos }),
+    0
+  )
+
+  // Acción compartida al clickear "Ver ficha completa" desde el popover: abre
+  // la ficha del paciente. La dispara tanto la vista diaria como la semanal,
+  // siempre a través del popover (ver más abajo) — ninguna de las dos abre
+  // FichaPacienteModal directo al clickear un turno.
+  const abrirFichaDesdeTurno = (turno) => setPacienteAbiertoId(turno.paciente)
+
+  // Clickear un turno ya ocupado (vista diaria O semanal) no abre la ficha
+  // directo — muestra un popover chico con referencia rápida + confirmar/
+  // cancelar (mismo POST /turnos/{id}/confirmar|cancelar/ que ya usan
+  // Turnos.jsx y Camillas.jsx). "Ver ficha completa" adentro del popover es
+  // lo único que sigue yendo a FichaPacienteModal. Mismo estado/handlers
+  // para las dos vistas — CalendarioSemanal solo manda un anchorRect más
+  // chico (el del chip de turno, no el de toda la celda), el cálculo de
+  // posición de PopoverTurno no distingue el tamaño del ancla.
+  const confirmarTurnoDesdePopover = async () => {
+    if (!popoverTurno) return
+    try {
+      await apiClient.post(`/turnos/${popoverTurno.turno.id}/confirmar/`)
+      setPopoverTurno(null)
+      recargarTurnos()
+    } catch {
+      alert('No se pudo confirmar el turno.')
+    }
+  }
+
+  const cancelarTurnoDesdePopover = async () => {
+    if (!popoverTurno) return
+    if (!confirm('¿Cancelar este turno?')) return
+    try {
+      await apiClient.post(`/turnos/${popoverTurno.turno.id}/cancelar/`)
+      setPopoverTurno(null)
+      recargarTurnos()
+    } catch {
+      alert('No se pudo cancelar el turno.')
+    }
+  }
+
+  const verFichaDesdePopover = () => {
+    if (!popoverTurno) return
+    abrirFichaDesdeTurno(popoverTurno.turno)
+    setPopoverTurno(null)
+  }
+
+  const handleClickCelda = (profesionalId, disponible, turno, minuto, event) => {
     if (turno) {
-      setPacienteAbiertoId(turno.paciente)
+      setPopoverTurno({ turno, anchorRect: event.currentTarget.getBoundingClientRect() })
       return
     }
     if (!disponible) return
@@ -179,7 +311,23 @@ export default function CalendarioTurnos() {
       <div className="space-y-4">
         <div className="bg-white rounded-lg shadow-md p-4 flex flex-wrap justify-between items-center gap-3">
           <h1 className="text-xl font-bold text-slate-800">Calendario de turnos</h1>
-          <Link to="/turnos/lista" className="text-sm text-blue-600 hover:underline">Ver lista</Link>
+          <div className="flex items-center gap-3">
+            <div className="flex gap-1 bg-slate-100 rounded p-1">
+              <button
+                onClick={() => setVista('dia')}
+                className={`text-sm px-3 py-1 rounded ${vista === 'dia' ? 'bg-white shadow text-slate-800' : 'text-slate-500'}`}
+              >
+                Día
+              </button>
+              <button
+                onClick={() => setVista('semana')}
+                className={`text-sm px-3 py-1 rounded ${vista === 'semana' ? 'bg-white shadow text-slate-800' : 'text-slate-500'}`}
+              >
+                Semana
+              </button>
+            </div>
+            <Link to="/turnos/lista" className="text-sm text-blue-600 hover:underline">Ver lista</Link>
+          </div>
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-4 flex flex-wrap items-center gap-3">
@@ -187,7 +335,7 @@ export default function CalendarioTurnos() {
             onClick={() => cambiarDia(-1)}
             className="text-sm px-3 py-1.5 rounded border border-slate-300 text-slate-600 hover:bg-slate-50"
           >
-            ← Día anterior
+            {vista === 'semana' ? '← Semana anterior' : '← Día anterior'}
           </button>
           <input
             type="date"
@@ -199,31 +347,55 @@ export default function CalendarioTurnos() {
             onClick={() => cambiarDia(1)}
             className="text-sm px-3 py-1.5 rounded border border-slate-300 text-slate-600 hover:bg-slate-50"
           >
-            Día siguiente →
+            {vista === 'semana' ? 'Semana siguiente →' : 'Día siguiente →'}
           </button>
-          <span className="text-sm text-slate-500 capitalize">
-            {fecha.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}
-          </span>
+          {vista === 'semana' ? (
+            <span className="text-sm text-slate-500 capitalize">
+              Semana del {inicioDeSemana(fecha).toLocaleDateString('es-AR', { day: 'numeric', month: 'long' })}
+              {' '}al{' '}
+              {(() => {
+                const domingo = new Date(inicioDeSemana(fecha))
+                domingo.setDate(domingo.getDate() + 6)
+                return domingo.toLocaleDateString('es-AR', { day: 'numeric', month: 'long' })
+              })()}
+            </span>
+          ) : (
+            <span className="text-sm text-slate-500 capitalize">
+              {fecha.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}
+            </span>
+          )}
         </div>
 
         <div className="grid grid-cols-3 gap-3">
           <div className="bg-white rounded-lg shadow-md p-4 text-center">
-            <p className="text-2xl font-bold text-slate-800">{turnosHoy}</p>
-            <p className="text-xs text-slate-500 mt-1">Turnos hoy</p>
+            <p className="text-2xl font-bold text-slate-800">{vista === 'semana' ? turnosSemana : turnosHoy}</p>
+            <p className="text-xs text-slate-500 mt-1">{vista === 'semana' ? 'Turnos esta semana' : 'Turnos hoy'}</p>
           </div>
           <div className="bg-white rounded-lg shadow-md p-4 text-center">
-            <p className="text-2xl font-bold text-slate-800">{atendidos}</p>
+            <p className="text-2xl font-bold text-slate-800">{vista === 'semana' ? atendidosSemana : atendidos}</p>
             <p className="text-xs text-slate-500 mt-1">Atendidos</p>
           </div>
           <div className="bg-white rounded-lg shadow-md p-4 text-center">
-            <p className="text-2xl font-bold text-slate-800">{turnosLibres}</p>
+            <p className="text-2xl font-bold text-slate-800">{vista === 'semana' ? turnosLibresSemana : turnosLibres}</p>
             <p className="text-xs text-slate-500 mt-1">Turnos libres</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4">
           <div className="bg-white rounded-lg shadow-md p-4 overflow-x-auto">
-            {columnas.length === 0 ? (
+            {vista === 'semana' ? (
+              <CalendarioSemanal
+                fecha={fecha}
+                turnos={turnosTodos}
+                onSeleccionarDia={irADiaDesdeSemana}
+                onClickTurno={(turno, anchorRect) => setPopoverTurno({ turno, anchorRect })}
+                onCrearTurno={setCeldaModal}
+                profesionales={profesionales}
+                disponibilidad={disponibilidad}
+                excepciones={excepciones}
+                cierres={cierres}
+              />
+            ) : columnas.length === 0 ? (
               <p className="text-slate-500 text-sm">Nadie atiende este día.</p>
             ) : (
               <table className="w-full text-xs border-collapse">
@@ -260,7 +432,7 @@ export default function CalendarioTurnos() {
                         return (
                           <td
                             key={profesional.id}
-                            onClick={() => handleClickCelda(profesional.id, disponible && !pasado, turno, minuto)}
+                            onClick={(e) => handleClickCelda(profesional.id, disponible && !pasado, turno, minuto, e)}
                             className={`border-b border-slate-50 px-2 py-1 align-top ${claseColor}`}
                           >
                             {esInicioTurno && (
@@ -277,7 +449,7 @@ export default function CalendarioTurnos() {
           </div>
 
           <div className="space-y-4">
-            <div className="bg-white rounded-lg shadow-md p-4 h-fit">
+            <div className="bg-white rounded-lg shadow-md p-4 h-fit minicalendario">
               <DatePicker
                 inline
                 selected={fechaLateral}
@@ -320,6 +492,17 @@ export default function CalendarioTurnos() {
         <FichaPacienteModal
           pacienteId={pacienteAbiertoId}
           onClose={() => setPacienteAbiertoId(null)}
+        />
+      )}
+
+      {popoverTurno && (
+        <PopoverTurno
+          turno={popoverTurno.turno}
+          anchorRect={popoverTurno.anchorRect}
+          onClose={() => setPopoverTurno(null)}
+          onConfirmar={confirmarTurnoDesdePopover}
+          onCancelar={cancelarTurnoDesdePopover}
+          onVerFicha={verFichaDesdePopover}
         />
       )}
     </Layout>

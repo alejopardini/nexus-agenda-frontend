@@ -1,6 +1,8 @@
+import { useState } from 'react'
 import { hmAMinutos, duracionAMinutos, diaSemanaBackend, fechaToStr, inicioDeSemana } from '../utils/fechas'
 import { abreviarPaciente, inicialesDe } from '../utils/nombres'
 import Tooltip from './Tooltip'
+import PopoverElegirProfesional from './PopoverElegirProfesional'
 
 // PRUEBA VISUAL (rama prueba-sidebar-visual): vista semanal nueva, complementaria
 // a la vista diaria de CalendarioTurnos.jsx (que no se toca). Agrupa los turnos
@@ -12,13 +14,16 @@ const HORA_MIN_DEFAULT = 8
 const HORA_MAX_DEFAULT = 20
 
 // Nombres de clase literales (no interpolados) para que Tailwind los detecte.
-// Texto por estado (no un gris fijo): los tokens de fondo/texto vienen
-// pensados en pares para tener buen contraste entre sí (ver Badge.jsx).
-const CLASE_COLOR_ESTADO = {
-  pendiente: 'bg-turno-pendiente text-turno-pendiente-text',
-  confirmado: 'bg-turno-confirmado text-turno-confirmado-text',
-  'en-camilla': 'bg-turno-en-camilla text-turno-en-camilla-text',
-  cancelado: 'bg-turno-cancelado text-turno-cancelado-text',
+// Punto de color chico por estado (no un badge/píldora de fondo completo — se
+// sacó a propósito porque competía con el color de fondo de disponibilidad de
+// la celda; ver colorFondoCelda más abajo). Usa los tokens "-text" (más
+// saturados, pensados para contraste sobre blanco) en vez de los tokens de
+// fondo pálidos, para que el punto se note incluso sobre celdas de color.
+const CLASE_DOT_ESTADO = {
+  pendiente: 'bg-turno-pendiente-text',
+  confirmado: 'bg-turno-confirmado-text',
+  'en-camilla': 'bg-turno-en-camilla-text',
+  cancelado: 'bg-turno-cancelado-text',
 }
 
 // "En camilla" no es un Turno.estado — se deriva igual que en Camillas.jsx
@@ -37,20 +42,31 @@ function BloqueTurno({ turno, onClick }) {
   return (
     <button
       type="button"
-      onClick={() => onClick?.(turno)}
+      onClick={(e) => {
+        // La celda que contiene este bloque también es clickeable (para dar
+        // de alta un turno en el lugar libre restante, si lo hay) — sin esto
+        // el click en un turno existente dispara los dos handlers a la vez.
+        e.stopPropagation()
+        // anchorRect del chip (más chico que una celda de la vista diaria) —
+        // el posicionamiento de PopoverTurno solo usa el rect, no le importa
+        // el tamaño del elemento que lo generó.
+        onClick?.(turno, e.currentTarget.getBoundingClientRect())
+      }}
       title={`${turno.hora.slice(0, 5)} — ${turno.paciente_nombre}`}
-      className={`rounded px-1.5 py-1 text-[10px] leading-tight ${CLASE_COLOR_ESTADO[estado]} min-w-0 w-full flex items-center gap-1 whitespace-nowrap hover:brightness-95 transition-[filter]`}
+      className="rounded px-1 py-0.5 text-[10px] leading-tight min-w-0 w-full flex items-center gap-1 whitespace-nowrap hover:bg-white/70 transition-colors"
     >
-      <span className="font-semibold shrink-0">{turno.hora.slice(0, 5)}</span>
-      <span className="shrink-0">-</span>
-      <span className="truncate min-w-0">{abreviarPaciente(turno.paciente_nombre)}</span>
-      <span className="shrink-0">-</span>
-      {/* Iniciales del profesional en un chip circular neutro (blanco
-          translúcido) — sin color propio, para no competir con el color de
-          estado del bloque. Nombre completo del profesional queda solo en
-          este tooltip (se sacó del title del botón para no duplicarlo). */}
+      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${CLASE_DOT_ESTADO[estado]}`} />
+      <span className="font-semibold shrink-0 text-slate-700">{turno.hora.slice(0, 5)}</span>
+      <span className="shrink-0 text-slate-400">-</span>
+      <span className="truncate min-w-0 text-slate-700">{abreviarPaciente(turno.paciente_nombre)}</span>
+      <span className="shrink-0 text-slate-400">-</span>
+      {/* Iniciales del profesional en un chip circular neutro — antes era
+          blanco translúcido sobre el fondo de color del estado; ahora que el
+          bloque ya no tiene ese fondo, pasa a gris sólido para seguir
+          legible sobre cualquier color de celda. Nombre completo del
+          profesional queda solo en este tooltip. */}
       <Tooltip texto={turno.profesional_nombre}>
-        <span className="w-3.5 h-3.5 rounded-full bg-white/70 text-[8px] flex items-center justify-center font-bold shrink-0">
+        <span className="w-3.5 h-3.5 rounded-full bg-slate-200 text-slate-600 text-[8px] flex items-center justify-center font-bold shrink-0">
           {inicialesDe(turno.profesional_nombre)}
         </span>
       </Tooltip>
@@ -63,11 +79,14 @@ export default function CalendarioSemanal({
   turnos,
   onSeleccionarDia,
   onClickTurno,
+  onCrearTurno,
   profesionales = [],
   disponibilidad = [],
   excepciones = [],
   cierres = [],
 }) {
+  const [popoverElegir, setPopoverElegir] = useState(null)
+
   const lunes = inicioDeSemana(fecha)
   const dias = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(lunes)
@@ -105,24 +124,43 @@ export default function CalendarioSemanal({
   // profesional con un bloque de disponibilidad ese día de la semana, sin
   // excepción puntual para esa fecha ni cierre de sucursal ese día. Acá se
   // resuelve por hora (bucket), no por franja de 15 min, porque esta vista
-  // agrupa por hora igual que turnosPorDiaHora de arriba.
-  const profesionalesDisponiblesEn = (diaIdx, hora) => {
+  // agrupa por hora igual que turnosPorDiaHora de arriba. Devuelve el bloque
+  // (no solo un booleano) porque hace falta su sucursal para dar de alta un
+  // turno nuevo — ver asignarTurno más abajo.
+  const bloqueDisponibleDe = (profesionalId, diaIdx, hora) => {
     const fechaStr = diasStr[diaIdx]
     const diaSemana = diaSemanaBackend(dias[diaIdx])
-    return profesionales.filter((p) => {
-      const tieneExcepcion = excepciones.some(
-        (ex) => String(ex.profesional) === String(p.id) && ex.fecha === fechaStr
-      )
-      if (tieneExcepcion) return false
-      const bloques = disponibilidad
-        .filter((d) => String(d.profesional) === String(p.id) && d.dia_semana === diaSemana)
-        .filter((d) => !cierres.some((c) => String(c.sucursal) === String(d.sucursal) && c.fecha === fechaStr))
-      return bloques.some((b) => {
+    const tieneExcepcion = excepciones.some(
+      (ex) => String(ex.profesional) === String(profesionalId) && ex.fecha === fechaStr
+    )
+    if (tieneExcepcion) return null
+    const bloques = disponibilidad
+      .filter((d) => String(d.profesional) === String(profesionalId) && d.dia_semana === diaSemana)
+      .filter((d) => !cierres.some((c) => String(c.sucursal) === String(d.sucursal) && c.fecha === fechaStr))
+    return (
+      bloques.find((b) => {
         const inicio = hmAMinutos(b.hora_inicio.slice(0, 5))
         const fin = hmAMinutos(b.hora_fin.slice(0, 5))
         return inicio < (hora + 1) * 60 && fin > hora * 60
-      })
-    })
+      }) || null
+    )
+  }
+
+  const profesionalesDisponiblesEn = (diaIdx, hora) =>
+    profesionales.filter((p) => bloqueDisponibleDe(p.id, diaIdx, hora))
+
+  // Subconjunto de "disponibles" que todavía no tiene un turno asignado en
+  // este día+hora — a estos se les puede dar de alta un turno nuevo al
+  // clickear la celda (ver handleClickCelda).
+  const profesionalesLibresEn = (diaIdx, hora) => {
+    const disponibles = profesionalesDisponiblesEn(diaIdx, hora)
+    const items = turnosPorDiaHora[`${diaIdx}-${hora}`] || []
+    const idsOcupados = new Set(
+      items
+        .filter((t) => t.estado !== 'cancelado' && disponibles.some((p) => String(p.id) === String(t.profesional)))
+        .map((t) => String(t.profesional))
+    )
+    return disponibles.filter((p) => !idsOcupados.has(String(p.id)))
   }
 
   // Fondo de la celda cuando NO tiene turnos ya asignados (si los tiene, se
@@ -132,18 +170,41 @@ export default function CalendarioSemanal({
   const colorFondoCelda = (diaIdx, hora) => {
     const disponibles = profesionalesDisponiblesEn(diaIdx, hora)
     if (disponibles.length === 0) return 'bg-slot-vacio'
-
-    const idsDisponibles = new Set(disponibles.map((p) => String(p.id)))
-    const items = turnosPorDiaHora[`${diaIdx}-${hora}`] || []
-    const idsOcupados = new Set(
-      items
-        .filter((t) => t.estado !== 'cancelado' && idsDisponibles.has(String(t.profesional)))
-        .map((t) => String(t.profesional))
-    )
-
-    if (idsOcupados.size === 0) return 'bg-slot-libre'
-    if (idsOcupados.size >= idsDisponibles.size) return 'bg-slot-bloqueado'
+    const libres = profesionalesLibresEn(diaIdx, hora)
+    if (libres.length === disponibles.length) return 'bg-slot-libre'
+    if (libres.length === 0) return 'bg-slot-bloqueado'
     return '' // parcialmente ocupado: comportamiento actual, sin fondo especial
+  }
+
+  // Da de alta el turno con el profesional ya resuelto (uno solo disponible,
+  // o el elegido en el popover) — mismo modal que usa la vista diaria
+  // (NuevoTurnoModal, vía el callback onCrearTurno que arma el padre). La
+  // hora queda fija al inicio del bucket (HH:00): esta vista agrupa por
+  // hora, no tiene granularidad de minuto para ofrecer otra cosa.
+  const asignarTurno = (diaIdx, hora, profesional) => {
+    const bloque = bloqueDisponibleDe(profesional.id, diaIdx, hora)
+    if (!bloque) return
+    onCrearTurno?.({
+      profesional,
+      sucursalId: bloque.sucursal,
+      fecha: diasStr[diaIdx],
+      hora: `${String(hora).padStart(2, '0')}:00`,
+    })
+  }
+
+  const handleClickCelda = (diaIdx, hora, event) => {
+    const libres = profesionalesLibresEn(diaIdx, hora)
+    if (libres.length === 0) return
+    if (libres.length === 1) {
+      asignarTurno(diaIdx, hora, libres[0])
+      return
+    }
+    setPopoverElegir({
+      diaIdx,
+      hora,
+      profesionales: libres,
+      anchorRect: event.currentTarget.getBoundingClientRect(),
+    })
   }
 
   return (
@@ -174,10 +235,18 @@ export default function CalendarioSemanal({
             </div>
             {dias.map((_, diaIdx) => {
               const items = turnosPorDiaHora[`${diaIdx}-${h}`] || []
+              const colorFondo = colorFondoCelda(diaIdx, h)
+              // Clickeable con disponibilidad real: libre del todo, o
+              // parcialmente ocupada (still hay a quién asignarle un turno).
+              // No clickeable si nadie atiende o si ya está todo ocupado.
+              const clickable = colorFondo === 'bg-slot-libre' || colorFondo === ''
               return (
                 <div
                   key={diaIdx}
-                  className={`border-t border-l border-slate-100 p-1 flex flex-col gap-1 min-h-[44px] ${colorFondoCelda(diaIdx, h)}`}
+                  onClick={clickable ? (e) => handleClickCelda(diaIdx, h, e) : undefined}
+                  className={`border-t border-l border-slate-100 p-1 flex flex-col gap-1 min-h-[44px] ${colorFondo} ${
+                    clickable ? 'cursor-pointer hover:brightness-95 transition-[filter]' : ''
+                  }`}
                 >
                   {items.map((t) => <BloqueTurno key={t.id} turno={t} onClick={onClickTurno} />)}
                 </div>
@@ -186,6 +255,18 @@ export default function CalendarioSemanal({
           </div>
         ))}
       </div>
+
+      {popoverElegir && (
+        <PopoverElegirProfesional
+          profesionales={popoverElegir.profesionales}
+          anchorRect={popoverElegir.anchorRect}
+          onClose={() => setPopoverElegir(null)}
+          onElegir={(p) => {
+            asignarTurno(popoverElegir.diaIdx, popoverElegir.hora, p)
+            setPopoverElegir(null)
+          }}
+        />
+      )}
     </div>
   )
 }
