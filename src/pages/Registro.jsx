@@ -84,10 +84,10 @@ export default function Registro() {
           className="w-full border border-slate-300 rounded px-3 py-2 mb-4" required
         />
 
-        <label className="block text-sm text-slate-600 mb-1">Email (opcional)</label>
+        <label className="block text-sm text-slate-600 mb-1">Email *</label>
         <input
           type="email" name="email" value={form.email} onChange={handleChange}
-          className="w-full border border-slate-300 rounded px-3 py-2 mb-4"
+          className="w-full border border-slate-300 rounded px-3 py-2 mb-4" required
         />
 
         <label className="block text-sm text-slate-600 mb-1">Contraseña</label>
