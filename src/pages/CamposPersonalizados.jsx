@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
 import BotonVolver from '../components/BotonVolver'
+import Boton from '../components/Boton'
 
 const TIPOS = [
   ['texto', 'Texto libre'],
@@ -109,12 +110,9 @@ export default function CamposPersonalizados() {
         <div className="bg-white rounded-lg shadow-md p-6 max-w-2xl">
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-xl font-bold text-slate-800">Campos personalizados</h1>
-            <button
-              onClick={() => setMostrarForm((prev) => !prev)}
-              className="bg-blue-600 text-white rounded px-4 py-2 text-sm hover:bg-blue-700"
-            >
+            <Boton variante="primary" onClick={() => setMostrarForm((prev) => !prev)}>
               {mostrarForm ? 'Cancelar' : '+ Nuevo campo'}
-            </button>
+            </Boton>
           </div>
           <p className="text-xs text-slate-500 mb-4">
             Estos campos aparecen en la sección "Campos adicionales" al completar una consulta.
@@ -167,13 +165,9 @@ export default function CamposPersonalizados() {
                   className="w-32 border border-slate-300 rounded px-3 py-2"
                 />
               </div>
-              <button
-                type="submit"
-                disabled={guardando}
-                className="bg-blue-600 text-white rounded px-4 py-2 text-sm hover:bg-blue-700 disabled:opacity-50"
-              >
+              <Boton type="submit" variante="primary" disabled={guardando}>
                 {guardando ? 'Guardando...' : 'Guardar campo'}
-              </button>
+              </Boton>
             </form>
           )}
 

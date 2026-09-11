@@ -10,6 +10,10 @@ import NuevoPacienteModal from '../components/NuevoPacienteModal'
 import { useAuth } from '../context/AuthContext'
 import PanelFranjasHorarias from '../components/PanelFranjasHorarias'
 import SelectorPlantillaPlan from '../components/SelectorPlantillaPlan'
+import Badge from '../components/Badge'
+import Card, { CardTextoSecundario } from '../components/Card'
+import Modal from '../components/Modal'
+import Boton from '../components/Boton'
 import { fechaToStr } from '../utils/fechas'
 import { buscarConsultaCompletadaPrevia } from '../utils/consultas'
 
@@ -330,14 +334,14 @@ export default function Camillas() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {tarjetas.map((t) => (
-                <div key={t.profesionalId} className="bg-white rounded-lg shadow-md p-4">
-                  <h2 className="font-bold text-slate-800 mb-3">
-                    {t.profesional ? `${t.profesional.nombre} ${t.profesional.apellido}` : 'Profesional'}
-                  </h2>
+                <Card
+                  key={t.profesionalId}
+                  titulo={t.profesional ? `${t.profesional.nombre} ${t.profesional.apellido}` : 'Profesional'}
+                >
                   {auth.rol !== 'profesional' && (
                     <button
                       onClick={() => abrirWalkIn(t.profesionalId)}
-                      className="text-xs text-blue-600 hover:underline mb-3 -mt-2 block"
+                      className="text-xs text-blue-600 hover:underline self-start"
                     >
                       + Agregar sin turno
                     </button>
@@ -372,7 +376,7 @@ export default function Camillas() {
                           const turno = item.turno
                           return (
                             <div key={turno.id} className="bg-blue-50 border border-blue-200 rounded p-3">
-                              <p className="text-xs text-blue-600 font-semibold uppercase mb-1">En camilla ahora</p>
+                              <Badge estado="en-camilla" className="mb-1">En camilla ahora</Badge>
                               <p className="font-medium text-slate-800 text-sm">{turno.paciente_nombre}</p>
                               <p className="text-xs text-slate-500 mb-2">{turno.hora}</p>
                               <div className="space-x-2">
@@ -438,9 +442,7 @@ export default function Camillas() {
                             }
                           >
                             {turno.estado === 'pendiente' && (
-                              <span className="inline-block text-[10px] bg-amber-200 text-amber-800 px-1.5 py-0.5 rounded font-medium mb-1">
-                                Sin confirmar
-                              </span>
+                              <Badge estado="pendiente" className="mb-1">Sin confirmar</Badge>
                             )}
                             <p className="text-sm font-medium text-slate-700">{turno.paciente_nombre}</p>
                             <p className="text-xs text-slate-500 mb-1">{turno.hora}</p>
@@ -496,9 +498,9 @@ export default function Camillas() {
                       })}
                     </div>
                   ) : (
-                    <p className="text-slate-500 text-sm">Sin turnos para hoy.</p>
+                    <CardTextoSecundario>Sin turnos para hoy.</CardTextoSecundario>
                   )}
-                </div>
+                </Card>
               ))}
             </div>
           )}
@@ -532,120 +534,114 @@ export default function Camillas() {
       )}
 
       {walkInProfesionalId && (
-        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-sm w-full p-4">
-            <div className="flex justify-between items-start mb-3">
-              <h2 className="font-bold text-slate-800 text-lg">Agregar sin turno</h2>
-              <button onClick={() => setWalkInProfesionalId(null)} className="text-slate-400 hover:text-slate-600 text-2xl leading-none">×</button>
+        <Modal
+          titulo="Agregar sin turno"
+          onClose={() => setWalkInProfesionalId(null)}
+          acciones={
+            <Boton variante="primary" onClick={confirmarWalkIn} disabled={walkInGuardando} className="w-full">
+              {walkInGuardando ? 'Agregando...' : 'Confirmar'}
+            </Boton>
+          }
+        >
+          <p className="text-texto-secundario mb-3">
+            {profesionalesPorId[walkInProfesionalId]
+              ? `${profesionalesPorId[walkInProfesionalId].nombre} ${profesionalesPorId[walkInProfesionalId].apellido}`
+              : ''}
+          </p>
+
+          {walkInError && <p className="text-input-error mb-3">{walkInError}</p>}
+
+          <div className="space-y-3">
+            <div>
+              <label className="block text-sm text-slate-600 mb-1">Paciente</label>
+              <BuscadorPaciente
+                pacientes={pacientes}
+                value={walkInPaciente}
+                onChange={setWalkInPaciente}
+                onNuevoPaciente={() => setModalNuevoPacienteAbierto(true)}
+              />
+              {walkInPlanDisponible === true && (
+                <p className="text-xs text-slate-500 mt-1">
+                  Este turno va a descontar una sesión del plan activo de {walkInPacienteSeleccionado?.nombre} {walkInPacienteSeleccionado?.apellido}.
+                </p>
+              )}
+              {walkInPlanDisponible === false && walkInModo === 'individual' && walkInTipo && (
+                <p className="text-xs text-slate-500 mt-1">Se va a cobrar ${walkInTipo.precio} por este turno.</p>
+              )}
             </div>
-            <p className="text-sm text-slate-500 mb-3">
-              {profesionalesPorId[walkInProfesionalId]
-                ? `${profesionalesPorId[walkInProfesionalId].nombre} ${profesionalesPorId[walkInProfesionalId].apellido}`
-                : ''}
-            </p>
 
-            {walkInError && <p className="text-red-600 text-sm mb-3">{walkInError}</p>}
-
-            <div className="space-y-3">
-              <div>
-                <label className="block text-sm text-slate-600 mb-1">Paciente</label>
-                <BuscadorPaciente
-                  pacientes={pacientes}
-                  value={walkInPaciente}
-                  onChange={setWalkInPaciente}
-                  onNuevoPaciente={() => setModalNuevoPacienteAbierto(true)}
-                />
-                {walkInPlanDisponible === true && (
-                  <p className="text-xs text-slate-500 mt-1">
-                    Este turno va a descontar una sesión del plan activo de {walkInPacienteSeleccionado?.nombre} {walkInPacienteSeleccionado?.apellido}.
-                  </p>
-                )}
-                {walkInPlanDisponible === false && walkInModo === 'individual' && walkInTipo && (
-                  <p className="text-xs text-slate-500 mt-1">Se va a cobrar ${walkInTipo.precio} por este turno.</p>
-                )}
-              </div>
-
-              {walkInPlanDisponible === false && (
-                <div className="flex gap-4 text-sm text-slate-700">
-                  <label className="flex items-center gap-1.5">
-                    <input
-                      type="radio"
-                      name="walkInModo"
-                      checked={walkInModo === 'individual'}
-                      onChange={() => setWalkInModo('individual')}
-                    />
-                    Turno individual
-                  </label>
-                  <label className="flex items-center gap-1.5">
-                    <input
-                      type="radio"
-                      name="walkInModo"
-                      checked={walkInModo === 'plan_nuevo'}
-                      onChange={() => setWalkInModo('plan_nuevo')}
-                    />
-                    Iniciar plan nuevo
-                  </label>
-                </div>
-              )}
-
-              {walkInModo === 'individual' ? (
-                <div>
-                  <label className="block text-sm text-slate-600 mb-1">Tipo de turno</label>
-                  {tiposTurno.length === 0 ? (
-                    <p className="text-red-600 text-xs">No hay tipos de turno configurados — cargalos en Valores turnos.</p>
-                  ) : (
-                    <select
-                      value={walkInTipoTurnoId}
-                      onChange={(e) => setWalkInTipoTurnoId(e.target.value)}
-                      className="w-full border border-slate-300 rounded px-3 py-2"
-                      required
-                    >
-                      {tiposTurno.map((t) => (
-                        <option key={t.id} value={t.id}>
-                          {t.nombre} — {t.duracion_minutos} min
-                          {walkInPlanDisponible !== true && ` — $${t.precio}`}
-                        </option>
-                      ))}
-                    </select>
-                  )}
-                </div>
-              ) : (
-                <div className="flex flex-wrap gap-2">
-                  <SelectorPlantillaPlan
-                    plantillas={plantillasPlan}
-                    sesiones={nuevoPlanSesiones}
-                    precio={nuevoPlanPrecio}
-                    onChangeSesiones={setNuevoPlanSesiones}
-                    onChangePrecio={setNuevoPlanPrecio}
+            {walkInPlanDisponible === false && (
+              <div className="flex gap-4 text-sm text-slate-700">
+                <label className="flex items-center gap-1.5">
+                  <input
+                    type="radio"
+                    name="walkInModo"
+                    checked={walkInModo === 'individual'}
+                    onChange={() => setWalkInModo('individual')}
                   />
-                </div>
-              )}
+                  Turno individual
+                </label>
+                <label className="flex items-center gap-1.5">
+                  <input
+                    type="radio"
+                    name="walkInModo"
+                    checked={walkInModo === 'plan_nuevo'}
+                    onChange={() => setWalkInModo('plan_nuevo')}
+                  />
+                  Iniciar plan nuevo
+                </label>
+              </div>
+            )}
 
-              {sucursales.length > 1 && (
-                <div>
-                  <label className="block text-sm text-slate-600 mb-1">Sucursal</label>
+            {walkInModo === 'individual' ? (
+              <div>
+                <label className="block text-sm text-slate-600 mb-1">Tipo de turno</label>
+                {tiposTurno.length === 0 ? (
+                  <p className="text-red-600 text-xs">No hay tipos de turno configurados — cargalos en Valores turnos.</p>
+                ) : (
                   <select
-                    value={walkInSucursal}
-                    onChange={(e) => setWalkInSucursal(e.target.value)}
+                    value={walkInTipoTurnoId}
+                    onChange={(e) => setWalkInTipoTurnoId(e.target.value)}
                     className="w-full border border-slate-300 rounded px-3 py-2"
+                    required
                   >
-                    {sucursales.map((s) => (
-                      <option key={s.id} value={s.id}>{s.nombre}</option>
+                    {tiposTurno.map((t) => (
+                      <option key={t.id} value={t.id}>
+                        {t.nombre} — {t.duracion_minutos} min
+                        {walkInPlanDisponible !== true && ` — $${t.precio}`}
+                      </option>
                     ))}
                   </select>
-                </div>
-              )}
+                )}
+              </div>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                <SelectorPlantillaPlan
+                  plantillas={plantillasPlan}
+                  sesiones={nuevoPlanSesiones}
+                  precio={nuevoPlanPrecio}
+                  onChangeSesiones={setNuevoPlanSesiones}
+                  onChangePrecio={setNuevoPlanPrecio}
+                />
+              </div>
+            )}
 
-              <button
-                onClick={confirmarWalkIn}
-                disabled={walkInGuardando}
-                className="w-full bg-blue-600 text-white rounded py-2 font-medium hover:bg-blue-700 disabled:opacity-50"
-              >
-                {walkInGuardando ? 'Agregando...' : 'Confirmar'}
-              </button>
-            </div>
+            {sucursales.length > 1 && (
+              <div>
+                <label className="block text-sm text-slate-600 mb-1">Sucursal</label>
+                <select
+                  value={walkInSucursal}
+                  onChange={(e) => setWalkInSucursal(e.target.value)}
+                  className="w-full border border-slate-300 rounded px-3 py-2"
+                >
+                  {sucursales.map((s) => (
+                    <option key={s.id} value={s.id}>{s.nombre}</option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
-        </div>
+        </Modal>
       )}
 
       {modalNuevoPacienteAbierto && (

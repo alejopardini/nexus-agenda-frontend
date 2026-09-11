@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
 import BotonVolver from '../components/BotonVolver'
+import Boton from '../components/Boton'
 
 export default function EditarPaciente() {
   const { id } = useParams()
@@ -157,12 +158,9 @@ export default function EditarPaciente() {
               />
             </div>
 
-            <button
-              type="submit" disabled={guardando}
-              className="w-full bg-blue-600 text-white rounded py-2 font-medium hover:bg-blue-700 disabled:opacity-50"
-            >
+            <Boton type="submit" variante="primary" disabled={guardando} className="w-full">
               {guardando ? 'Guardando...' : 'Guardar cambios'}
-            </button>
+            </Boton>
           </form>
         </div>
       </div>

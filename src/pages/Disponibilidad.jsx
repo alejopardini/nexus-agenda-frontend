@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
 import { useAuth } from '../context/AuthContext'
+import Boton from '../components/Boton'
 
 const DIAS = [
   { value: 0, label: 'Lunes' }, { value: 1, label: 'Martes' }, { value: 2, label: 'Miércoles' },
@@ -263,12 +264,9 @@ export default function Disponibilidad() {
               </div>
             </div>
 
-            <button
-              type="submit" disabled={guardando}
-              className="bg-blue-600 text-white rounded px-4 py-2 text-sm hover:bg-blue-700 disabled:opacity-50"
-            >
+            <Boton type="submit" variante="primary" disabled={guardando}>
               {guardando ? 'Guardando...' : 'Agregar horario'}
-            </button>
+            </Boton>
           </form>
         </div>
 
@@ -330,12 +328,9 @@ export default function Disponibilidad() {
               />
             </div>
 
-            <button
-              type="submit" disabled={guardandoExcepcion}
-              className="bg-blue-600 text-white rounded px-4 py-2 text-sm hover:bg-blue-700 disabled:opacity-50"
-            >
+            <Boton type="submit" variante="primary" disabled={guardandoExcepcion}>
               {guardandoExcepcion ? 'Guardando...' : 'Agregar excepción'}
-            </button>
+            </Boton>
           </form>
 
           {excepciones.length === 0 ? (
@@ -390,12 +385,9 @@ export default function Disponibilidad() {
                 </div>
               </div>
 
-              <button
-                type="submit" disabled={guardandoCierre}
-                className="bg-blue-600 text-white rounded px-4 py-2 text-sm hover:bg-blue-700 disabled:opacity-50"
-              >
+              <Boton type="submit" variante="primary" disabled={guardandoCierre}>
                 {guardandoCierre ? 'Guardando...' : 'Agregar cierre'}
-              </button>
+              </Boton>
             </form>
 
             {cierres.length === 0 ? (

@@ -5,6 +5,7 @@ import Layout from '../components/Layout'
 import BotonVolver from '../components/BotonVolver'
 import { useAuth } from '../context/AuthContext'
 import AnotadorArchivo from '../components/AnotadorArchivo'
+import Boton from '../components/Boton'
 
 export default function DetallePaciente() {
   const { id } = useParams()
@@ -251,13 +252,9 @@ export default function DetallePaciente() {
                     onChange={(e) => setMotivoSolicitud(e.target.value)}
                     className="w-full text-sm border border-slate-300 rounded px-3 py-2"
                   />
-                  <button
-                    type="submit"
-                    disabled={enviandoSolicitud}
-                    className="bg-blue-600 text-white text-sm rounded px-4 py-2 hover:bg-blue-700 disabled:opacity-50"
-                  >
+                  <Boton type="submit" variante="primary" disabled={enviandoSolicitud}>
                     {enviandoSolicitud ? 'Enviando...' : 'Solicitar acceso'}
-                  </button>
+                  </Boton>
                 </form>
               )}
             </div>
@@ -374,13 +371,9 @@ export default function DetallePaciente() {
                   className="w-full border border-slate-300 rounded px-3 py-2 text-sm"
                 />
               </div>
-              <button
-                onClick={guardarSeguimiento}
-                disabled={guardandoSeguimiento}
-                className="bg-blue-600 text-white rounded px-4 py-2 text-sm hover:bg-blue-700 disabled:opacity-50"
-              >
+              <Boton variante="primary" onClick={guardarSeguimiento} disabled={guardandoSeguimiento}>
                 {guardandoSeguimiento ? 'Guardando...' : 'Guardar'}
-              </button>
+              </Boton>
             </div>
           </div>
         )}
@@ -428,19 +421,22 @@ export default function DetallePaciente() {
 
             {!mostrarArchivados && (
               <form onSubmit={handleUpload} className="flex gap-2 mb-4">
+                <label
+                  htmlFor="archivo-input-detalle-paciente"
+                  className="flex-1 text-sm border border-slate-300 rounded px-3 py-2 text-slate-600 truncate cursor-pointer hover:bg-slate-50"
+                >
+                  {archivoFile ? archivoFile.name : 'Elegir archivo...'}
+                </label>
                 <input
+                  id="archivo-input-detalle-paciente"
                   type="file"
                   ref={inputArchivoRef}
                   onChange={(e) => setArchivoFile(e.target.files[0])}
-                  className="flex-1 text-sm border border-slate-300 rounded px-3 py-2"
+                  className="sr-only"
                 />
-                <button
-                  type="submit"
-                  disabled={!archivoFile || subiendo}
-                  className="bg-blue-600 text-white rounded px-4 py-2 text-sm hover:bg-blue-700 disabled:opacity-50"
-                >
+                <Boton type="submit" variante="primary" disabled={!archivoFile || subiendo}>
                   {subiendo ? 'Subiendo...' : 'Subir'}
-                </button>
+                </Boton>
               </form>
             )}
 

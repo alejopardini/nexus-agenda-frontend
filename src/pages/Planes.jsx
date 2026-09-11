@@ -5,6 +5,8 @@ import FichaPacienteModal from '../components/FichaPacienteModal'
 import BuscadorPaciente from '../components/BuscadorPaciente'
 import NuevoPacienteModal from '../components/NuevoPacienteModal'
 import SelectorPlantillaPlan from '../components/SelectorPlantillaPlan'
+import Modal from '../components/Modal'
+import Boton from '../components/Boton'
 
 export default function Planes() {
   const [planes, setPlanes] = useState([])
@@ -104,12 +106,9 @@ export default function Planes() {
               onChange={(e) => setBusqueda(e.target.value)}
               className="flex-1 max-w-xs border border-slate-300 rounded px-3 py-1.5 text-sm"
             />
-            <button
-              onClick={abrirModal}
-              className="bg-blue-600 text-white rounded px-4 py-2 text-sm hover:bg-blue-700 whitespace-nowrap"
-            >
+            <Boton variante="primary" onClick={abrirModal} className="whitespace-nowrap">
               + Asignar plan
-            </button>
+            </Boton>
           </div>
 
           {planesActivos.length === 0 ? (
@@ -160,56 +159,45 @@ export default function Planes() {
       )}
 
       {modalAbierto && (
-        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-sm w-full p-4">
-            <div className="flex justify-between items-start mb-3">
-              <h2 className="font-bold text-slate-800 text-lg">Asignar plan</h2>
-              <button onClick={() => setModalAbierto(false)} className="text-slate-400 hover:text-slate-600 text-2xl leading-none">×</button>
+        <Modal titulo="Asignar plan" onClose={() => setModalAbierto(false)}>
+          {errorForm && <p className="text-input-error mb-3">{errorForm}</p>}
+
+          <form onSubmit={handleSubmit} className="space-y-3">
+            <div>
+              <label className="block text-sm text-slate-600 mb-1">Paciente</label>
+              <BuscadorPaciente
+                pacientes={pacientes}
+                value={nuevoPaciente}
+                onChange={setNuevoPaciente}
+                onNuevoPaciente={() => setModalNuevoPacienteAbierto(true)}
+              />
             </div>
 
-            {errorForm && <p className="text-red-600 text-sm mb-3">{errorForm}</p>}
+            <div className="flex flex-wrap gap-2 items-end">
+              <SelectorPlantillaPlan
+                plantillas={plantillasPlan}
+                sesiones={formPlan.sesiones_totales}
+                precio={formPlan.precio}
+                onChangeSesiones={(v) => setFormPlan((prev) => ({ ...prev, sesiones_totales: v }))}
+                onChangePrecio={(v) => setFormPlan((prev) => ({ ...prev, precio: v }))}
+              />
+            </div>
 
-            <form onSubmit={handleSubmit} className="space-y-3">
-              <div>
-                <label className="block text-sm text-slate-600 mb-1">Paciente</label>
-                <BuscadorPaciente
-                  pacientes={pacientes}
-                  value={nuevoPaciente}
-                  onChange={setNuevoPaciente}
-                  onNuevoPaciente={() => setModalNuevoPacienteAbierto(true)}
-                />
-              </div>
+            <div>
+              <label className="block text-sm text-slate-600 mb-1">Notas (opcional)</label>
+              <input
+                type="text"
+                value={formPlan.notas}
+                onChange={(e) => setFormPlan({ ...formPlan, notas: e.target.value })}
+                className="w-full border border-slate-300 rounded px-3 py-2"
+              />
+            </div>
 
-              <div className="flex flex-wrap gap-2 items-end">
-                <SelectorPlantillaPlan
-                  plantillas={plantillasPlan}
-                  sesiones={formPlan.sesiones_totales}
-                  precio={formPlan.precio}
-                  onChangeSesiones={(v) => setFormPlan((prev) => ({ ...prev, sesiones_totales: v }))}
-                  onChangePrecio={(v) => setFormPlan((prev) => ({ ...prev, precio: v }))}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm text-slate-600 mb-1">Notas (opcional)</label>
-                <input
-                  type="text"
-                  value={formPlan.notas}
-                  onChange={(e) => setFormPlan({ ...formPlan, notas: e.target.value })}
-                  className="w-full border border-slate-300 rounded px-3 py-2"
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={guardando}
-                className="w-full bg-blue-600 text-white rounded py-2 font-medium hover:bg-blue-700 disabled:opacity-50"
-              >
-                {guardando ? 'Guardando...' : 'Asignar plan'}
-              </button>
-            </form>
-          </div>
-        </div>
+            <Boton type="submit" variante="primary" disabled={guardando} className="w-full">
+              {guardando ? 'Guardando...' : 'Asignar plan'}
+            </Boton>
+          </form>
+        </Modal>
       )}
 
       {modalNuevoPacienteAbierto && (

@@ -2,11 +2,12 @@ import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   Home, Users, CalendarCheck, Stethoscope, BedDouble, BarChart3,
-  LifeBuoy, CircleUser, LogOut, Menu, X, ChevronDown,
+  MessageCircle, CircleUser, LogOut, Menu, X, ChevronDown,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import apiClient from '../api/client'
 import NotificationBell from './NotificationBell'
+import Boton from './Boton'
 import logoQnexus from '../assets/logo_qnexus.png'
 
 // PRUEBA VISUAL (rama prueba-sidebar-visual): navbar lateral solo-íconos con
@@ -182,7 +183,7 @@ export default function Sidebar() {
           <img src={logoQnexus} alt="QuiroNexus" className="h-8 w-8 object-contain" />
         </Link>
 
-        <nav className="flex-1 flex flex-col items-center gap-1">
+        <nav className="flex-1 flex flex-col items-center gap-3">
           {secciones.map((s) => (
             <SidebarIcon
               key={s.key}
@@ -195,8 +196,10 @@ export default function Sidebar() {
           ))}
         </nav>
 
-        <div className="flex flex-col items-center gap-1 pt-2 mt-2 border-t border-white/15 w-full">
-          <SidebarIcon to="/soporte" Icon={LifeBuoy} label="Soporte técnico" active={location.pathname === '/soporte'} />
+        <div className="flex flex-col items-center gap-3 pt-3 mt-2 border-t border-white/15 w-full">
+          {/* Ícono TEMPORAL: placeholder de "Zoe" (el asistente) hasta que la
+              diseñadora defina el ícono/branding final de soporte. */}
+          <SidebarIcon to="/soporte" Icon={MessageCircle} label="Soporte técnico" active={location.pathname === '/soporte'} />
           <div className="[&>div>button]:w-11 [&>div>button]:h-11 [&>div>button]:flex [&>div>button]:items-center [&>div>button]:justify-center [&>div>button]:rounded-xl [&>div>button]:text-white/80 [&>div>button:hover]:bg-white/15 [&>div>button:hover]:text-white">
             <NotificationBell />
           </div>
@@ -250,7 +253,8 @@ export default function Sidebar() {
               />
             )
           ))}
-          <ItemMobile to="/soporte" Icon={LifeBuoy} label="Soporte técnico" onClick={() => setMobileOpen(false)} />
+          {/* Ícono TEMPORAL, ver nota en el bloque desktop. */}
+          <ItemMobile to="/soporte" Icon={MessageCircle} label="Soporte técnico" onClick={() => setMobileOpen(false)} />
           <div className="border-t border-slate-100 pt-3 px-3 mt-2">
             <p className="text-xs text-slate-400">{auth.organizacion_nombre}</p>
             <Link
@@ -260,12 +264,9 @@ export default function Sidebar() {
             >
               {auth.username} ({auth.rol})
             </Link>
-            <button
-              onClick={handleLogout}
-              className="w-full text-sm bg-red-600 text-white rounded px-3 py-2 hover:bg-red-700"
-            >
+            <Boton variante="destructive" onClick={handleLogout} className="w-full">
               Salir
-            </button>
+            </Boton>
           </div>
         </div>
       )}

@@ -54,7 +54,16 @@ export default function NotificationBell() {
       </button>
 
       {abierto && (
-        <div className="absolute right-0 mt-2 w-72 bg-white border border-slate-200 rounded-lg shadow-lg z-10">
+        // Mobile (barra superior, md:hidden): la campana queda cerca del borde
+        // derecho -> right-0 la mantiene en pantalla, y abre hacia abajo
+        // (top-full) porque sobra espacio debajo de la barra superior.
+        // Desktop (sidebar fijo a la izquierda, hidden md:flex): con right-0
+        // el dropdown se anclaba fuera de la pantalla hacia la izquierda ->
+        // desde md se ancla por la izquierda del ícono. Además la campana
+        // vive abajo del todo del sidebar (junto a Soporte/Mi Perfil/Salir),
+        // así que abrir hacia abajo lo cortaba contra el borde inferior de la
+        // pantalla -> desde md abre hacia arriba (bottom-full) en su lugar.
+        <div className="absolute right-0 top-full mt-2 md:right-auto md:left-0 md:top-auto md:mt-0 md:bottom-full md:mb-2 w-72 bg-white border border-slate-200 rounded-lg shadow-lg z-10">
           <div className="p-3 border-b border-slate-100 font-semibold text-sm text-slate-700">
             Turnos de hoy y pendientes
           </div>

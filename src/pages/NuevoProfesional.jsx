@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
 import BotonVolver from '../components/BotonVolver'
+import Boton from '../components/Boton'
 
 const DIAS = [
   { value: 0, label: 'Lunes' }, { value: 1, label: 'Martes' }, { value: 2, label: 'Miércoles' },
@@ -192,12 +193,9 @@ export default function NuevoProfesional() {
               </div>
             )}
 
-            <button
-              type="submit" disabled={guardando}
-              className="w-full bg-blue-600 text-white rounded py-2 font-medium hover:bg-blue-700 disabled:opacity-50"
-            >
+            <Boton type="submit" variante="primary" disabled={guardando} className="w-full">
               {guardando ? 'Guardando...' : 'Crear profesional'}
-            </button>
+            </Boton>
           </form>
         </div>
       </div>

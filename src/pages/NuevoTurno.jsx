@@ -8,6 +8,7 @@ import BotonVolver from '../components/BotonVolver'
 import BuscadorPaciente from '../components/BuscadorPaciente'
 import NuevoPacienteModal from '../components/NuevoPacienteModal'
 import SelectorPlantillaPlan from '../components/SelectorPlantillaPlan'
+import Boton from '../components/Boton'
 import { useAuth } from '../context/AuthContext'
 import { hmAMinutos, minutosAHM, duracionAMinutos, diaSemanaBackend, fechaToStr } from '../utils/fechas'
 
@@ -438,13 +439,9 @@ export default function NuevoTurno() {
               />
             </div>
 
-            <button
-              type="submit"
-              disabled={guardando}
-              className="w-full bg-blue-600 text-white rounded py-2 font-medium hover:bg-blue-700 disabled:opacity-50"
-            >
+            <Boton type="submit" variante="primary" disabled={guardando} className="w-full">
               {guardando ? 'Guardando...' : 'Crear turno'}
-            </button>
+            </Boton>
           </form>
         </div>
       </div>

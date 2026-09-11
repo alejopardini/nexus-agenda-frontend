@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import apiClient from '../api/client'
+import Boton from './Boton'
 
 export default function CatalogoEditable({ titulo, endpoint, campos, valoresIniciales, renderResumen }) {
   const [items, setItems] = useState([])
@@ -106,13 +107,9 @@ export default function CatalogoEditable({ titulo, endpoint, campos, valoresInic
               />
             </div>
           ))}
-          <button
-            type="submit"
-            disabled={guardando}
-            className="bg-blue-600 text-white text-sm rounded px-4 py-1.5 hover:bg-blue-700 disabled:opacity-50"
-          >
+          <Boton type="submit" tamaño="sm" disabled={guardando}>
             {guardando ? 'Guardando...' : '+ Agregar'}
-          </button>
+          </Boton>
           {errorForm && <p className="text-red-600 text-xs w-full">{errorForm}</p>}
         </form>
       )}

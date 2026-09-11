@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
 import { useAuth } from '../context/AuthContext'
+import Boton from '../components/Boton'
 
 export default function Profesionales() {
   const { auth } = useAuth()
@@ -69,12 +70,9 @@ export default function Profesionales() {
               <h1 className="text-xl font-bold text-slate-800">Profesionales</h1>
               {auth.rol === 'dueño' && infoOrg && (
                 !enElLimite ? (
-                  <Link
-                    to="/profesionales/nuevo"
-                    className="bg-blue-600 text-white rounded px-4 py-2 text-sm hover:bg-blue-700"
-                  >
+                  <Boton to="/profesionales/nuevo" variante="primary">
                     + Nuevo profesional
-                  </Link>
+                  </Boton>
                 ) : (
                   <span className="text-sm text-red-600">Límite del plan alcanzado</span>
                 )
@@ -147,13 +145,9 @@ export default function Profesionales() {
                     <option key={p.value} value={p.value}>{p.label}</option>
                   ))}
                 </select>
-                <button
-                  onClick={actualizarPlan}
-                  disabled={!hayCambioPendiente || actualizandoPlan}
-                  className="bg-blue-600 text-white rounded px-4 py-2 text-sm hover:bg-blue-700 disabled:opacity-50"
-                >
+                <Boton variante="primary" onClick={actualizarPlan} disabled={!hayCambioPendiente || actualizandoPlan}>
                   {actualizandoPlan ? 'Actualizando...' : 'Actualizar plan'}
-                </button>
+                </Boton>
               </div>
             </div>
           )}

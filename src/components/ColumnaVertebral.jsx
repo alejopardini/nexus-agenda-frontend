@@ -1,23 +1,25 @@
+import { IMAGEN_POR_NIVEL, OPACIDAD_COLOR_IMAGEN, maskImagenStyle } from '../utils/columnaVertebralImagenes'
+import { COLOR_REGION, COLOR_AJUSTADO, COLOR_BLOQUEADA } from '../utils/coloresColumna'
+
 const NIVELES = [
   'C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7',
   'T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12',
   'L1', 'L2', 'L3', 'L4', 'L5',
 ]
 
-const OVALO_ANCHO = 54
-const OVALO_ALTO = 22
-const PELVIS_OVALO_ANCHO = 70
-const PELVIS_OVALO_ALTO = 40
-const ILION_CAJA_ANCHO = PELVIS_OVALO_ANCHO + 16
+const OVALO_ANCHO = 60
+const OVALO_ALTO = 25
+const SACRO_ANCHO = 52
+const SACRO_ALTO = 65
+const ILION_ANCHO = 47
+const ILION_ALTO = 80
+// Deben coincidir con las clases Tailwind "gap-2" y "gap-0.5" usadas más abajo
+const GAP_FILA_NORMAL = 8
+const GAP_PELVIS = 2
+// Ancho del espaciador de las filas C1-L5 para que su óvalo quede en el mismo
+// eje horizontal que el Sacro de la fila de pelvis (que es más ancho).
+const ILION_CAJA_ANCHO = (ILION_ANCHO + 16) + GAP_PELVIS + SACRO_ANCHO / 2 - GAP_FILA_NORMAL - OVALO_ANCHO / 2
 
-const COLOR_REGION = {
-  cervical: '#bbf7d0',
-  toracica: '#bfdbfe',
-  lumbar: '#fef08a',
-  pelvis: '#fbcfe8',
-}
-const COLOR_AJUSTADO = '#f59e0b'
-const COLOR_BLOQUEADA = '#ef4444'
 const DESPLAZAMIENTO_AJUSTE = 24
 const CODIGOS_SIN_DESPLAZAMIENTO = ['PI', 'PI-R', 'PI-L']
 
@@ -33,9 +35,10 @@ function tieneCodigoSinDesplazamiento(tipoAjuste) {
 }
 
 function colorEstado(nivel, datos) {
-  if (datos?.bloqueada) return { color: COLOR_BLOQUEADA, texto: '#fff' }
-  if (datos?.ajustado) return { color: COLOR_AJUSTADO, texto: '#fff' }
-  return { color: COLOR_REGION[regionDe(nivel)], texto: '#1e293b' }
+  if (datos?.bloqueada) return { color: COLOR_BLOQUEADA.bg, texto: COLOR_BLOQUEADA.text }
+  if (datos?.ajustado) return { color: COLOR_AJUSTADO.bg, texto: COLOR_AJUSTADO.text }
+  const region = COLOR_REGION[regionDe(nivel)]
+  return { color: region.bg, texto: region.text }
 }
 
 function resumenAjuste(datos) {
@@ -57,11 +60,14 @@ function OvaloPartido({ nivel, ajustes, onClick, ancho = OVALO_ANCHO, alto = OVA
   const ajustadoDer = ajustes[claveDer]?.ajustado
   const bloqueada = bloqueadaIzq || bloqueadaDer
   const ajustado = ajustadoIzq || ajustadoDer
-  const colorOvalo = bloqueada
+  const estadoColor = bloqueada
     ? COLOR_BLOQUEADA
     : ajustado
       ? COLOR_AJUSTADO
       : COLOR_REGION[regionDe(nivel)]
+  const colorOvalo = estadoColor.bg
+  const colorTexto = estadoColor.text
+  const colorOvaloImagen = estadoColor.bg
   const resumenIzq = resumenAjuste(ajustes[claveIzq])
   const resumenDer = resumenAjuste(ajustes[claveDer])
   const mitadAncho = ancho / 2
@@ -73,48 +79,75 @@ function OvaloPartido({ nivel, ajustes, onClick, ancho = OVALO_ANCHO, alto = OVA
       : ajustadoIzq
         ? (tieneCodigoSinDesplazamiento(ajustes[claveIzq]?.tipo_ajuste) ? 0 : -DESPLAZAMIENTO_AJUSTE)
         : 0
+  const imagenUrl = IMAGEN_POR_NIVEL[nivel]
 
   return (
     <div className="flex flex-col items-center shrink-0" style={{ width: ancho }}>
       <div
         className="relative flex transition-all duration-150 hover:shadow-md hover:shadow-slate-400/50"
-        style={{
-          width: ancho,
-          height: alto,
-          borderRadius: 9999,
-          overflow: 'hidden',
-          border: '1px solid rgba(100,116,139,0.4)',
-          transform: `translateX(${desplazamiento}px)`,
-        }}
+        style={
+          imagenUrl
+            ? {
+                width: ancho,
+                height: alto,
+                transform: `translateX(${desplazamiento}px)`,
+              }
+            : {
+                width: ancho,
+                height: alto,
+                borderRadius: 9999,
+                overflow: 'hidden',
+                border: '1px solid rgba(100,116,139,0.4)',
+                transform: `translateX(${desplazamiento}px)`,
+              }
+        }
       >
-        <button
-          type="button"
-          onClick={() => onClick(claveIzq)}
-          title={claveIzq}
-          style={{
-            width: mitadAncho,
-            height: alto,
-            backgroundColor: colorOvalo,
-            borderTopLeftRadius: radioExterior,
-            borderBottomLeftRadius: radioExterior,
-          }}
-        />
-        <button
-          type="button"
-          onClick={() => onClick(claveDer)}
-          title={claveDer}
-          style={{
-            width: mitadAncho,
-            height: alto,
-            backgroundColor: colorOvalo,
-            borderTopRightRadius: radioExterior,
-            borderBottomRightRadius: radioExterior,
-          }}
-        />
+        {imagenUrl ? (
+          <>
+            <img
+              src={imagenUrl}
+              alt=""
+              className="absolute inset-0 w-full h-full object-contain pointer-events-none"
+            />
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{ backgroundColor: colorOvaloImagen, opacity: OPACIDAD_COLOR_IMAGEN, ...maskImagenStyle(imagenUrl) }}
+            />
+            <button type="button" onClick={() => onClick(claveIzq)} title={claveIzq} style={{ width: mitadAncho, height: alto }} />
+            <button type="button" onClick={() => onClick(claveDer)} title={claveDer} style={{ width: mitadAncho, height: alto }} />
+          </>
+        ) : (
+          <>
+            <button
+              type="button"
+              onClick={() => onClick(claveIzq)}
+              title={claveIzq}
+              style={{
+                width: mitadAncho,
+                height: alto,
+                backgroundColor: colorOvalo,
+                borderTopLeftRadius: radioExterior,
+                borderBottomLeftRadius: radioExterior,
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => onClick(claveDer)}
+              title={claveDer}
+              style={{
+                width: mitadAncho,
+                height: alto,
+                backgroundColor: colorOvalo,
+                borderTopRightRadius: radioExterior,
+                borderBottomRightRadius: radioExterior,
+              }}
+            />
+          </>
+        )}
         {nivel !== 'SACRO' && (
           <span
             className="absolute inset-0 flex items-center justify-center pointer-events-none text-[9px] font-bold leading-none"
-            style={{ color: '#1e293b' }}
+            style={{ color: colorTexto }}
           >
             {nivel}
           </span>
@@ -136,23 +169,43 @@ function OvaloPartido({ nivel, ajustes, onClick, ancho = OVALO_ANCHO, alto = OVA
 
 function VertebraPelvis({ segmento, datos, seleccionado, onClick, ancho, ovaloAlto }) {
   const { color } = colorEstado(segmento, datos)
+  const colorImagen = color
   const resumen = resumenAjuste(datos)
+  const imagenUrl = IMAGEN_POR_NIVEL[segmento]
 
   return (
-    <div className="relative flex items-center justify-center" style={{ width: ancho + 16, height: PELVIS_OVALO_ALTO }}>
+    <div className="relative flex items-center justify-center" style={{ width: ancho + 16, height: ovaloAlto }}>
       <button
         type="button"
         onClick={() => onClick(segmento)}
         title={segmento}
         className="relative"
-        style={{
-          width: ancho,
-          height: ovaloAlto,
-          borderRadius: 9999,
-          backgroundColor: color,
-          border: seleccionado ? '2px solid #1d4ed8' : '1px solid rgba(100,116,139,0.4)',
-        }}
-      />
+        style={
+          imagenUrl
+            ? {
+                width: ancho,
+                height: ovaloAlto,
+                border: seleccionado ? '2px solid #1d4ed8' : 'none',
+              }
+            : {
+                width: ancho,
+                height: ovaloAlto,
+                borderRadius: 9999,
+                backgroundColor: color,
+                border: seleccionado ? '2px solid #1d4ed8' : '1px solid rgba(100,116,139,0.4)',
+              }
+        }
+      >
+        {imagenUrl && (
+          <>
+            <img src={imagenUrl} alt="" className="absolute inset-0 w-full h-full object-contain pointer-events-none" />
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{ backgroundColor: colorImagen, opacity: OPACIDAD_COLOR_IMAGEN, ...maskImagenStyle(imagenUrl) }}
+            />
+          </>
+        )}
+      </button>
       {resumen && (
         <span
           className="absolute text-[10px] text-slate-500 text-center whitespace-nowrap"
@@ -167,7 +220,7 @@ function VertebraPelvis({ segmento, datos, seleccionado, onClick, ancho, ovaloAl
 
 function FilaNivel({ nivel, ajustes, onClickSegmento }) {
   return (
-    <div className="flex items-center gap-2 py-1">
+    <div className="flex items-center gap-2 py-px">
       <div style={{ width: ILION_CAJA_ANCHO, flexShrink: 0 }} aria-hidden="true" />
       <OvaloPartido nivel={nivel} ajustes={ajustes} onClick={onClickSegmento} />
     </div>
@@ -176,7 +229,7 @@ function FilaNivel({ nivel, ajustes, onClickSegmento }) {
 
 export default function ColumnaVertebral({ ajustes, segmentoActivo, onClickSegmento }) {
   return (
-    <div className="max-w-xs mx-auto w-full">
+    <div className="max-w-md mx-auto w-full">
       {NIVELES.map((nivel) => (
         <FilaNivel
           key={nivel}
@@ -186,23 +239,30 @@ export default function ColumnaVertebral({ ajustes, segmentoActivo, onClickSegme
         />
       ))}
 
-      <div className="flex items-center gap-2 py-3">
+      <div className="flex items-center gap-0.5 py-3">
         <VertebraPelvis
           segmento="ILION_IZQ"
           datos={ajustes.ILION_IZQ}
           seleccionado={segmentoActivo === 'ILION_IZQ'}
           onClick={onClickSegmento}
-          ancho={PELVIS_OVALO_ANCHO}
-          ovaloAlto={PELVIS_OVALO_ALTO}
+          ancho={ILION_ANCHO}
+          ovaloAlto={ILION_ALTO}
         />
-        <OvaloPartido nivel="SACRO" ajustes={ajustes} onClick={onClickSegmento} sinDesplazamiento />
+        <OvaloPartido
+          nivel="SACRO"
+          ajustes={ajustes}
+          onClick={onClickSegmento}
+          ancho={SACRO_ANCHO}
+          alto={SACRO_ALTO}
+          sinDesplazamiento
+        />
         <VertebraPelvis
           segmento="ILION_DER"
           datos={ajustes.ILION_DER}
           seleccionado={segmentoActivo === 'ILION_DER'}
           onClick={onClickSegmento}
-          ancho={PELVIS_OVALO_ANCHO}
-          ovaloAlto={PELVIS_OVALO_ALTO}
+          ancho={ILION_ANCHO}
+          ovaloAlto={ILION_ALTO}
         />
       </div>
     </div>

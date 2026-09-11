@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
 import BotonVolver from '../components/BotonVolver'
+import Boton from '../components/Boton'
 
 export default function Soporte() {
   const [asunto, setAsunto] = useState('')
@@ -81,20 +82,23 @@ export default function Soporte() {
             </div>
             <div>
               <label className="block text-sm text-slate-600 mb-1">Archivo adjunto (opcional)</label>
+              <label
+                htmlFor="archivo-input-soporte"
+                className="block w-full text-sm border border-slate-300 rounded px-3 py-2 text-slate-600 truncate cursor-pointer hover:bg-slate-50"
+              >
+                {archivo ? archivo.name : 'Elegir archivo...'}
+              </label>
               <input
+                id="archivo-input-soporte"
                 type="file"
                 ref={inputArchivoRef}
                 onChange={(e) => setArchivo(e.target.files[0] || null)}
-                className="w-full text-sm border border-slate-300 rounded px-3 py-2"
+                className="sr-only"
               />
             </div>
-            <button
-              type="submit"
-              disabled={enviando}
-              className="bg-blue-600 text-white rounded px-4 py-2 text-sm hover:bg-blue-700 disabled:opacity-50"
-            >
+            <Boton type="submit" variante="primary" disabled={enviando}>
               {enviando ? 'Enviando...' : 'Enviar consulta'}
-            </button>
+            </Boton>
           </form>
         </div>
       </div>

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import apiClient from '../api/client'
 import AnotadorArchivo from './AnotadorArchivo'
+import Boton from './Boton'
 
 export default function GestionArchivosPaciente({ pacienteId }) {
   const [archivos, setArchivos] = useState([])
@@ -152,13 +153,9 @@ export default function GestionArchivosPaciente({ pacienteId }) {
             onChange={(e) => setArchivoFile(e.target.files[0])}
             className="sr-only"
           />
-          <button
-            type="submit"
-            disabled={!archivoFile || subiendo}
-            className="w-full bg-blue-600 text-white rounded px-4 py-2 text-sm hover:bg-blue-700 disabled:opacity-50"
-          >
+          <Boton type="submit" variante="primary" disabled={!archivoFile || subiendo} className="w-full">
             {subiendo ? 'Subiendo...' : 'Subir'}
-          </button>
+          </Boton>
         </form>
       )}
 

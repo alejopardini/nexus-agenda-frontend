@@ -96,7 +96,7 @@ export default function Estadisticas() {
                     onClick={() => cambiarRango(r.dias)}
                     className={`text-sm px-3 py-1.5 rounded border ${
                       dias === r.dias
-                        ? 'bg-blue-600 text-white border-blue-600'
+                        ? 'bg-primary text-white border-primary'
                         : 'border-slate-300 text-slate-600 hover:bg-slate-50'
                     }`}
                   >

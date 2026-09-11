@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import apiClient from '../api/client'
 import ColumnaVertebral from './ColumnaVertebral'
+import Modal from './Modal'
+import Boton from './Boton'
 
 const ESTADO_CONDICION_LABELS = {
   mejoria_marcada: 'Mejoría marcada',
@@ -84,55 +86,54 @@ export default function FichaCamillaModal({ consultaId, onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-start p-4 border-b border-slate-200">
+    <Modal
+      ancho="max-w-xl"
+      onClose={onClose}
+      titulo={
+        <>
+          {consulta ? consulta.paciente_nombre : 'Consulta'}
+          {consulta && (
+            <span className="block text-[14px] font-normal text-texto-secundario mt-1">{consulta.fecha}</span>
+          )}
+        </>
+      }
+      acciones={
+        !loading && !error && consulta ? (
+          <Boton variante="primary" onClick={irAConsultaCompleta} className="w-full">
+            Editar consulta completa
+          </Boton>
+        ) : null
+      }
+    >
+      {loading && <p className="text-slate-500 text-sm">Cargando...</p>}
+      {!loading && error && <p className="text-input-error text-sm">{error}</p>}
+
+      {!loading && !error && consulta && (
+        <div className="space-y-4">
+          <ColumnaVertebral ajustes={ajustesMapa} segmentoActivo={null} onClickSegmento={() => {}} />
+
           <div>
-            <h2 className="font-bold text-slate-800 text-lg">{consulta ? consulta.paciente_nombre : 'Consulta'}</h2>
-            {consulta && <p className="text-sm text-slate-500">{consulta.fecha}</p>}
+            <p className="text-xs text-texto-secundario mb-1">Observaciones</p>
+            <p className="text-sm text-texto whitespace-pre-wrap">
+              {consulta.observaciones || 'Sin observaciones cargadas.'}
+            </p>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 text-2xl leading-none">×</button>
-        </div>
 
-        <div className="p-4">
-          {loading && <p className="text-slate-500 text-sm">Cargando...</p>}
-          {!loading && error && <p className="text-red-600 text-sm">{error}</p>}
-
-          {!loading && !error && consulta && (
-            <div className="space-y-4">
-              <ColumnaVertebral ajustes={ajustesMapa} segmentoActivo={null} onClickSegmento={() => {}} />
-
-              <div>
-                <p className="text-xs text-slate-500 mb-1">Observaciones</p>
-                <p className="text-sm text-slate-800 whitespace-pre-wrap">
-                  {consulta.observaciones || 'Sin observaciones cargadas.'}
-                </p>
-              </div>
-
-              {resumen.length > 0 && (
-                <div className="pt-3 border-t border-slate-100">
-                  <p className="text-xs text-slate-500 mb-1">Resumen</p>
-                  <dl className="space-y-1 text-sm">
-                    {resumen.map(([label, valor]) => (
-                      <div key={label} className="flex gap-1">
-                        <dt className="text-slate-500 shrink-0">{label}:</dt>
-                        <dd className="text-slate-800">{valor}</dd>
-                      </div>
-                    ))}
-                  </dl>
-                </div>
-              )}
-
-              <button
-                onClick={irAConsultaCompleta}
-                className="w-full bg-blue-600 text-white rounded py-2 font-medium hover:bg-blue-700 text-sm"
-              >
-                Editar consulta completa
-              </button>
+          {resumen.length > 0 && (
+            <div className="pt-3 border-t border-slate-100">
+              <p className="text-xs text-texto-secundario mb-1">Resumen</p>
+              <dl className="space-y-1 text-sm">
+                {resumen.map(([label, valor]) => (
+                  <div key={label} className="flex gap-1">
+                    <dt className="text-texto-secundario shrink-0">{label}:</dt>
+                    <dd className="text-texto">{valor}</dd>
+                  </div>
+                ))}
+              </dl>
             </div>
           )}
         </div>
-      </div>
-    </div>
+      )}
+    </Modal>
   )
 }

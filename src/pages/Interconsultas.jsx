@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
 import { useAuth } from '../context/AuthContext'
+import Boton from '../components/Boton'
 
 const COLOR_ESTADO = {
   pendiente: 'bg-yellow-100 text-yellow-800',
@@ -86,20 +87,12 @@ export default function Interconsultas() {
 
                     {ic.estado === 'pendiente' && !esMiaLaSolicitud && (
                       <div className="flex gap-2 mt-2">
-                        <button
-                          onClick={() => resolver(ic.id, 'aprobar')}
-                          disabled={procesando === ic.id}
-                          className="bg-green-600 text-white text-xs rounded px-3 py-1.5 hover:bg-green-700 disabled:opacity-50"
-                        >
+                        <Boton variante="primary" onClick={() => resolver(ic.id, 'aprobar')} disabled={procesando === ic.id}>
                           Aprobar
-                        </button>
-                        <button
-                          onClick={() => resolver(ic.id, 'rechazar')}
-                          disabled={procesando === ic.id}
-                          className="bg-slate-200 text-slate-700 text-xs rounded px-3 py-1.5 hover:bg-slate-300 disabled:opacity-50"
-                        >
+                        </Boton>
+                        <Boton variante="secondary" onClick={() => resolver(ic.id, 'rechazar')} disabled={procesando === ic.id}>
                           Rechazar
-                        </button>
+                        </Boton>
                       </div>
                     )}
 

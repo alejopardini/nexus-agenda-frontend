@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
 import FichaPacienteModal from '../components/FichaPacienteModal'
 import { useAuth } from '../context/AuthContext'
+import Boton from '../components/Boton'
 
 export default function Pacientes() {
   const { auth } = useAuth()
@@ -51,12 +52,9 @@ export default function Pacientes() {
               className="flex-1 max-w-xs border border-slate-300 rounded px-3 py-1.5 text-sm"
             />
             {(auth.rol !== 'profesional' || auth.puede_crear_pacientes === true) && (
-              <Link
-                to="/pacientes/nuevo"
-                className="bg-blue-600 text-white rounded px-4 py-2 text-sm hover:bg-blue-700 whitespace-nowrap"
-              >
+              <Boton to="/pacientes/nuevo" variante="primary" className="whitespace-nowrap">
                 + Nuevo paciente
-              </Link>
+              </Boton>
             )}
           </div>
 

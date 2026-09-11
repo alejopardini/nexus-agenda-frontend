@@ -4,6 +4,7 @@ import apiClient from '../api/client'
 import EditorColumnaVertebral from './EditorColumnaVertebral'
 import FichaPacienteModal from './FichaPacienteModal'
 import GestionArchivosPaciente from './GestionArchivosPaciente'
+import Boton from './Boton'
 
 const ETAPA_CUIDADO_OPCIONES = [
   ['aguda', 'Aguda'],
@@ -238,7 +239,7 @@ export default function PanelCamillaCondensado({ pacienteId, consultaId, onClose
                         key={t.key}
                         onClick={() => setPanelTab(t.key)}
                         className={`text-xs px-3 py-1.5 rounded-t ${
-                          panelTab === t.key ? 'bg-blue-600 text-white' : 'text-slate-600 hover:bg-slate-100'
+                          panelTab === t.key ? 'bg-primary text-white' : 'text-slate-600 hover:bg-slate-100'
                         }`}
                       >
                         {t.label}
@@ -288,13 +289,9 @@ export default function PanelCamillaCondensado({ pacienteId, consultaId, onClose
                               placeholder="Escribir una nota..."
                               className="flex-1 border border-slate-300 rounded px-3 py-2 text-sm"
                             />
-                            <button
-                              onClick={agregarNota}
-                              disabled={guardandoNota || !notaTexto.trim()}
-                              className="bg-blue-600 text-white rounded px-4 py-2 text-sm hover:bg-blue-700 disabled:opacity-50"
-                            >
+                            <Boton variante="primary" onClick={agregarNota} disabled={guardandoNota || !notaTexto.trim()}>
                               Enviar
-                            </button>
+                            </Boton>
                           </div>
                         </>
                       )}
@@ -305,13 +302,9 @@ export default function PanelCamillaCondensado({ pacienteId, consultaId, onClose
                 </div>
 
                 {consulta.estado !== 'completada' && (
-                  <button
-                    onClick={marcarCompletada}
-                    disabled={marcandoCompletada}
-                    className="w-full bg-green-600 text-white rounded py-2 font-medium hover:bg-green-700 disabled:opacity-50 text-sm"
-                  >
+                  <Boton variante="primary" onClick={marcarCompletada} disabled={marcandoCompletada} className="w-full">
                     {marcandoCompletada ? 'Guardando...' : 'Marcar visita como completada'}
-                  </button>
+                  </Boton>
                 )}
 
                 <div className="flex justify-between pt-2 text-sm mt-auto">

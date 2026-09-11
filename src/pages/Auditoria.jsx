@@ -3,6 +3,7 @@ import apiClient from '../api/client'
 import Layout from '../components/Layout'
 import BuscadorPaciente from '../components/BuscadorPaciente'
 import { useAuth } from '../context/AuthContext'
+import Boton from '../components/Boton'
 
 const TIPOS_DATO_LABEL = {
   historia_clinica: 'Historia clínica',
@@ -90,9 +91,9 @@ export default function Auditoria() {
               ))}
             </select>
           </div>
-          <button type="submit" className="bg-blue-600 text-white rounded px-4 py-1.5 text-sm hover:bg-blue-700">
+          <Boton type="submit" variante="primary">
             Filtrar
-          </button>
+          </Boton>
         </form>
 
         {loading && <p className="text-slate-500">Cargando...</p>}

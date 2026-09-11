@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
 import { useAuth } from '../context/AuthContext'
+import Boton from '../components/Boton'
 
 export default function MiPerfil() {
   const { actualizarAuth } = useAuth()
@@ -151,13 +152,9 @@ export default function MiPerfil() {
               </p>
             </div>
 
-            <button
-              type="submit"
-              disabled={guardando}
-              className="w-full bg-blue-600 text-white rounded py-2 font-medium hover:bg-blue-700 disabled:opacity-50"
-            >
+            <Boton type="submit" variante="primary" disabled={guardando} className="w-full">
               {guardando ? 'Guardando...' : 'Guardar cambios'}
-            </button>
+            </Boton>
           </form>
         </div>
 
@@ -204,13 +201,9 @@ export default function MiPerfil() {
               />
             </div>
 
-            <button
-              type="submit"
-              disabled={guardandoPassword}
-              className="w-full bg-blue-600 text-white rounded py-2 font-medium hover:bg-blue-700 disabled:opacity-50"
-            >
+            <Boton type="submit" variante="primary" disabled={guardandoPassword} className="w-full">
               {guardandoPassword ? 'Guardando...' : 'Cambiar contraseña'}
-            </button>
+            </Boton>
           </form>
         </div>
       </div>

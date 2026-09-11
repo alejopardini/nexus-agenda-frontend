@@ -19,6 +19,14 @@ export function diaSemanaBackend(fecha) {
   return (jsDay + 6) % 7
 }
 
+export function inicioDeSemana(fecha) {
+  const d = new Date(fecha)
+  const diasDesdeLunes = (d.getDay() + 6) % 7
+  d.setDate(d.getDate() - diasDesdeLunes)
+  d.setHours(0, 0, 0, 0)
+  return d
+}
+
 export function fechaToStr(fecha) {
   const y = fecha.getFullYear()
   const m = String(fecha.getMonth() + 1).padStart(2, '0')

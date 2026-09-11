@@ -4,6 +4,7 @@ import apiClient from '../api/client'
 import ColumnaVertebral from './ColumnaVertebral'
 import SelectorPlantillaPlan from './SelectorPlantillaPlan'
 import GestionArchivosPaciente from './GestionArchivosPaciente'
+import Modal from './Modal'
 
 const TABS = [
   { key: 'datos', label: 'Datos' },
@@ -247,52 +248,54 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
   const pagosRealizados = turnos.filter((t) => t.pagado)
   const totalPagado = pagosRealizados.reduce((acc, t) => acc + (Number(t.monto_cobrado) || 0), 0)
 
-  return (
-    <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-5xl w-full max-h-[90vh] flex flex-col">
-        <div className="flex justify-between items-start p-4 border-b border-slate-200">
-          <div>
-            <h2 className="font-bold text-slate-800 text-lg">
-              {paciente ? `${paciente.nombre} ${paciente.apellido}` : 'Ficha del paciente'}
-            </h2>
-            {tieneAcceso && !ocultarEditar && (
-              <Link
-                to={`/pacientes/${pacienteId}/editar`}
-                onClick={onClose}
-                className="text-xs text-blue-600 hover:underline"
-              >
-                Editar ficha completa
-              </Link>
-            )}
-          </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 text-2xl leading-none">×</button>
-        </div>
+  const mostrarTabs = !loading && !error && paciente && tieneAcceso
 
-        {loading && <p className="p-4 text-slate-500 text-sm">Cargando...</p>}
-        {!loading && error && <p className="p-4 text-red-600 text-sm">{error}</p>}
+  return (
+    <Modal
+      ancho="max-w-5xl"
+      onClose={onClose}
+      titulo={
+        <>
+          {paciente ? `${paciente.nombre} ${paciente.apellido}` : 'Ficha del paciente'}
+          {tieneAcceso && !ocultarEditar && (
+            <Link
+              to={`/pacientes/${pacienteId}/editar`}
+              onClick={onClose}
+              className="block text-[12px] font-normal text-btn-primary hover:underline mt-1"
+            >
+              Editar ficha completa
+            </Link>
+          )}
+        </>
+      }
+      debajoTitulo={
+        mostrarTabs && (
+          <div className="flex flex-wrap gap-1 border-b border-slate-100 pb-2">
+            {TABS.map((t) => (
+              <button
+                key={t.key}
+                onClick={() => setTab(t.key)}
+                className={`text-xs px-3 py-1.5 rounded-t ${
+                  tab === t.key ? 'bg-btn-primary text-white' : 'text-slate-600 hover:bg-slate-100'
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+        )
+      }
+    >
+        {loading && <p className="text-slate-500 text-sm">Cargando...</p>}
+        {!loading && error && <p className="text-input-error text-sm">{error}</p>}
 
         {!loading && !error && paciente && !tieneAcceso && (
-          <p className="p-4 text-sm text-slate-400">No tenés acceso a los datos de este paciente.</p>
+          <p className="text-sm text-texto-secundario">No tenés acceso a los datos de este paciente.</p>
         )}
 
-        {!loading && !error && paciente && tieneAcceso && (
+        {mostrarTabs && (
           <>
-            <div className="flex flex-wrap gap-1 px-4 pt-3 border-b border-slate-100">
-              {TABS.map((t) => (
-                <button
-                  key={t.key}
-                  onClick={() => setTab(t.key)}
-                  className={`text-xs px-3 py-1.5 rounded-t ${
-                    tab === t.key ? 'bg-blue-600 text-white' : 'text-slate-600 hover:bg-slate-100'
-                  }`}
-                >
-                  {t.label}
-                </button>
-              ))}
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-4">
-              {tab === 'datos' && (
+            {tab === 'datos' && (
                 <>
                   <dl className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
                     <div>
@@ -632,10 +635,8 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
               )}
 
               {tab === 'archivos' && <GestionArchivosPaciente pacienteId={pacienteId} />}
-            </div>
           </>
         )}
-      </div>
-    </div>
+    </Modal>
   )
 }

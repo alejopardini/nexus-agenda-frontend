@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import apiClient from '../api/client'
+import Boton from './Boton'
 
 const COLORES = ['#ef4444', '#22c55e', '#3b82f6', '#eab308', '#ffffff']
 const FACTOR_GROSOR = 0.003
@@ -305,25 +306,25 @@ export default function AnotadorArchivo({ archivo, pacienteId, onClose, onGuarda
           <div className="flex gap-1">
             <button
               onClick={() => { setHerramienta('lapiz'); setPuntoInicioLinea(null); setTextoPendiente(null) }}
-              className={`text-xs px-3 py-1.5 rounded ${herramienta === 'lapiz' ? 'bg-blue-600 text-white' : 'bg-white border border-slate-300 text-slate-600'}`}
+              className={`text-xs px-3 py-1.5 rounded ${herramienta === 'lapiz' ? 'bg-primary text-white' : 'bg-white border border-slate-300 text-slate-600'}`}
             >
               ✏️ Lápiz
             </button>
             <button
               onClick={() => { setHerramienta('linea'); setTextoPendiente(null) }}
-              className={`text-xs px-3 py-1.5 rounded ${herramienta === 'linea' ? 'bg-blue-600 text-white' : 'bg-white border border-slate-300 text-slate-600'}`}
+              className={`text-xs px-3 py-1.5 rounded ${herramienta === 'linea' ? 'bg-primary text-white' : 'bg-white border border-slate-300 text-slate-600'}`}
             >
               📏 Línea recta
             </button>
             <button
               onClick={() => { setHerramienta('texto'); setPuntoInicioLinea(null) }}
-              className={`text-xs px-3 py-1.5 rounded ${herramienta === 'texto' ? 'bg-blue-600 text-white' : 'bg-white border border-slate-300 text-slate-600'}`}
+              className={`text-xs px-3 py-1.5 rounded ${herramienta === 'texto' ? 'bg-primary text-white' : 'bg-white border border-slate-300 text-slate-600'}`}
             >
               🔤 Texto
             </button>
             <button
               onClick={() => { setHerramienta('borrador'); setPuntoInicioLinea(null); setTextoPendiente(null) }}
-              className={`text-xs px-3 py-1.5 rounded ${herramienta === 'borrador' ? 'bg-blue-600 text-white' : 'bg-white border border-slate-300 text-slate-600'}`}
+              className={`text-xs px-3 py-1.5 rounded ${herramienta === 'borrador' ? 'bg-primary text-white' : 'bg-white border border-slate-300 text-slate-600'}`}
             >
               🧹 Borrador
             </button>
@@ -446,16 +447,12 @@ export default function AnotadorArchivo({ archivo, pacienteId, onClose, onGuarda
         </div>
 
         <div className="flex justify-end gap-2 p-3 border-t border-slate-200">
-          <button onClick={onClose} className="text-sm px-4 py-2 rounded border border-slate-300 text-slate-600 hover:bg-slate-50">
+          <Boton variante="secondary" onClick={onClose}>
             Cancelar
-          </button>
-          <button
-            onClick={guardar}
-            disabled={guardando}
-            className="text-sm px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
-          >
+          </Boton>
+          <Boton variante="primary" onClick={guardar} disabled={guardando}>
             {guardando ? 'Guardando...' : 'Guardar como archivo nuevo'}
-          </button>
+          </Boton>
         </div>
       </div>
     </div>

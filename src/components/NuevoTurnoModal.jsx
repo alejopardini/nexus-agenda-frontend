@@ -3,6 +3,8 @@ import apiClient from '../api/client'
 import BuscadorPaciente from './BuscadorPaciente'
 import NuevoPacienteModal from './NuevoPacienteModal'
 import SelectorPlantillaPlan from './SelectorPlantillaPlan'
+import Modal from './Modal'
+import Boton from './Boton'
 
 const DURACION_PLAN_NUEVO_MINUTOS = 30
 
@@ -138,18 +140,13 @@ export default function NuevoTurnoModal({ profesional, sucursalId, fecha, hora, 
   }
 
   return (
-    <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-sm w-full p-4">
-        <div className="flex justify-between items-start mb-3">
-          <h2 className="font-bold text-slate-800 text-lg">Nuevo turno</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 text-2xl leading-none">×</button>
-        </div>
-
-        <p className="text-sm text-slate-500 mb-3">
+    <>
+      <Modal titulo="Nuevo turno" onClose={onClose}>
+        <p className="text-texto-secundario mb-3">
           {profesional.nombre} {profesional.apellido} — {fecha} — {hora}
         </p>
 
-        {error && <p className="text-red-600 text-sm mb-3">{error}</p>}
+        {error && <p className="text-input-error mb-3">{error}</p>}
 
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
@@ -223,15 +220,11 @@ export default function NuevoTurnoModal({ profesional, sucursalId, fecha, hora, 
             </div>
           )}
 
-          <button
-            type="submit"
-            disabled={guardando || loadingPacientes}
-            className="w-full bg-blue-600 text-white rounded py-2 font-medium hover:bg-blue-700 disabled:opacity-50"
-          >
+          <Boton type="submit" variante="primary" disabled={guardando || loadingPacientes} className="w-full">
             {guardando ? 'Guardando...' : 'Crear turno'}
-          </button>
+          </Boton>
         </form>
-      </div>
+      </Modal>
 
       {modalNuevoPacienteAbierto && (
         <NuevoPacienteModal
@@ -242,6 +235,6 @@ export default function NuevoTurnoModal({ profesional, sucursalId, fecha, hora, 
           }}
         />
       )}
-    </div>
+    </>
   )
 }

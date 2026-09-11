@@ -1,13 +1,142 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 @import "tailwindcss";
 
-/* PRUEBA VISUAL (rama prueba-sidebar-visual): tipografía + colores de marca */
+/* PRUEBA VISUAL (rama prueba-sidebar-visual): sistema de diseño (tipografía,
+   escalas, colores) */
 @theme {
-  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
   --color-primary: #26457a;
   --color-secondary: #59c2bf;
   /* gris suave con tinte de marca para el fondo general, en vez de blanco/slate default */
-  --color-page: #eef1f6;
+  --color-page: #f8fafb;
+
+  /* Escala tipográfica (texto-normal y etiquetas son iguales en mobile y
+     desktop; título se redefine para desktop más abajo, fuera de @theme,
+     usando el mismo breakpoint md=768px que ya usa el resto de la app). */
+  --text-titulo: 28px;
+  --text-cuerpo: 16px;
+  --text-etiqueta: 12px;
+
+  /* Escala de espaciados reutilizable (clases p-*, m-*, gap-*, w-*, h-*, etc).
+     esp-1..esp-4 son iguales en mobile y desktop; esp-5..esp-8 se redefinen
+     para desktop más abajo.
+     OJO nombres: en Tailwind v4 la escala --spacing-* alimenta TODAS las
+     utilidades de tamaño (w-, h-, max-w-, gap-, p-, m-, etc.), no solo
+     padding/margin. Nombres cortos tipo "sm"/"lg"/"xl"/"2xl" pisan las
+     utilidades ya existentes max-w-sm/lg/xl/2xl (usadas en ~10 pantallas de
+     la app) porque coinciden con las claves de --container-*. Por eso se
+     usa el prefijo "esp-" (espaciado), que no colisiona con ninguna escala
+     default de Tailwind (container, text, breakpoints). No reemplaza la
+     escala numérica default (p-1, p-2, ...) — convive con ella. */
+  --spacing-esp-1: 4px;
+  --spacing-esp-2: 8px;
+  --spacing-esp-3: 12px;
+  --spacing-esp-4: 16px;
+  --spacing-esp-5: 20px;
+  --spacing-esp-6: 24px;
+  --spacing-esp-7: 32px;
+  --spacing-esp-8: 40px;
+
+  /* Colores semánticos de estado de turno (calendario, camillas, badges).
+     Corregidos a la definición real de la diseñadora (la asignación previa
+     era de prueba y tenía el mapeo de fondo cruzado entre estados). Cada
+     estado trae fondo + texto pensados para convivir en un badge con texto
+     adentro. En uso: CalendarioSemanal.jsx (BloqueTurno) y Camillas.jsx,
+     vía el componente Badge.jsx. */
+  --color-turno-pendiente: #f9e7a8;
+  --color-turno-pendiente-text: #8a6a16;
+  --color-turno-confirmado: #b7e4c7;
+  --color-turno-confirmado-text: #2d6a4f;
+  --color-turno-cancelado: #f4b8b8;
+  --color-turno-cancelado-text: #9b3d3d;
+  --color-turno-en-camilla: #b8dff2;
+  --color-turno-en-camilla-text: #28627a;
+
+  /* Sistema de botones (rama prueba-sidebar-visual): tokens de color para
+     las 4 variantes (primary/secondary/ghost/destructive) x 4 estados
+     (default/hover/active/disabled). Ver componente Boton.jsx — todavía no
+     aplicado a ninguna pantalla.
+     #3B769F es un azul NUEVO, uso exclusivo de botones. NO reemplaza
+     --color-primary (#26457A), que sigue tal cual en sidebar, minicalendario,
+     gráfico de Estadísticas y headers — conviven a propósito (decisión de
+     la diseñadora). */
+  --color-btn-primary: #3b769f;
+  --color-btn-primary-hover: #326688;
+  --color-btn-primary-active: #2b5874;
+  --color-btn-primary-disabled: #d5dee4;
+  --color-btn-primary-disabled-text: #8a969d;
+
+  /* secondary y ghost comparten borde/texto por defecto (= --color-btn-primary)
+     y los mismos fondos de hover/active; solo difieren en el fondo de reposo
+     (blanco vs. transparente) y en el estado disabled. */
+  --color-btn-outline-hover: #eaf2f7;
+  --color-btn-outline-active: #dceaf2;
+  --color-btn-secondary-disabled: #f3f5f6;
+  --color-btn-secondary-disabled-text: #9aa5ab;
+  /* Ghost disabled: a diferencia de secondary, el fondo se queda transparente
+     (no #f3f5f6) — solo se apagan borde y texto. */
+  --color-btn-ghost-disabled-border: #dce2e5;
+  --color-btn-ghost-disabled-text: #aab5bb;
+
+  --color-btn-destructive: #c95c5c;
+  --color-btn-destructive-hover: #b84d4d;
+  --color-btn-destructive-active: #a64040;
+  --color-btn-destructive-disabled: #e5d4d4;
+  --color-btn-destructive-disabled-text: #a99a9a;
+
+  /* Sistema de input de texto (rama prueba-sidebar-visual): tokens de color
+     para sus 4 estados (default/focus/error/disabled). Ver componente
+     CampoTexto.jsx — todavía no aplicado a ninguna pantalla.
+     --color-input-focus y --color-input-error coinciden en valor con
+     --color-btn-primary/--color-btn-destructive respectivamente (son el
+     mismo azul y rojo de marca), pero quedan como tokens propios porque
+     conceptualmente son de un sistema distinto (inputs, no botones). */
+  --color-input-label: #34434d;
+  --color-input-placeholder: #7a8790;
+  --color-input-border: #d1d9de;
+  --color-input-focus: #3b769f;
+  --color-input-error: #c95c5c;
+  --color-input-border-disabled: #dce2e5;
+  --color-input-bg-disabled: #f3f5f6;
+  --color-input-text-disabled: #9aa5ab;
+
+  /* Tokens genéricos de texto/borde para componentes de layout (Card, Modal;
+     rama prueba-sidebar-visual). Todavía no aplicados a ninguna pantalla.
+     --color-borde-suave y --color-superficie-hover coinciden en valor con
+     tokens de otros sistemas (input disabled), por coincidencia de paleta —
+     quedan separados porque son conceptualmente genéricos, no de inputs. */
+  --color-heading: #1f2937;
+  --color-texto: #34434d;
+  --color-texto-secundario: #7a8790;
+  --color-borde-suave: #dce2e5;
+  --color-superficie-hover: #f3f5f6;
+
+  /* Disponibilidad real en la vista semanal (CalendarioSemanal.jsx; rama
+     prueba-sidebar-visual). Fondo de celda vacía (sin turnos) según
+     disponibilidad de profesionales — cuando la celda ya tiene turnos, sigue
+     usando los tokens --color-turno-* de siempre, esto no los reemplaza.
+     --color-slot-vacio coincide en valor con --color-superficie-hover (misma
+     paleta neutra "disabled"), queda separado por ser un concepto distinto.
+     --color-slot-bloqueado reutiliza a propósito el mismo valor que
+     COLOR_BLOQUEADA de coloresColumna.js (vértebra bloqueada del editor de
+     columna) — mismo significado semántico de "sin lugar". */
+  --color-slot-vacio: #f3f5f6;
+  --color-slot-libre: #dbf2e3;
+  --color-slot-bloqueado: #f4c2c2;
+}
+
+/* Valores que difieren en desktop (mismo breakpoint md=768px que usa el
+   resto de la app, p.ej. Sidebar/Navbar). Redefinir la custom property acá
+   alcanza: las utilidades de Tailwind (text-titulo, p-esp-5, etc.) ya
+   apuntan a var(--text-titulo)/var(--spacing-esp-5)/etc. */
+@media (min-width: 768px) {
+  :root {
+    --text-titulo: 32px;
+    --spacing-esp-5: 24px;
+    --spacing-esp-6: 32px;
+    --spacing-esp-7: 48px;
+    --spacing-esp-8: 64px;
+  }
 }
 
 .react-datepicker__day.dia-hoy {
@@ -17,4 +146,70 @@
 
 .react-datepicker__day.dia-pasado:not(.react-datepicker__day--selected) {
   color: #94a3b8;
+}
+
+/* Minicalendario minimalista (rama prueba-sidebar-visual): números grandes,
+   mes centrado con flechas simples, menos líneas divisorias, más espacio en
+   blanco. Elegí --color-primary (no --color-secondary) para el día
+   seleccionado: con texto blanco encima, secondary (#59C2BF, bastante claro)
+   da un contraste muy pobre (~2:1, no cumple legibilidad); primary (#26457A)
+   da contraste alto y además reusa el mismo tono "sólido" que ya usa el
+   sidebar para su propio estado activo. Todo escopeado bajo .minicalendario
+   para no depender del orden de carga del CSS de react-datepicker. */
+.minicalendario .react-datepicker {
+  font-family: inherit;
+  border: none;
+  background: transparent;
+  width: 100%;
+  display: block;
+}
+.minicalendario .react-datepicker__month-container {
+  width: 100%;
+  float: none;
+}
+.minicalendario .react-datepicker__header {
+  background: transparent;
+  border-bottom: none;
+  padding: 0 0 12px;
+}
+.minicalendario .react-datepicker__current-month {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+.minicalendario .react-datepicker__navigation {
+  top: 2px;
+}
+.minicalendario .react-datepicker__day-names,
+.minicalendario .react-datepicker__week {
+  display: flex;
+  justify-content: space-between;
+}
+.minicalendario .react-datepicker__day-name {
+  color: #94a3b8;
+  font-size: 0.7rem;
+  width: 2.25rem;
+  margin: 2px;
+}
+.minicalendario .react-datepicker__day {
+  width: 2.25rem;
+  line-height: 2.25rem;
+  margin: 2px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #334155;
+  border-radius: 9999px;
+}
+.minicalendario .react-datepicker__day:hover {
+  background: #f1f5f9;
+  border-radius: 9999px;
+}
+.minicalendario .react-datepicker__day--outside-month {
+  color: #cbd5e1;
+}
+.minicalendario .react-datepicker__day--selected,
+.minicalendario .react-datepicker__day--keyboard-selected {
+  background: var(--color-primary);
+  color: #fff;
+  font-weight: 600;
 }

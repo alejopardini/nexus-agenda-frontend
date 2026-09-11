@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
+import Boton from '../components/Boton'
 
 export default function Secretarias() {
   const [secretarias, setSecretarias] = useState([])
@@ -38,12 +38,9 @@ export default function Secretarias() {
         <div className="bg-white rounded-lg shadow-md p-6">
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-xl font-bold text-slate-800">Secretaría</h1>
-            <Link
-              to="/secretarias/nueva"
-              className="bg-blue-600 text-white rounded px-4 py-2 text-sm hover:bg-blue-700"
-            >
+            <Boton to="/secretarias/nueva" variante="primary">
               + Nueva secretaria
-            </Link>
+            </Boton>
           </div>
 
           {secretarias.length === 0 ? (

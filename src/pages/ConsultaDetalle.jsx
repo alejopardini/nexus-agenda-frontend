@@ -4,6 +4,7 @@ import apiClient from '../api/client'
 import Layout from '../components/Layout'
 import BotonVolver from '../components/BotonVolver'
 import EditorColumnaVertebral from '../components/EditorColumnaVertebral'
+import Boton from '../components/Boton'
 
 const CARACTERISTICAS_DOLOR_OPCIONES = [
   'Doloroso', 'Ardor', 'Sordo', 'Agudo', 'Punzante', 'Pulsátil', 'Debilidad', 'Entumecimiento', 'Tensión',
@@ -571,13 +572,9 @@ export default function ConsultaDetalle() {
             </div>
           )}
 
-          <button
-            type="submit"
-            disabled={guardando || debeEsperar}
-            className="w-full bg-blue-600 text-white rounded py-2 font-medium hover:bg-blue-700 disabled:opacity-50"
-          >
+          <Boton type="submit" variante="primary" disabled={guardando || debeEsperar} className="w-full">
             {guardando ? 'Guardando...' : consulta.estado === 'completada' ? 'Guardar cambios' : 'Marcar como completada'}
-          </button>
+          </Boton>
           {debeEsperar && (
             <p className="text-xs text-slate-500 text-center">Podés completarla desde las {horaHabilitada}</p>
           )}

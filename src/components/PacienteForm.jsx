@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import apiClient from '../api/client'
+import Boton from './Boton'
 
 export default function PacienteForm({ onCreado }) {
   const [error, setError] = useState('')
@@ -124,12 +125,9 @@ export default function PacienteForm({ onCreado }) {
         />
       </div>
 
-      <button
-        type="submit" disabled={guardando}
-        className="w-full bg-blue-600 text-white rounded py-2 font-medium hover:bg-blue-700 disabled:opacity-50"
-      >
+      <Boton type="submit" variante="primary" disabled={guardando} className="w-full">
         {guardando ? 'Guardando...' : 'Crear paciente'}
-      </button>
+      </Boton>
     </form>
   )
 }

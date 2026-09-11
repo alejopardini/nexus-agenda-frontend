@@ -10,9 +10,18 @@
 import { Link } from 'react-router-dom'
 
 const BASE =
-  'inline-flex items-center justify-center gap-2 h-10 px-4 py-2.5 rounded-lg ' +
+  'inline-flex items-center justify-center gap-2 rounded-lg ' +
   'font-sans font-semibold text-[12px] leading-[15px] transition-colors ' +
   'disabled:cursor-not-allowed'
+
+const TAMANOS = {
+  md: 'h-10 px-4 py-2.5',
+  // Para filas de formulario inline con inputs chicos (border ... px-2
+  // py-1.5, sin altura fija) — mismo padding vertical que esos inputs, sin
+  // h-* fijo, para que la altura coincida exacto en vez de aproximarla a
+  // ojo. Ver CatalogoEditable.jsx.
+  sm: 'px-3 py-1.5',
+}
 
 const VARIANTES = {
   primary:
@@ -28,18 +37,21 @@ const VARIANTES = {
   ghost:
     'bg-transparent text-btn-primary border border-btn-primary ' +
     'hover:bg-btn-outline-hover active:bg-btn-outline-active ' +
-    'disabled:pointer-events-none disabled:bg-btn-ghost-disabled',
+    'disabled:pointer-events-none disabled:border-btn-ghost-disabled-border disabled:text-btn-ghost-disabled-text',
 
+  // Borde fijo #C95C5C en los 4 estados (no combina con el fondo de cada
+  // estado como antes) — mismo patrón que secondary/ghost.
   destructive:
     'bg-btn-destructive text-white border border-btn-destructive ' +
-    'hover:bg-btn-destructive-hover hover:border-btn-destructive-hover ' +
-    'active:bg-btn-destructive-active active:border-btn-destructive-active ' +
-    'disabled:pointer-events-none disabled:bg-btn-destructive-disabled disabled:border-btn-destructive-disabled disabled:text-btn-destructive-disabled-text',
+    'hover:bg-btn-destructive-hover ' +
+    'active:bg-btn-destructive-active ' +
+    'disabled:pointer-events-none disabled:bg-btn-destructive-disabled disabled:text-btn-destructive-disabled-text',
 }
 
-export default function Boton({ variante = 'primary', className = '', to, ...props }) {
+export default function Boton({ variante = 'primary', tamaño = 'md', className = '', to, ...props }) {
   const clases = VARIANTES[variante] || VARIANTES.primary
-  const clasesFinal = `${BASE} ${clases} ${className}`.trim()
+  const tam = TAMANOS[tamaño] || TAMANOS.md
+  const clasesFinal = `${BASE} ${tam} ${clases} ${className}`.trim()
 
   if (to) {
     return <Link to={to} className={clasesFinal} {...props} />
