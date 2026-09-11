@@ -96,7 +96,12 @@ export default function CalendarioSemanal({
   const diasStr = dias.map(fechaToStr)
   const hoyStr = fechaToStr(new Date())
 
-  const turnosSemana = turnos.filter((t) => diasStr.includes(t.fecha))
+  // Los turnos cancelados no se muestran en esta grilla (a pedido: la celda
+  // queda como si el turno nunca hubiese existido visualmente) — pero el
+  // registro no se toca en la base, Turno.estado se queda en 'cancelado'
+  // igual que siempre ("Turno se cancela, nunca se borra"), disponible para
+  // estadísticas y para la vista diaria, que no se toca acá.
+  const turnosSemana = turnos.filter((t) => diasStr.includes(t.fecha) && t.estado !== 'cancelado')
 
   let horaMin = HORA_MIN_DEFAULT
   let horaMax = HORA_MAX_DEFAULT
@@ -155,9 +160,11 @@ export default function CalendarioSemanal({
   const profesionalesLibresEn = (diaIdx, hora) => {
     const disponibles = profesionalesDisponiblesEn(diaIdx, hora)
     const items = turnosPorDiaHora[`${diaIdx}-${hora}`] || []
+    // Sin filtro de estado acá: turnosPorDiaHora ya excluye los cancelados
+    // (turnosSemana los saca desde el origen, más arriba).
     const idsOcupados = new Set(
       items
-        .filter((t) => t.estado !== 'cancelado' && disponibles.some((p) => String(p.id) === String(t.profesional)))
+        .filter((t) => disponibles.some((p) => String(p.id) === String(t.profesional)))
         .map((t) => String(t.profesional))
     )
     return disponibles.filter((p) => !idsOcupados.has(String(p.id)))
