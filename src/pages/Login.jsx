@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import Card from '../components/Card'
 import CampoTexto from '../components/CampoTexto'
 import Boton from '../components/Boton'
-import loginBg from '../assets/login-bg-TEMPORAL-reemplazar.png'
+import loginBg from '../assets/login-bg.png'
 
 export default function Login() {
   const [username, setUsername] = useState('')
@@ -25,16 +25,15 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen relative flex items-center justify-center overflow-hidden p-4">
-      {/* Fondo TEMPORAL tipo "vidrio esmerilado" hasta que la diseñadora defina
-          el diseño definitivo del login — para reemplazar: cambiar el import
-          de loginBg de arriba por la imagen nueva y borrar este bloque de
-          comentario. Ver src/assets/login-bg-TEMPORAL-reemplazar.png */}
+    <div className="min-h-screen relative flex items-center justify-center overflow-hidden p-4 bg-white">
+      {/* bg-top (no bg-center) para priorizar la parte superior de la imagen
+          en ventanas más angostas que la imagen original, en vez de recortar
+          parejo. */}
       <div
-        className="absolute inset-0 bg-cover bg-center"
+        className="absolute inset-0 bg-cover bg-top"
         style={{ backgroundImage: `url(${loginBg})` }}
       />
-      <div className="absolute inset-0 bg-white/75 backdrop-blur-xl" />
+      <div className="absolute inset-0 bg-white/15 backdrop-blur-md" />
 
       <form onSubmit={handleSubmit} className="relative w-full max-w-sm">
         <Card titulo="Iniciar sesión" className="shadow-lg">
