@@ -228,9 +228,9 @@ export default function CalendarioSemanal({
                 <div
                   key={diaIdx}
                   onClick={clickable ? (e) => handleClickCelda(diaIdx, h, e) : undefined}
-                  className={`border-t border-l border-slate-100 p-1 flex flex-col gap-1 min-h-[44px] ${
-                    items.length === 0 ? 'bg-page' : ''
-                  } ${clickable ? 'cursor-pointer hover:brightness-95 transition-[filter]' : ''}`}
+                  className={`border-t border-l border-slate-100 p-1 flex flex-col gap-1 min-h-[44px] bg-page ${
+                    clickable ? 'cursor-pointer hover:brightness-95 transition-[filter]' : ''
+                  }`}
                 >
                   {items.map((t) => <BloqueTurno key={t.id} turno={t} onClick={onClickTurno} />)}
                 </div>
