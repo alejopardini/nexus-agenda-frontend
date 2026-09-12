@@ -6,7 +6,7 @@
 export default function Header() {
   return (
     <header className="hidden md:flex md:ml-16 h-14 items-center px-6 bg-page border-b border-borde-suave">
-      <span className="font-sans font-semibold text-[18px] text-texto">QuironNexus</span>
+      <span className="font-sans font-semibold text-[18px] text-texto">QuiroNexus</span>
     </header>
   )
 }
