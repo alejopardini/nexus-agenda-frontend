@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { hmAMinutos, duracionAMinutos, diaSemanaBackend, fechaToStr, inicioDeSemana } from '../utils/fechas'
 import { abreviarPaciente, inicialesDe } from '../utils/nombres'
 import Tooltip from './Tooltip'
+import Badge from './Badge'
 import PopoverElegirProfesional from './PopoverElegirProfesional'
 
 // PRUEBA VISUAL (rama prueba-sidebar-visual): vista semanal nueva, complementaria
@@ -12,19 +13,6 @@ import PopoverElegirProfesional from './PopoverElegirProfesional'
 const NOMBRES_DIA = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
 const HORA_MIN_DEFAULT = 8
 const HORA_MAX_DEFAULT = 20
-
-// Nombres de clase literales (no interpolados) para que Tailwind los detecte.
-// Punto de color chico por estado (no un badge/píldora de fondo completo — se
-// sacó a propósito porque competía con el color de fondo de disponibilidad de
-// la celda; ver colorFondoCelda más abajo). Usa los tokens "-text" (más
-// saturados, pensados para contraste sobre blanco) en vez de los tokens de
-// fondo pálidos, para que el punto se note incluso sobre celdas de color.
-const CLASE_DOT_ESTADO = {
-  pendiente: 'bg-turno-pendiente-text',
-  confirmado: 'bg-turno-confirmado-text',
-  'en-camilla': 'bg-turno-en-camilla-text',
-  cancelado: 'bg-turno-cancelado-text',
-}
 
 // "En camilla" no es un Turno.estado — se deriva igual que en Camillas.jsx
 // (hora_llamado seteada + la consulta que generó todavía sigue pendiente).
@@ -53,23 +41,23 @@ function BloqueTurno({ turno, onClick }) {
         onClick?.(turno, e.currentTarget.getBoundingClientRect())
       }}
       title={`${turno.hora.slice(0, 5)} — ${turno.paciente_nombre}`}
-      className="rounded px-1 py-0.5 text-[10px] leading-tight min-w-0 w-full flex items-center gap-1 whitespace-nowrap hover:bg-white/70 transition-colors"
+      className="w-full text-left hover:brightness-95 transition-[filter]"
     >
-      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${CLASE_DOT_ESTADO[estado]}`} />
-      <span className="font-semibold shrink-0 text-slate-700">{turno.hora.slice(0, 5)}</span>
-      <span className="shrink-0 text-slate-400">-</span>
-      <span className="truncate min-w-0 text-slate-700">{abreviarPaciente(turno.paciente_nombre)}</span>
-      <span className="shrink-0 text-slate-400">-</span>
-      {/* Iniciales del profesional en un chip circular neutro — antes era
-          blanco translúcido sobre el fondo de color del estado; ahora que el
-          bloque ya no tiene ese fondo, pasa a gris sólido para seguir
-          legible sobre cualquier color de celda. Nombre completo del
-          profesional queda solo en este tooltip. */}
-      <Tooltip texto={turno.profesional_nombre}>
-        <span className="w-3.5 h-3.5 rounded-full bg-slate-200 text-slate-600 text-[8px] flex items-center justify-center font-bold shrink-0">
-          {inicialesDe(turno.profesional_nombre)}
-        </span>
-      </Tooltip>
+      <Badge estado={estado} className="w-full gap-1 whitespace-nowrap overflow-hidden">
+        <span className="font-semibold shrink-0">{turno.hora.slice(0, 5)}</span>
+        <span className="shrink-0">-</span>
+        <span className="truncate min-w-0">{abreviarPaciente(turno.paciente_nombre)}</span>
+        <span className="shrink-0">-</span>
+        {/* Iniciales del profesional en un chip circular translúcido, mismo
+            criterio que antes de la simplificación: contrasta bien sobre
+            cualquiera de los colores de estado del Badge. Nombre completo
+            del profesional queda solo en este tooltip. */}
+        <Tooltip texto={turno.profesional_nombre}>
+          <span className="w-3.5 h-3.5 rounded-full bg-white/70 text-[8px] flex items-center justify-center font-bold shrink-0">
+            {inicialesDe(turno.profesional_nombre)}
+          </span>
+        </Tooltip>
+      </Badge>
     </button>
   )
 }
@@ -170,19 +158,6 @@ export default function CalendarioSemanal({
     return disponibles.filter((p) => !idsOcupados.has(String(p.id)))
   }
 
-  // Fondo de la celda cuando NO tiene turnos ya asignados (si los tiene, se
-  // ve el/los BloqueTurno con su propio color de estado y esto no se toca):
-  // gris si nadie atiende, verde pálido si hay lugar libre, rosa "bloqueado"
-  // si todos los profesionales disponibles esa hora ya están ocupados.
-  const colorFondoCelda = (diaIdx, hora) => {
-    const disponibles = profesionalesDisponiblesEn(diaIdx, hora)
-    if (disponibles.length === 0) return 'bg-slot-vacio'
-    const libres = profesionalesLibresEn(diaIdx, hora)
-    if (libres.length === disponibles.length) return 'bg-slot-libre'
-    if (libres.length === 0) return 'bg-slot-bloqueado'
-    return '' // parcialmente ocupado: comportamiento actual, sin fondo especial
-  }
-
   // Da de alta el turno con el profesional ya resuelto (uno solo disponible,
   // o el elegido en el popover) — mismo modal que usa la vista diaria
   // (NuevoTurnoModal, vía el callback onCrearTurno que arma el padre). La
@@ -242,18 +217,20 @@ export default function CalendarioSemanal({
             </div>
             {dias.map((_, diaIdx) => {
               const items = turnosPorDiaHora[`${diaIdx}-${h}`] || []
-              const colorFondo = colorFondoCelda(diaIdx, h)
-              // Clickeable con disponibilidad real: libre del todo, o
-              // parcialmente ocupada (still hay a quién asignarle un turno).
-              // No clickeable si nadie atiende o si ya está todo ocupado.
-              const clickable = colorFondo === 'bg-slot-libre' || colorFondo === ''
+              // Clickeable con disponibilidad real: hay al menos un
+              // profesional libre para asignarle un turno nuevo acá. No
+              // clickeable si nadie atiende esa hora o si ya está todo
+              // ocupado — pero esto ya no se refleja en el color de fondo,
+              // solo en el cursor/hover (ver objetivo de este cambio: celdas
+              // libres neutras, el color queda solo en el Badge del turno).
+              const clickable = profesionalesLibresEn(diaIdx, h).length > 0
               return (
                 <div
                   key={diaIdx}
                   onClick={clickable ? (e) => handleClickCelda(diaIdx, h, e) : undefined}
-                  className={`border-t border-l border-slate-100 p-1 flex flex-col gap-1 min-h-[44px] ${colorFondo} ${
-                    clickable ? 'cursor-pointer hover:brightness-95 transition-[filter]' : ''
-                  }`}
+                  className={`border-t border-l border-slate-100 p-1 flex flex-col gap-1 min-h-[44px] ${
+                    items.length === 0 ? 'bg-page' : ''
+                  } ${clickable ? 'cursor-pointer hover:brightness-95 transition-[filter]' : ''}`}
                 >
                   {items.map((t) => <BloqueTurno key={t.id} turno={t} onClick={onClickTurno} />)}
                 </div>
