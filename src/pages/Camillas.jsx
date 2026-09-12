@@ -16,6 +16,7 @@ import Modal from '../components/Modal'
 import Boton from '../components/Boton'
 import { fechaToStr } from '../utils/fechas'
 import { buscarConsultaCompletadaPrevia } from '../utils/consultas'
+import { useEsVerticalQuiro } from '../hooks/useVertical'
 
 function calcularEnCamillaPorProfesional(turnosBase) {
   const porProfesional = {}
@@ -43,6 +44,7 @@ function calcularEnCamillaPorProfesional(turnosBase) {
 
 export default function Camillas() {
   const { auth } = useAuth()
+  const esQuiro = useEsVerticalQuiro()
   const [turnosHoy, setTurnosHoy] = useState([])
   const [profesionales, setProfesionales] = useState([])
   const [disponibilidad, setDisponibilidad] = useState([])
@@ -416,7 +418,7 @@ export default function Camillas() {
                                   Quitar
                                 </button>
                               </div>
-                              {item.ultimoAjusteMapa && (
+                              {esQuiro && item.ultimoAjusteMapa && (
                                 <div className="mt-2 pt-2 border-t border-blue-100">
                                   <p className="text-[10px] text-blue-500 uppercase mb-1">Último ajuste</p>
                                   <ColumnaVertebralMini ajustes={item.ultimoAjusteMapa} />

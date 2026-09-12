@@ -4,6 +4,7 @@ import apiClient from '../api/client'
 import ColumnaVertebral from './ColumnaVertebral'
 import Modal from './Modal'
 import Boton from './Boton'
+import { useEsVerticalQuiro } from '../hooks/useVertical'
 
 const ESTADO_CONDICION_LABELS = {
   mejoria_marcada: 'Mejoría marcada',
@@ -21,6 +22,7 @@ const ETAPA_CUIDADO_LABELS = {
 
 export default function FichaCamillaModal({ consultaId, onClose }) {
   const navigate = useNavigate()
+  const esQuiro = useEsVerticalQuiro()
   const [consulta, setConsulta] = useState(null)
   const [ajustesMapa, setAjustesMapa] = useState({})
   const [etapaCuidado, setEtapaCuidado] = useState('')
@@ -110,7 +112,9 @@ export default function FichaCamillaModal({ consultaId, onClose }) {
 
       {!loading && !error && consulta && (
         <div className="space-y-4">
-          <ColumnaVertebral ajustes={ajustesMapa} segmentoActivo={null} onClickSegmento={() => {}} />
+          {esQuiro && (
+            <ColumnaVertebral ajustes={ajustesMapa} segmentoActivo={null} onClickSegmento={() => {}} />
+          )}
 
           <div>
             <p className="text-xs text-texto-secundario mb-1">Observaciones</p>

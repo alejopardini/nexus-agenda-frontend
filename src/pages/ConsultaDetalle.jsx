@@ -5,6 +5,7 @@ import Layout from '../components/Layout'
 import BotonVolver from '../components/BotonVolver'
 import EditorColumnaVertebral from '../components/EditorColumnaVertebral'
 import Boton from '../components/Boton'
+import { useEsVerticalQuiro } from '../hooks/useVertical'
 
 const CARACTERISTICAS_DOLOR_OPCIONES = [
   'Doloroso', 'Ardor', 'Sordo', 'Agudo', 'Punzante', 'Pulsátil', 'Debilidad', 'Entumecimiento', 'Tensión',
@@ -96,6 +97,11 @@ export default function ConsultaDetalle() {
   const [ajustes, setAjustes] = useState({})
   const [turnoInfo, setTurnoInfo] = useState(null)
 
+  const esQuiro = useEsVerticalQuiro()
+  // esQuiropractico ya filtraba por la especialidad del profesional (mas
+  // granular, existente desde antes). Se agrega esQuiro como condicion
+  // adicional (organizacion.vertical) sin tocar esa logica - hoy ambas son
+  // siempre verdaderas, asi que el resultado combinado es identico.
   const esQuiropractico = consulta?.profesional_especialidad === 'kinesiologo_quiropra'
 
   useEffect(() => {
@@ -414,7 +420,7 @@ export default function ConsultaDetalle() {
             </div>
           </div>
 
-          {esQuiropractico && (
+          {esQuiropractico && esQuiro && (
             <div className="pt-4 border-t border-slate-100">
               <h2 className="text-lg font-bold text-slate-800 mb-1">Objetivo</h2>
               <h3 className="text-sm font-semibold text-slate-700 mb-1">Ajustes vertebrales</h3>

@@ -5,6 +5,7 @@ import EditorColumnaVertebral from './EditorColumnaVertebral'
 import FichaPacienteModal from './FichaPacienteModal'
 import GestionArchivosPaciente from './GestionArchivosPaciente'
 import Boton from './Boton'
+import { useEsVerticalQuiro } from '../hooks/useVertical'
 
 const ETAPA_CUIDADO_OPCIONES = [
   ['aguda', 'Aguda'],
@@ -20,6 +21,7 @@ const PANEL_TABS = [
 
 export default function PanelCamillaCondensado({ pacienteId, consultaId, onClose }) {
   const navigate = useNavigate()
+  const esQuiro = useEsVerticalQuiro()
   const [consulta, setConsulta] = useState(null)
   const [ajustes, setAjustes] = useState({})
   const [planActivo, setPlanActivo] = useState(null)
@@ -180,15 +182,17 @@ export default function PanelCamillaCondensado({ pacienteId, consultaId, onClose
 
           {!loading && consulta && (
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] lg:grid-rows-[minmax(0,1fr)] gap-4 lg:flex-1 lg:min-h-0">
-              <div className="lg:min-h-0 lg:overflow-y-auto lg:pr-1">
-                <p className="text-sm font-semibold text-slate-700 mb-1">Ajustes vertebrales</p>
-                <p className="text-xs text-slate-500 mb-3">Click en una vértebra para marcarla. Se guarda solo.</p>
-                <EditorColumnaVertebral
-                  ajustes={ajustes}
-                  onChangeAjustes={setAjustes}
-                  onGuardarSegmento={guardarAjustesConsulta}
-                />
-              </div>
+              {esQuiro && (
+                <div className="lg:min-h-0 lg:overflow-y-auto lg:pr-1">
+                  <p className="text-sm font-semibold text-slate-700 mb-1">Ajustes vertebrales</p>
+                  <p className="text-xs text-slate-500 mb-3">Click en una vértebra para marcarla. Se guarda solo.</p>
+                  <EditorColumnaVertebral
+                    ajustes={ajustes}
+                    onChangeAjustes={setAjustes}
+                    onGuardarSegmento={guardarAjustesConsulta}
+                  />
+                </div>
+              )}
 
               <div className="flex flex-col gap-4 lg:min-h-0 lg:overflow-y-auto lg:pr-1">
                 {planActivo && (

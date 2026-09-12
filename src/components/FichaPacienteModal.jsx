@@ -5,6 +5,7 @@ import ColumnaVertebral from './ColumnaVertebral'
 import SelectorPlantillaPlan from './SelectorPlantillaPlan'
 import GestionArchivosPaciente from './GestionArchivosPaciente'
 import Modal from './Modal'
+import { useEsVerticalQuiro } from '../hooks/useVertical'
 
 const TABS = [
   { key: 'datos', label: 'Datos' },
@@ -38,6 +39,7 @@ function resumenUltimaConsulta(consulta, etapaCuidado, frecuenciaSeguimiento) {
 }
 
 export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar = false }) {
+  const esQuiro = useEsVerticalQuiro()
   const [paciente, setPaciente] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -615,7 +617,9 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
                           </li>
                         ))}
                       </ul>
-                      <ColumnaVertebral ajustes={historialAjustes} segmentoActivo={null} onClickSegmento={() => {}} />
+                      {esQuiro && (
+                        <ColumnaVertebral ajustes={historialAjustes} segmentoActivo={null} onClickSegmento={() => {}} />
+                      )}
                     </div>
                   )}
                 </div>
