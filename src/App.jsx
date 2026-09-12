@@ -35,6 +35,7 @@ import CamposPersonalizados from './pages/CamposPersonalizados'
 import Estadisticas from './pages/Estadisticas'
 import ValoresTurnos from './pages/ValoresTurnos'
 import Planes from './pages/Planes'
+import GestionSuscripcion from './pages/GestionSuscripcion'
 
 function App() {
   return (
@@ -65,6 +66,7 @@ function App() {
           <Route path="/profesionales" element={<ProtectedRoute><Profesionales /></ProtectedRoute>} />
           <Route path="/profesionales/nuevo" element={<ProtectedRoute><NuevoProfesional /></ProtectedRoute>} />
           <Route path="/profesionales/:id/editar" element={<ProtectedRoute><EditarProfesional /></ProtectedRoute>} />
+          <Route path="/organizacion/suscripcion" element={<ProtectedRoute><GestionSuscripcion /></ProtectedRoute>} />
           <Route path="/interconsultas" element={<ProtectedRoute><Interconsultas /></ProtectedRoute>} />
           <Route path="/secretarias" element={<ProtectedRoute><Secretarias /></ProtectedRoute>} />
           <Route path="/secretarias/nueva" element={<ProtectedRoute><NuevaSecretaria /></ProtectedRoute>} />

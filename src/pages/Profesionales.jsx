@@ -5,13 +5,19 @@ import Layout from '../components/Layout'
 import { useAuth } from '../context/AuthContext'
 import Boton from '../components/Boton'
 
+const ESTADO_SUSCRIPCION_LABELS = {
+  trial: 'Prueba gratuita',
+  activa: 'Activa',
+  pago_pendiente: 'Pago pendiente',
+  vencida: 'Vencida',
+  cancelada: 'Cancelada',
+}
+
 export default function Profesionales() {
   const { auth } = useAuth()
   const [profesionales, setProfesionales] = useState([])
   const [infoOrg, setInfoOrg] = useState(null)
-  const [planSeleccionado, setPlanSeleccionado] = useState('')
-  const [actualizandoPlan, setActualizandoPlan] = useState(false)
-  const [errorPlan, setErrorPlan] = useState('')
+  const [cantidadSucursales, setCantidadSucursales] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -19,11 +25,12 @@ export default function Profesionales() {
     Promise.all([
       apiClient.get('/profesionales/'),
       apiClient.get('/organizacion/'),
+      apiClient.get('/sucursales/'),
     ])
-      .then(([profesionalesRes, orgRes]) => {
+      .then(([profesionalesRes, orgRes, sucursalesRes]) => {
         setProfesionales(profesionalesRes.data)
         setInfoOrg(orgRes.data)
-        setPlanSeleccionado(orgRes.data.plan)
+        setCantidadSucursales(sucursalesRes.data.length)
       })
       .catch(() => setError('No se pudieron cargar los profesionales.'))
       .finally(() => setLoading(false))
@@ -43,21 +50,12 @@ export default function Profesionales() {
     }
   }
 
-  const actualizarPlan = async () => {
-    setErrorPlan('')
-    setActualizandoPlan(true)
-    try {
-      const res = await apiClient.patch('/organizacion/', { plan: planSeleccionado })
-      setInfoOrg((prev) => ({ ...prev, ...res.data }))
-    } catch (err) {
-      setErrorPlan(err.response?.data?.detail || 'No se pudo actualizar el plan.')
-    } finally {
-      setActualizandoPlan(false)
-    }
-  }
-
   const enElLimite = infoOrg && infoOrg.cantidad_profesionales >= infoOrg.limite_profesionales
-  const hayCambioPendiente = infoOrg && planSeleccionado !== infoOrg.plan
+
+  const diasRestantesTrial =
+    infoOrg?.suscripcion_estado === 'trial' && infoOrg.fecha_fin_trial
+      ? Math.ceil((new Date(infoOrg.fecha_fin_trial) - new Date()) / (1000 * 60 * 60 * 24))
+      : null
 
   return (
     <Layout>
@@ -81,7 +79,7 @@ export default function Profesionales() {
 
             {infoOrg && (
               <p className="text-xs text-slate-400 mb-4">
-                {infoOrg.cantidad_profesionales} de {infoOrg.limite_profesionales} profesionales — {infoOrg.plan_display}
+                {infoOrg.cantidad_profesionales} de {infoOrg.limite_profesionales} profesionales — {infoOrg.plan_nombre}
               </p>
             )}
 
@@ -128,27 +126,42 @@ export default function Profesionales() {
 
           {auth.rol === 'dueño' && infoOrg && (
             <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-lg font-bold text-slate-800 mb-1">Plan</h2>
-              <p className="text-sm text-slate-500 mb-3">
-                Elegí el plan según cuántos profesionales necesitás tener cargados.
-              </p>
-
-              {errorPlan && <p className="text-red-600 text-sm mb-3">{errorPlan}</p>}
-
-              <div className="flex gap-2 items-center">
-                <select
-                  value={planSeleccionado}
-                  onChange={(e) => setPlanSeleccionado(e.target.value)}
-                  className="border border-slate-300 rounded px-3 py-2 text-sm"
-                >
-                  {infoOrg.planes_disponibles.map((p) => (
-                    <option key={p.value} value={p.value}>{p.label}</option>
-                  ))}
-                </select>
-                <Boton variante="primary" onClick={actualizarPlan} disabled={!hayCambioPendiente || actualizandoPlan}>
-                  {actualizandoPlan ? 'Actualizando...' : 'Actualizar plan'}
+              <div className="flex justify-between items-center mb-3">
+                <h2 className="text-lg font-bold text-slate-800">Plan</h2>
+                <Boton to="/organizacion/suscripcion" variante="secondary">
+                  Actualizar plan
                 </Boton>
               </div>
+
+              <dl className="text-sm text-slate-600 space-y-1.5">
+                <div className="flex justify-between">
+                  <dt>Plan actual</dt>
+                  <dd className="font-medium text-slate-800">{infoOrg.plan_nombre}</dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt>Profesionales</dt>
+                  <dd>{infoOrg.cantidad_profesionales} de {infoOrg.limite_profesionales}</dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt>Sucursales</dt>
+                  <dd>
+                    {cantidadSucursales !== null
+                      ? `${cantidadSucursales} de ${infoOrg.limite_sucursales}`
+                      : `Hasta ${infoOrg.limite_sucursales}`}
+                  </dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt>Estado</dt>
+                  <dd>
+                    {ESTADO_SUSCRIPCION_LABELS[infoOrg.suscripcion_estado] || infoOrg.suscripcion_estado}
+                    {diasRestantesTrial !== null && (
+                      diasRestantesTrial >= 0
+                        ? ` — vence en ${diasRestantesTrial} día${diasRestantesTrial === 1 ? '' : 's'}`
+                        : ' — vencida'
+                    )}
+                  </dd>
+                </div>
+              </dl>
             </div>
           )}
         </div>
