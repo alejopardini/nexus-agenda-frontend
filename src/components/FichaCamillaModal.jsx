@@ -16,8 +16,9 @@ const ESTADO_CONDICION_LABELS = {
 
 const ETAPA_CUIDADO_LABELS = {
   aguda: 'Aguda',
-  moderada: 'Moderada',
+  intermedia: 'Intermedia',
   mantenimiento: 'Mantenimiento',
+  reactivacion: 'Reactivación',
 }
 
 export default function FichaCamillaModal({ consultaId, onClose }) {

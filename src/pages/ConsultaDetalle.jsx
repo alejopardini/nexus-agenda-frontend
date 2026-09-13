@@ -64,8 +64,9 @@ const PRONOSTICO_OPCIONES = [
 
 const ETAPA_CUIDADO_OPCIONES = [
   ['aguda', 'Aguda'],
-  ['moderada', 'Moderada'],
+  ['intermedia', 'Intermedia'],
   ['mantenimiento', 'Mantenimiento'],
+  ['reactivacion', 'Reactivación'],
 ]
 
 export default function ConsultaDetalle() {
@@ -95,7 +96,6 @@ export default function ConsultaDetalle() {
   const [camposPersonalizados, setCamposPersonalizados] = useState([])
   const [valoresPersonalizados, setValoresPersonalizados] = useState({})
   const [ajustes, setAjustes] = useState({})
-  const [turnoInfo, setTurnoInfo] = useState(null)
 
   const esQuiro = useEsVerticalQuiro()
   // esQuiropractico ya filtraba por la especialidad del profesional (mas
@@ -126,9 +126,6 @@ export default function ConsultaDetalle() {
         setPronostico(res.data.pronostico || '')
         setValoresPersonalizados(res.data.valores_personalizados || {})
         setCamposPersonalizados(res.data.campos_personalizados_disponibles || [])
-        if (res.data.turno) {
-          apiClient.get(`/turnos/${res.data.turno}/`).then((r) => setTurnoInfo(r.data)).catch(() => {})
-        }
         apiClient
           .get(`/pacientes/${res.data.paciente}/seguimiento_quiropractico/`)
           .then((r) => {
@@ -253,17 +250,6 @@ export default function ConsultaDetalle() {
       </Layout>
     )
   }
-
-  const MARGEN_MINUTOS_COMPLETAR = 15
-  let habilitadoDesde = null
-  if (turnoInfo) {
-    const momentoTurno = new Date(`${turnoInfo.fecha}T${turnoInfo.hora}`)
-    habilitadoDesde = new Date(momentoTurno.getTime() - MARGEN_MINUTOS_COMPLETAR * 60000)
-  }
-  const debeEsperar = consulta.estado !== 'completada' && habilitadoDesde && new Date() < habilitadoDesde
-  const horaHabilitada = habilitadoDesde
-    ? `${String(habilitadoDesde.getHours()).padStart(2, '0')}:${String(habilitadoDesde.getMinutes()).padStart(2, '0')}`
-    : ''
 
   return (
     <Layout>
@@ -578,12 +564,9 @@ export default function ConsultaDetalle() {
             </div>
           )}
 
-          <Boton type="submit" variante="primary" disabled={guardando || debeEsperar} className="w-full">
+          <Boton type="submit" variante="primary" disabled={guardando} className="w-full">
             {guardando ? 'Guardando...' : consulta.estado === 'completada' ? 'Guardar cambios' : 'Marcar como completada'}
           </Boton>
-          {debeEsperar && (
-            <p className="text-xs text-slate-500 text-center">Podés completarla desde las {horaHabilitada}</p>
-          )}
         </form>
       </div>
     </Layout>

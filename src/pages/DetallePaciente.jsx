@@ -357,8 +357,9 @@ export default function DetallePaciente() {
                 >
                   <option value="">Sin definir</option>
                   <option value="aguda">Aguda</option>
-                  <option value="moderada">Moderada</option>
+                  <option value="intermedia">Intermedia</option>
                   <option value="mantenimiento">Mantenimiento</option>
+                  <option value="reactivacion">Reactivación</option>
                 </select>
               </div>
               <div className="flex-1">

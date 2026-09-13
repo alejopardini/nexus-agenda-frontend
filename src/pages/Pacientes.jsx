@@ -64,19 +64,19 @@ export default function Pacientes() {
             <p className="text-slate-500">Ningún paciente coincide con "{busqueda}".</p>
           ) : (
             <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="text-sm">
               <thead>
                 <tr className="text-left text-slate-500 border-b border-slate-200">
-                  <th className="py-2">Nombre</th>
-                  <th className="py-2">Email</th>
-                  <th className="py-2">Celular</th>
-                  <th className="py-2">Última consulta</th>
+                  <th className="py-2 pr-8">Nombre</th>
+                  <th className="py-2 pr-8">Email</th>
+                  <th className="py-2 pr-8">Celular</th>
+                  <th className="py-2 pr-8">Última consulta</th>
                 </tr>
               </thead>
               <tbody>
                 {pacientesFiltrados.map((p) => (
                   <tr key={p.id} className="border-b border-slate-100 hover:bg-slate-50">
-                    <td className="py-2">
+                    <td className="py-2 pr-8">
                       <button
                         onClick={() => setPacienteAbiertoId(p.id)}
                         className="text-blue-600 hover:underline"
@@ -84,9 +84,9 @@ export default function Pacientes() {
                         {p.nombre} {p.apellido}
                       </button>
                     </td>
-                    <td className="py-2">{p.email || '—'}</td>
-                    <td className="py-2">{p.celular || '—'}</td>
-                    <td className="py-2">{p.ultima_consulta || '—'}</td>
+                    <td className="py-2 pr-8">{p.email || '—'}</td>
+                    <td className="py-2 pr-8">{p.celular || '—'}</td>
+                    <td className="py-2 pr-8">{p.ultima_consulta || '—'}</td>
                   </tr>
                 ))}
               </tbody>

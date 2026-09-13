@@ -46,7 +46,7 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
   const [paciente, setPaciente] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [tab, setTab] = useState('datos')
+  const [tab, setTab] = useState('historial_ajustes')
 
   const [consultas, setConsultas] = useState([])
   const [consultasError, setConsultasError] = useState(false)

@@ -9,8 +9,9 @@ import { useEsVerticalQuiro } from '../hooks/useVertical'
 
 const ETAPA_CUIDADO_OPCIONES = [
   ['aguda', 'Aguda'],
-  ['moderada', 'Moderada'],
+  ['intermedia', 'Intermedia'],
   ['mantenimiento', 'Mantenimiento'],
+  ['reactivacion', 'Reactivación'],
 ]
 
 const PANEL_TABS = [
