@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   Home, Users, CalendarCheck, Stethoscope, BedDouble, BarChart3,
-  MessageCircle, CircleUser, LogOut, Menu, X, ChevronDown,
+  MessageCircle, Menu, X, ChevronDown,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import apiClient from '../api/client'
@@ -203,13 +203,8 @@ export default function Sidebar() {
           <div className="[&>div>button]:w-11 [&>div>button]:h-11 [&>div>button]:flex [&>div>button]:items-center [&>div>button]:justify-center [&>div>button]:rounded-xl [&>div>button]:text-white/80 [&>div>button:hover]:bg-white/15 [&>div>button:hover]:text-white">
             <NotificationBell />
           </div>
-          <SidebarIcon
-            to="/mi-perfil"
-            Icon={CircleUser}
-            label={`${auth.username} (${auth.rol})`}
-            active={location.pathname === '/mi-perfil'}
-          />
-          <SidebarIcon onClick={handleLogout} Icon={LogOut} label="Salir" danger />
+          {/* Usuario + Salir viven ahora en Header.jsx (siempre visibles,
+              sin depender del alto de la ventana) - ver ese archivo. */}
         </div>
       </aside>
 

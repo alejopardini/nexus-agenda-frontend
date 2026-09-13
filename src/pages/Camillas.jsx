@@ -267,7 +267,7 @@ export default function Camillas() {
 
   if (loading) {
     return (
-      <Layout>
+      <Layout titulo="Camillas">
         <p className="text-slate-500">Cargando...</p>
       </Layout>
     )
@@ -275,7 +275,7 @@ export default function Camillas() {
 
   if (error) {
     return (
-      <Layout>
+      <Layout titulo="Camillas">
         <p className="text-red-600">{error}</p>
       </Layout>
     )
@@ -326,15 +326,13 @@ export default function Camillas() {
     : profesionales.map((p) => p.id)
 
   return (
-    <Layout>
-      <h1 className="text-xl font-bold text-slate-800 mb-4">Camillas</h1>
-
+    <Layout titulo="Camillas">
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4">
         <div>
           {tarjetas.length === 0 ? (
             <p className="text-slate-500">No hay profesionales cargados.</p>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-4">
               {tarjetas.map((t) => (
                 <Card
                   key={t.profesionalId}

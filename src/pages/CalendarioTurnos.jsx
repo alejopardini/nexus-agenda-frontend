@@ -139,7 +139,7 @@ export default function CalendarioTurnos() {
 
   if (loading) {
     return (
-      <Layout>
+      <Layout titulo="Calendario de turnos">
         <p className="text-slate-500">Cargando...</p>
       </Layout>
     )
@@ -147,7 +147,7 @@ export default function CalendarioTurnos() {
 
   if (error) {
     return (
-      <Layout>
+      <Layout titulo="Calendario de turnos">
         <p className="text-red-600">{error}</p>
       </Layout>
     )
@@ -307,29 +307,29 @@ export default function CalendarioTurnos() {
   }
 
   return (
-    <Layout>
-      <div className="space-y-4">
-        <div className="bg-white rounded-lg shadow-md p-4 flex flex-wrap justify-between items-center gap-3">
-          <h1 className="text-xl font-bold text-slate-800">Calendario de turnos</h1>
-          <div className="flex items-center gap-3">
-            <div className="flex gap-1 bg-slate-100 rounded p-1">
-              <button
-                onClick={() => setVista('dia')}
-                className={`text-sm px-3 py-1 rounded ${vista === 'dia' ? 'bg-white shadow text-slate-800' : 'text-slate-500'}`}
-              >
-                Día
-              </button>
-              <button
-                onClick={() => setVista('semana')}
-                className={`text-sm px-3 py-1 rounded ${vista === 'semana' ? 'bg-white shadow text-slate-800' : 'text-slate-500'}`}
-              >
-                Semana
-              </button>
-            </div>
-            <Link to="/turnos/lista" className="text-sm text-blue-600 hover:underline">Ver lista</Link>
+    <Layout
+      titulo="Calendario de turnos"
+      controles={
+        <div className="flex items-center gap-3">
+          <div className="flex gap-1 bg-slate-100 rounded p-1">
+            <button
+              onClick={() => setVista('dia')}
+              className={`text-sm px-3 py-1 rounded ${vista === 'dia' ? 'bg-white shadow text-slate-800' : 'text-slate-500'}`}
+            >
+              Día
+            </button>
+            <button
+              onClick={() => setVista('semana')}
+              className={`text-sm px-3 py-1 rounded ${vista === 'semana' ? 'bg-white shadow text-slate-800' : 'text-slate-500'}`}
+            >
+              Semana
+            </button>
           </div>
+          <Link to="/turnos/lista" className="text-sm text-blue-600 hover:underline">Ver lista</Link>
         </div>
-
+      }
+    >
+      <div className="space-y-4">
         <div className="bg-white rounded-lg shadow-md p-4 flex flex-wrap items-center gap-3">
           <button
             onClick={() => cambiarDia(-1)}
@@ -367,16 +367,16 @@ export default function CalendarioTurnos() {
         </div>
 
         <div className="grid grid-cols-3 gap-3">
-          <div className="bg-white rounded-lg shadow-md p-4 text-center">
-            <p className="text-2xl font-bold text-slate-800">{vista === 'semana' ? turnosSemana : turnosHoy}</p>
+          <div className="bg-white rounded-lg shadow-md p-3 text-center">
+            <p className="text-xl font-bold text-slate-800">{vista === 'semana' ? turnosSemana : turnosHoy}</p>
             <p className="text-xs text-slate-500 mt-1">{vista === 'semana' ? 'Turnos esta semana' : 'Turnos hoy'}</p>
           </div>
-          <div className="bg-white rounded-lg shadow-md p-4 text-center">
-            <p className="text-2xl font-bold text-slate-800">{vista === 'semana' ? atendidosSemana : atendidos}</p>
+          <div className="bg-white rounded-lg shadow-md p-3 text-center">
+            <p className="text-xl font-bold text-slate-800">{vista === 'semana' ? atendidosSemana : atendidos}</p>
             <p className="text-xs text-slate-500 mt-1">Atendidos</p>
           </div>
-          <div className="bg-white rounded-lg shadow-md p-4 text-center">
-            <p className="text-2xl font-bold text-slate-800">{vista === 'semana' ? turnosLibresSemana : turnosLibres}</p>
+          <div className="bg-white rounded-lg shadow-md p-3 text-center">
+            <p className="text-xl font-bold text-slate-800">{vista === 'semana' ? turnosLibresSemana : turnosLibres}</p>
             <p className="text-xs text-slate-500 mt-1">Turnos libres</p>
           </div>
         </div>

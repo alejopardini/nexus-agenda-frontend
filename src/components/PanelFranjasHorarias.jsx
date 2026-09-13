@@ -102,14 +102,14 @@ export default function PanelFranjasHorarias({
           {filasPanel.map((fila, idx) => {
             if (fila.tipo === 'libre') {
               return (
-                <div key={`libre-${idx}`} className="text-sm text-slate-300 py-2 border-b border-slate-50">
+                <div key={`libre-${idx}`} className="text-xs text-slate-300 py-1.5 border-b border-slate-50">
                   {minutosAHM(fila.inicio)} - {minutosAHM(fila.fin)} — libre
                 </div>
               )
             }
             if (fila.tipo === 'libre-clickeable') {
               return (
-                <div key={`libreclick-${fila.minuto}`} className="flex items-start gap-2 text-sm py-2 border-b border-slate-50">
+                <div key={`libreclick-${fila.minuto}`} className="flex items-start gap-2 text-xs py-1.5 border-b border-slate-50">
                   <span className="text-slate-400 w-12 shrink-0">{minutosAHM(fila.minuto)}</span>
                   <div className="flex-1 flex flex-wrap gap-1">
                     {fila.libres.map((l) => {
@@ -129,7 +129,7 @@ export default function PanelFranjasHorarias({
               )
             }
             return (
-              <div key={fila.minuto} className="flex items-start gap-2 text-sm py-2 border-b border-slate-50">
+              <div key={fila.minuto} className="flex items-start gap-2 text-xs py-1.5 border-b border-slate-50">
                 <span className="text-slate-400 w-12 shrink-0">{minutosAHM(fila.minuto)}</span>
                 <div className="flex-1 space-y-1">
                   {fila.ocupantes.map((t) => (
