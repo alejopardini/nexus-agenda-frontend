@@ -64,61 +64,61 @@ export default function Estadisticas() {
   const esAnual = modo === 'anio'
 
   return (
-    <Layout>
-      <div className="space-y-4">
-        <div className="bg-white rounded-lg shadow-md p-4 flex flex-wrap justify-between items-center gap-3">
-          <h1 className="text-xl font-bold text-slate-800">Estadísticas</h1>
-          <div className="flex items-center gap-3">
-            <div className="flex gap-1 bg-slate-100 rounded p-1">
-              <button
-                onClick={() => setModo('periodo')}
-                className={`text-sm px-3 py-1 rounded ${
-                  modo === 'periodo' ? 'bg-white shadow text-slate-800' : 'text-slate-500'
-                }`}
-              >
-                Por período
-              </button>
-              <button
-                onClick={() => setModo('anio')}
-                className={`text-sm px-3 py-1 rounded ${
-                  modo === 'anio' ? 'bg-white shadow text-slate-800' : 'text-slate-500'
-                }`}
-              >
-                Por año
-              </button>
-            </div>
-
-            {modo === 'periodo' ? (
-              <div className="flex gap-2">
-                {RANGOS.map((r) => (
-                  <button
-                    key={r.dias}
-                    onClick={() => cambiarRango(r.dias)}
-                    className={`text-sm px-3 py-1.5 rounded border ${
-                      dias === r.dias
-                        ? 'bg-primary text-white border-primary'
-                        : 'border-slate-300 text-slate-600 hover:bg-slate-50'
-                    }`}
-                  >
-                    {r.label}
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <select
-                value={anio ?? ''}
-                onChange={(e) => setAnio(Number(e.target.value))}
-                className="text-sm border border-slate-300 rounded px-2 py-1.5"
-              >
-                {aniosDisponibles.length === 0 && <option value="">Sin años disponibles</option>}
-                {aniosDisponibles.map((a) => (
-                  <option key={a} value={a}>{a}</option>
-                ))}
-              </select>
-            )}
+    <Layout
+      titulo="Estadísticas"
+      controles={
+        <div className="flex items-center gap-3">
+          <div className="flex gap-1 bg-slate-100 rounded p-1">
+            <button
+              onClick={() => setModo('periodo')}
+              className={`text-sm px-3 py-1 rounded ${
+                modo === 'periodo' ? 'bg-white shadow text-slate-800' : 'text-slate-500'
+              }`}
+            >
+              Por período
+            </button>
+            <button
+              onClick={() => setModo('anio')}
+              className={`text-sm px-3 py-1 rounded ${
+                modo === 'anio' ? 'bg-white shadow text-slate-800' : 'text-slate-500'
+              }`}
+            >
+              Por año
+            </button>
           </div>
-        </div>
 
+          {modo === 'periodo' ? (
+            <div className="flex gap-2">
+              {RANGOS.map((r) => (
+                <button
+                  key={r.dias}
+                  onClick={() => cambiarRango(r.dias)}
+                  className={`text-sm px-3 py-1.5 rounded border ${
+                    dias === r.dias
+                      ? 'bg-primary text-white border-primary'
+                      : 'border-slate-300 text-slate-600 hover:bg-slate-50'
+                  }`}
+                >
+                  {r.label}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <select
+              value={anio ?? ''}
+              onChange={(e) => setAnio(Number(e.target.value))}
+              className="text-sm border border-slate-300 rounded px-2 py-1.5"
+            >
+              {aniosDisponibles.length === 0 && <option value="">Sin años disponibles</option>}
+              {aniosDisponibles.map((a) => (
+                <option key={a} value={a}>{a}</option>
+              ))}
+            </select>
+          )}
+        </div>
+      }
+    >
+      <div className="space-y-4">
         {loading && <p className="text-slate-500">Cargando...</p>}
         {error && <p className="text-red-600">{error}</p>}
 

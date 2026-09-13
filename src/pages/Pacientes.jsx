@@ -37,13 +37,12 @@ export default function Pacientes() {
     : pacientes
 
   return (
-    <Layout>
+    <Layout titulo="Pacientes">
       {loading && <p className="text-slate-500">Cargando...</p>}
       {error && <p className="text-red-600">{error}</p>}
       {!loading && !error && (
         <div className="bg-white rounded-lg shadow-md p-6">
           <div className="flex justify-between items-center mb-4 gap-4">
-            <h1 className="text-xl font-bold text-slate-800 whitespace-nowrap">Pacientes</h1>
             <input
               type="text"
               placeholder="Buscar por nombre o apellido..."

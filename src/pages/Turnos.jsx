@@ -61,13 +61,12 @@ export default function Turnos() {
     : turnos
 
   return (
-    <Layout>
+    <Layout titulo="Turnos">
       {loading && <p className="text-slate-500">Cargando...</p>}
       {error && <p className="text-red-600">{error}</p>}
       {!loading && !error && (
         <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex justify-between items-center mb-4 gap-4">
-            <h1 className="text-xl font-bold text-slate-800 whitespace-nowrap">Turnos</h1>
+          <div className="flex items-center gap-4 mb-4">
             <input
               type="text"
               placeholder="Buscar por apellido del paciente..."
