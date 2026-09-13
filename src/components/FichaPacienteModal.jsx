@@ -6,6 +6,7 @@ import SelectorPlantillaPlan from './SelectorPlantillaPlan'
 import GestionArchivosPaciente from './GestionArchivosPaciente'
 import Modal from './Modal'
 import { useEsVerticalQuiro } from '../hooks/useVertical'
+import { useAuth } from '../context/AuthContext'
 
 const TABS = [
   { key: 'datos', label: 'Datos' },
@@ -40,6 +41,7 @@ function resumenUltimaConsulta(consulta, etapaCuidado, frecuenciaSeguimiento) {
 
 export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar = false }) {
   const esQuiro = useEsVerticalQuiro()
+  const { auth } = useAuth()
   const [paciente, setPaciente] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -58,6 +60,13 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
   const [historialAjustes, setHistorialAjustes] = useState(null)
   const [historialError, setHistorialError] = useState(false)
   const historialFetchIniciadoRef = useRef(false)
+
+  const [profesionalesOrg, setProfesionalesOrg] = useState([])
+  const [mostrarFormHistorica, setMostrarFormHistorica] = useState(false)
+  const [formHistorica, setFormHistorica] = useState({ profesional: '', fecha: '', motivo: '', observaciones: '' })
+  const [guardandoHistorica, setGuardandoHistorica] = useState(false)
+  const [errorHistorica, setErrorHistorica] = useState('')
+  const [consultaHistoricaCreada, setConsultaHistoricaCreada] = useState(null)
 
   const [planes, setPlanes] = useState([])
   const [planesError, setPlanesError] = useState(false)
@@ -80,6 +89,17 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
       .catch(() => setPlanesError(true))
   }
 
+  const cargarConsultas = () => {
+    apiClient
+      .get('/consultas/')
+      .then((res) => {
+        setConsultas(res.data.filter((c) => String(c.paciente) === String(pacienteId)))
+        setConsultasError(false)
+      })
+      .catch(() => setConsultasError(true))
+      .finally(() => setConsultasCargadas(true))
+  }
+
   useEffect(() => {
     let activo = true
 
@@ -89,14 +109,14 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
       .catch(() => { if (activo) setError('No se pudo cargar el paciente.') })
       .finally(() => { if (activo) setLoading(false) })
 
-    apiClient
-      .get('/consultas/')
-      .then((res) => {
-        if (!activo) return
-        setConsultas(res.data.filter((c) => String(c.paciente) === String(pacienteId)))
-      })
-      .catch(() => { if (activo) setConsultasError(true) })
-      .finally(() => { if (activo) setConsultasCargadas(true) })
+    cargarConsultas()
+
+    if (auth.rol === 'dueño') {
+      apiClient
+        .get('/profesionales/')
+        .then((res) => { if (activo) setProfesionalesOrg(res.data) })
+        .catch(() => {})
+    }
 
     apiClient
       .get('/turnos/')
@@ -203,6 +223,54 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
     }
   }
 
+  const toggleFormHistorica = () => {
+    setErrorHistorica('')
+    setConsultaHistoricaCreada(null)
+    setMostrarFormHistorica((v) => !v)
+  }
+
+  const handleSubmitHistorica = async (e) => {
+    e.preventDefault()
+    setErrorHistorica('')
+    if (auth.rol === 'dueño' && !formHistorica.profesional) {
+      setErrorHistorica('Seleccioná el profesional que atendió la consulta.')
+      return
+    }
+    if (!formHistorica.fecha) {
+      setErrorHistorica('La fecha es obligatoria.')
+      return
+    }
+    const hoy = new Date().toISOString().slice(0, 10)
+    if (formHistorica.fecha > hoy) {
+      setErrorHistorica('La fecha de una consulta histórica no puede ser futura.')
+      return
+    }
+    setGuardandoHistorica(true)
+    try {
+      const payload = {
+        fecha: formHistorica.fecha,
+        motivo: formHistorica.motivo,
+        observaciones: formHistorica.observaciones,
+      }
+      if (auth.rol === 'dueño') payload.profesional = formHistorica.profesional
+      const res = await apiClient.post(`/pacientes/${pacienteId}/consulta-historica/`, payload)
+      setFormHistorica({ profesional: '', fecha: '', motivo: '', observaciones: '' })
+      setMostrarFormHistorica(false)
+      setConsultaHistoricaCreada(res.data)
+      cargarConsultas()
+    } catch (err) {
+      const data = err.response?.data
+      const mensaje = data?.detail
+        ? data.detail
+        : data
+        ? Object.entries(data).map(([campo, msgs]) => `${campo}: ${[].concat(msgs).join(', ')}`).join(' | ')
+        : 'No se pudo guardar la consulta histórica.'
+      setErrorHistorica(mensaje)
+    } finally {
+      setGuardandoHistorica(false)
+    }
+  }
+
   const iniciarEdicionPlan = (p) => {
     setEditandoPlanId(p.id)
     setEditPlan({ sesiones_totales: p.sesiones_totales, precio: p.precio, notas: p.notas })
@@ -242,6 +310,7 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
   const planCerrado = (p) => !p.activo || p.sesiones_usadas >= p.sesiones_totales
 
   const tieneAcceso = paciente ? 'email' in paciente : false
+  const puedeCargarHistorica = auth.rol === 'dueño' || auth.rol === 'profesional'
   const profesionalACargo = consultas[0]?.profesional_nombre || null
   const ultimaConsultaCompletada = consultas.find((c) => c.estado === 'completada')
   const resumenUltima = ultimaConsultaCompletada
@@ -591,6 +660,88 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
                   )}
                   {consultasCargadas && consultasError && (
                     <p className="text-slate-400 text-sm">Este contenido es clínico y no está disponible para tu rol.</p>
+                  )}
+                  {consultasCargadas && !consultasError && puedeCargarHistorica && (
+                    <div className="mb-4 pb-4 border-b border-slate-100">
+                      <button onClick={toggleFormHistorica} className="text-sm text-blue-600 hover:underline">
+                        {mostrarFormHistorica ? 'Cancelar' : '+ Cargar consulta histórica'}
+                      </button>
+
+                      {mostrarFormHistorica && (
+                        <form onSubmit={handleSubmitHistorica} className="mt-3 space-y-3 bg-slate-50 rounded p-3">
+                          {auth.rol === 'dueño' && (
+                            <div>
+                              <label className="block text-xs text-slate-500 mb-1">Profesional</label>
+                              <select
+                                value={formHistorica.profesional}
+                                onChange={(e) => setFormHistorica({ ...formHistorica, profesional: e.target.value })}
+                                className="w-full text-sm border border-slate-300 rounded px-2 py-1.5"
+                                required
+                              >
+                                <option value="">Seleccione un profesional</option>
+                                {profesionalesOrg.map((p) => (
+                                  <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>
+                                ))}
+                              </select>
+                            </div>
+                          )}
+                          <div>
+                            <label className="block text-xs text-slate-500 mb-1">Fecha</label>
+                            <input
+                              type="date"
+                              value={formHistorica.fecha}
+                              max={new Date().toISOString().slice(0, 10)}
+                              onChange={(e) => setFormHistorica({ ...formHistorica, fecha: e.target.value })}
+                              className="text-sm border border-slate-300 rounded px-2 py-1.5"
+                              required
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs text-slate-500 mb-1">Motivo</label>
+                            <input
+                              type="text"
+                              value={formHistorica.motivo}
+                              onChange={(e) => setFormHistorica({ ...formHistorica, motivo: e.target.value })}
+                              className="w-full text-sm border border-slate-300 rounded px-2 py-1.5"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs text-slate-500 mb-1">Observaciones</label>
+                            <textarea
+                              value={formHistorica.observaciones}
+                              onChange={(e) => setFormHistorica({ ...formHistorica, observaciones: e.target.value })}
+                              className="w-full text-sm border border-slate-300 rounded px-2 py-1.5"
+                              rows={2}
+                            />
+                          </div>
+                          {errorHistorica && <p className="text-red-600 text-xs">{errorHistorica}</p>}
+                          <div className="text-right">
+                            <button
+                              type="submit"
+                              disabled={guardandoHistorica}
+                              className="bg-blue-600 text-white text-sm rounded px-4 py-1.5 hover:bg-blue-700 disabled:opacity-50"
+                            >
+                              {guardandoHistorica ? 'Guardando...' : 'Guardar consulta histórica'}
+                            </button>
+                          </div>
+                        </form>
+                      )}
+
+                      {consultaHistoricaCreada && (
+                        <div className="mt-3 text-sm bg-green-50 border border-green-200 rounded p-3 flex items-center justify-between gap-3">
+                          <span className="text-green-800">
+                            Consulta histórica del {consultaHistoricaCreada.fecha} guardada.
+                          </span>
+                          <Link
+                            to={`/consultas/${consultaHistoricaCreada.id}`}
+                            onClick={onClose}
+                            className="text-xs text-blue-600 hover:underline whitespace-nowrap"
+                          >
+                            Completar ficha clínica →
+                          </Link>
+                        </div>
+                      )}
+                    </div>
                   )}
                   {consultasCargadas && !consultasError && !hayConsultaCompletada && (
                     <p className="text-slate-500 text-sm">Este paciente todavía no tiene consultas completadas.</p>
