@@ -5,6 +5,7 @@ import ColumnaVertebral from './ColumnaVertebral'
 import SelectorPlantillaPlan from './SelectorPlantillaPlan'
 import GestionArchivosPaciente from './GestionArchivosPaciente'
 import Modal from './Modal'
+import Boton from './Boton'
 import { useEsVerticalQuiro } from '../hooks/useVertical'
 import { useAuth } from '../context/AuthContext'
 
@@ -341,13 +342,13 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
       }
       debajoTitulo={
         mostrarTabs && (
-          <div className="flex flex-wrap gap-1 border-b border-slate-100 pb-2">
+          <div className="flex flex-wrap gap-1 border-b border-borde-suave pb-2">
             {TABS.map((t) => (
               <button
                 key={t.key}
                 onClick={() => setTab(t.key)}
                 className={`text-xs px-3 py-1.5 rounded-t ${
-                  tab === t.key ? 'bg-btn-primary text-white' : 'text-slate-600 hover:bg-slate-100'
+                  tab === t.key ? 'bg-btn-primary text-white' : 'text-texto-secundario hover:bg-superficie-hover'
                 }`}
               >
                 {t.label}
@@ -357,7 +358,7 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
         )
       }
     >
-        {loading && <p className="text-slate-500 text-sm">Cargando...</p>}
+        {loading && <p className="text-texto-secundario text-sm">Cargando...</p>}
         {!loading && error && <p className="text-input-error text-sm">{error}</p>}
 
         {!loading && !error && paciente && !tieneAcceso && (
@@ -370,52 +371,52 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
                 <>
                   <dl className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
                     <div>
-                      <dt className="text-slate-500">DNI</dt>
-                      <dd className="text-slate-800">{paciente.dni || '—'}</dd>
+                      <dt className="text-texto-secundario">DNI</dt>
+                      <dd className="text-texto">{paciente.dni || '—'}</dd>
                     </div>
                     <div>
-                      <dt className="text-slate-500">Obra social</dt>
-                      <dd className="text-slate-800">{paciente.obra_social || '—'}</dd>
+                      <dt className="text-texto-secundario">Obra social</dt>
+                      <dd className="text-texto">{paciente.obra_social || '—'}</dd>
                     </div>
                     <div>
-                      <dt className="text-slate-500">Email</dt>
-                      <dd className="text-slate-800">{paciente.email || '—'}</dd>
+                      <dt className="text-texto-secundario">Email</dt>
+                      <dd className="text-texto">{paciente.email || '—'}</dd>
                     </div>
                     <div>
-                      <dt className="text-slate-500">Celular</dt>
-                      <dd className="text-slate-800">{paciente.celular || '—'}</dd>
+                      <dt className="text-texto-secundario">Celular</dt>
+                      <dd className="text-texto">{paciente.celular || '—'}</dd>
                     </div>
                     <div>
-                      <dt className="text-slate-500">Fecha de nacimiento</dt>
-                      <dd className="text-slate-800">{paciente.fecha_nacimiento || '—'}</dd>
+                      <dt className="text-texto-secundario">Fecha de nacimiento</dt>
+                      <dd className="text-texto">{paciente.fecha_nacimiento || '—'}</dd>
                     </div>
                     <div>
-                      <dt className="text-slate-500">Profesional a cargo</dt>
-                      <dd className="text-slate-800">
+                      <dt className="text-texto-secundario">Profesional a cargo</dt>
+                      <dd className="text-texto">
                         {profesionalACargo || (consultasError ? 'No disponible' : '—')}
                       </dd>
                     </div>
                   </dl>
 
                   {ultimaConsultaCompletada && (
-                    <div className="mt-4 pt-4 border-t border-slate-100">
-                      <h3 className="text-sm font-semibold text-slate-700 mb-2">Última consulta</h3>
+                    <div className="mt-4 pt-4 border-t border-borde-suave">
+                      <h3 className="text-sm font-semibold text-heading mb-2">Última consulta</h3>
                       <dl className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm mb-2">
                         <div>
-                          <dt className="text-slate-500">Fecha</dt>
-                          <dd className="text-slate-800">{ultimaConsultaCompletada.fecha}</dd>
+                          <dt className="text-texto-secundario">Fecha</dt>
+                          <dd className="text-texto">{ultimaConsultaCompletada.fecha}</dd>
                         </div>
                         <div>
-                          <dt className="text-slate-500">Motivo</dt>
-                          <dd className="text-slate-800">{ultimaConsultaCompletada.motivo || '—'}</dd>
+                          <dt className="text-texto-secundario">Motivo</dt>
+                          <dd className="text-texto">{ultimaConsultaCompletada.motivo || '—'}</dd>
                         </div>
                       </dl>
-                      {resumenUltima && <p className="text-slate-600 text-sm">{resumenUltima}</p>}
+                      {resumenUltima && <p className="text-texto text-sm">{resumenUltima}</p>}
                       <div className="text-right mt-2">
                         <Link
                           to={`/consultas/${ultimaConsultaCompletada.id}`}
                           onClick={onClose}
-                          className="text-xs text-blue-600 hover:underline"
+                          className="text-xs text-btn-primary hover:underline"
                         >
                           Ver consulta completa →
                         </Link>
@@ -427,13 +428,13 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
 
               {tab === 'turnos' && (
                 turnos.length === 0 ? (
-                  <p className="text-slate-500 text-sm">No hay turnos registrados.</p>
+                  <p className="text-texto-secundario text-sm">No hay turnos registrados.</p>
                 ) : (
-                  <ul className="divide-y divide-slate-100">
+                  <ul className="divide-y divide-borde-suave">
                     {turnos.map((t) => (
                       <li key={t.id} className="py-2 text-sm flex justify-between">
-                        <span className="text-slate-800">{t.fecha} {t.hora}</span>
-                        <span className="text-slate-500">{t.profesional_nombre} — {t.estado}</span>
+                        <span className="text-texto">{t.fecha} {t.hora}</span>
+                        <span className="text-texto-secundario">{t.profesional_nombre} — {t.estado}</span>
                       </li>
                     ))}
                   </ul>
@@ -442,18 +443,18 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
 
               {tab === 'planes' && (
                 planesError ? (
-                  <p className="text-slate-400 text-sm">No se pudieron cargar los planes.</p>
+                  <p className="text-texto-secundario text-sm">No se pudieron cargar los planes.</p>
                 ) : (
                   <div className="space-y-4">
                     <button
                       onClick={() => setMostrarPlanesArchivados(!mostrarPlanesArchivados)}
-                      className="text-sm text-blue-600 hover:underline"
+                      className="text-sm text-btn-primary hover:underline"
                     >
                       {mostrarPlanesArchivados ? 'Ver planes activos' : 'Ver archivados'}
                     </button>
 
                     {!mostrarPlanesArchivados && (
-                    <form onSubmit={handleSubmitPlan} className="flex flex-wrap gap-2 items-end bg-slate-50 rounded p-3">
+                    <form onSubmit={handleSubmitPlan} className="flex flex-wrap gap-2 items-end bg-superficie-hover rounded-lg p-3">
                       <SelectorPlantillaPlan
                         plantillas={plantillasPlan}
                         sesiones={formPlan.sesiones_totales}
@@ -462,66 +463,62 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
                         onChangePrecio={(v) => setFormPlan((prev) => ({ ...prev, precio: v }))}
                       />
                       <div className="flex-1 min-w-[140px]">
-                        <label className="block text-xs text-slate-500 mb-1">Notas (opcional)</label>
+                        <label className="block text-xs text-input-label mb-1">Notas (opcional)</label>
                         <input
                           type="text"
                           value={formPlan.notas}
                           onChange={(e) => setFormPlan({ ...formPlan, notas: e.target.value })}
-                          className="w-full text-sm border border-slate-300 rounded px-2 py-1.5"
+                          className="w-full text-sm border border-input-border rounded-lg px-2 py-1.5 focus:outline-none focus:border-input-focus"
                         />
                       </div>
-                      <button
-                        type="submit"
-                        disabled={guardandoPlan}
-                        className="bg-blue-600 text-white text-sm rounded px-4 py-1.5 hover:bg-blue-700 disabled:opacity-50"
-                      >
+                      <Boton type="submit" tamaño="sm" disabled={guardandoPlan}>
                         {guardandoPlan ? 'Guardando...' : '+ Agregar plan'}
-                      </button>
-                      {errorPlan && <p className="text-red-600 text-xs w-full">{errorPlan}</p>}
+                      </Boton>
+                      {errorPlan && <p className="text-input-error text-xs w-full">{errorPlan}</p>}
                     </form>
                     )}
 
                     {planes.filter((p) => planCerrado(p) === mostrarPlanesArchivados).length === 0 ? (
-                      <p className="text-slate-500 text-sm">
+                      <p className="text-texto-secundario text-sm">
                         {mostrarPlanesArchivados ? 'No hay planes archivados.' : 'No hay planes activos cargados todavía.'}
                       </p>
                     ) : (
-                      <ul className="divide-y divide-slate-100">
+                      <ul className="divide-y divide-borde-suave">
                         {planes.filter((p) => planCerrado(p) === mostrarPlanesArchivados).map((p) => (
                           <li key={p.id} className={`py-2 text-sm ${p.activo ? '' : 'opacity-50'}`}>
                             {editandoPlanId === p.id ? (
                               <div className="space-y-2">
                                 <div className="flex flex-wrap gap-2 items-end">
                                   <div>
-                                    <label className="block text-xs text-slate-500 mb-1">Sesiones</label>
+                                    <label className="block text-xs text-input-label mb-1">Sesiones</label>
                                     <input
                                       type="number"
                                       min="1"
                                       value={editPlan.sesiones_totales}
                                       onChange={(e) => setEditPlan({ ...editPlan, sesiones_totales: e.target.value })}
-                                      className="w-24 text-sm border border-slate-300 rounded px-2 py-1.5"
+                                      className="w-24 text-sm border border-input-border rounded-lg px-2 py-1.5 focus:outline-none focus:border-input-focus"
                                       required
                                     />
                                   </div>
                                   <div>
-                                    <label className="block text-xs text-slate-500 mb-1">Precio</label>
+                                    <label className="block text-xs text-input-label mb-1">Precio</label>
                                     <input
                                       type="number"
                                       min="0"
                                       step="0.01"
                                       value={editPlan.precio}
                                       onChange={(e) => setEditPlan({ ...editPlan, precio: e.target.value })}
-                                      className="w-28 text-sm border border-slate-300 rounded px-2 py-1.5"
+                                      className="w-28 text-sm border border-input-border rounded-lg px-2 py-1.5 focus:outline-none focus:border-input-focus"
                                       required
                                     />
                                   </div>
                                   <div className="flex-1 min-w-[140px]">
-                                    <label className="block text-xs text-slate-500 mb-1">Notas</label>
+                                    <label className="block text-xs text-input-label mb-1">Notas</label>
                                     <input
                                       type="text"
                                       value={editPlan.notas}
                                       onChange={(e) => setEditPlan({ ...editPlan, notas: e.target.value })}
-                                      className="w-full text-sm border border-slate-300 rounded px-2 py-1.5"
+                                      className="w-full text-sm border border-input-border rounded-lg px-2 py-1.5 focus:outline-none focus:border-input-focus"
                                     />
                                   </div>
                                 </div>
@@ -529,11 +526,11 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
                                   <button
                                     onClick={() => guardarEdicionPlan(p.id)}
                                     disabled={guardandoEditPlan}
-                                    className="text-green-600 text-xs hover:underline disabled:opacity-50"
+                                    className="text-btn-primary text-xs hover:underline disabled:opacity-50"
                                   >
                                     Guardar
                                   </button>
-                                  <button onClick={cancelarEdicionPlan} className="text-slate-500 text-xs hover:underline">
+                                  <button onClick={cancelarEdicionPlan} className="text-texto-secundario text-xs hover:underline">
                                     Cancelar
                                   </button>
                                 </div>
@@ -541,29 +538,29 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
                             ) : (
                               <>
                                 <div className="flex justify-between">
-                                  <span className="font-medium text-slate-800">
+                                  <span className="font-medium text-texto">
                                     {p.sesiones_usadas} / {p.sesiones_totales} sesiones usadas
                                     {!p.activo && (
-                                      <span className="ml-2 text-xs bg-slate-200 text-slate-600 rounded px-1.5 py-0.5">
+                                      <span className="ml-2 text-xs bg-superficie-hover text-texto-secundario rounded px-1.5 py-0.5">
                                         Dado de baja
                                       </span>
                                     )}
                                   </span>
-                                  <span className="text-slate-500">{p.fecha_compra}</span>
+                                  <span className="text-texto-secundario">{p.fecha_compra}</span>
                                 </div>
-                                <div className="flex justify-between text-slate-600 mt-0.5">
+                                <div className="flex justify-between text-texto mt-0.5">
                                   <span>{p.sesiones_restantes} restantes{p.notas ? ` — ${p.notas}` : ''}</span>
                                   <span>{p.precio ? `$${p.precio}` : '—'}</span>
                                 </div>
                                 {!mostrarPlanesArchivados && (
                                   <div className="mt-1 space-x-3">
                                     {!planCerrado(p) && (
-                                      <button onClick={() => iniciarEdicionPlan(p)} className="text-blue-600 text-xs hover:underline">
+                                      <button onClick={() => iniciarEdicionPlan(p)} className="text-btn-primary text-xs hover:underline">
                                         Editar
                                       </button>
                                     )}
                                     {p.activo && (
-                                      <button onClick={() => darDeBajaPlan(p.id)} className="text-red-600 text-xs hover:underline">
+                                      <button onClick={() => darDeBajaPlan(p.id)} className="text-btn-destructive text-xs hover:underline">
                                         Dar de baja
                                       </button>
                                     )}
@@ -581,18 +578,18 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
 
               {tab === 'pagos' && (
                 pagosRealizados.length === 0 ? (
-                  <p className="text-slate-500 text-sm">Sin pagos registrados todavía.</p>
+                  <p className="text-texto-secundario text-sm">Sin pagos registrados todavía.</p>
                 ) : (
                   <div>
-                    <p className="text-sm font-medium text-slate-800 mb-3">
+                    <p className="text-sm font-medium text-texto mb-3">
                       Total pagado: <span className="text-green-700">${totalPagado.toFixed(2)}</span>
                     </p>
-                    <ul className="divide-y divide-slate-100">
+                    <ul className="divide-y divide-borde-suave">
                       {pagosRealizados.map((t) => (
                         <li key={t.id} className="py-2 text-sm flex justify-between">
-                          <span className="text-slate-800">{t.fecha}</span>
-                          <span className="text-slate-600">{t.plan ? 'Con plan' : 'Sin plan'}</span>
-                          <span className="font-medium text-slate-800">${t.monto_cobrado}</span>
+                          <span className="text-texto">{t.fecha}</span>
+                          <span className="text-texto-secundario">{t.plan ? 'Con plan' : 'Sin plan'}</span>
+                          <span className="font-medium text-texto">${t.monto_cobrado}</span>
                         </li>
                       ))}
                     </ul>
@@ -603,47 +600,47 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
               {tab === 'ultimo_ajuste' && (
                 <div>
                   {!consultasCargadas && (
-                    <p className="text-slate-500 text-sm">Cargando...</p>
+                    <p className="text-texto-secundario text-sm">Cargando...</p>
                   )}
                   {consultasCargadas && consultasError && (
-                    <p className="text-slate-400 text-sm">Este contenido es clínico y no está disponible para tu rol.</p>
+                    <p className="text-texto-secundario text-sm">Este contenido es clínico y no está disponible para tu rol.</p>
                   )}
                   {consultasCargadas && !consultasError && !hayConsultaCompletada && (
-                    <p className="text-slate-500 text-sm">Este paciente todavía no tiene consultas completadas.</p>
+                    <p className="text-texto-secundario text-sm">Este paciente todavía no tiene consultas completadas.</p>
                   )}
                   {consultasCargadas && !consultasError && hayConsultaCompletada && ultimoAjusteError && (
-                    <p className="text-red-600 text-sm">No se pudo cargar el último ajuste.</p>
+                    <p className="text-input-error text-sm">No se pudo cargar el último ajuste.</p>
                   )}
                   {consultasCargadas && !consultasError && hayConsultaCompletada && !ultimoAjusteError && !ultimoAjuste && (
-                    <p className="text-slate-500 text-sm">Cargando...</p>
+                    <p className="text-texto-secundario text-sm">Cargando...</p>
                   )}
                   {ultimoAjuste && (
                     ultimoAjuste.ajustes.length === 0 ? (
-                      <p className="text-slate-500 text-sm">
+                      <p className="text-texto-secundario text-sm">
                         La consulta del {ultimoAjuste.consulta.fecha} no tiene ajustes vertebrales cargados.
                       </p>
                     ) : (
                       <div>
-                        <p className="text-xs text-slate-500 mb-2">
+                        <p className="text-xs text-texto-secundario mb-2">
                           Consulta del {ultimoAjuste.consulta.fecha} — {ultimoAjuste.consulta.profesional_nombre}
                         </p>
-                        <ul className="divide-y divide-slate-100">
+                        <ul className="divide-y divide-borde-suave">
                           {ultimoAjuste.ajustes.map((a) => (
                             <li key={a.id} className="py-2 text-sm">
                               <div className="flex justify-between">
-                                <span className="font-medium text-slate-800">{a.segmento}</span>
-                                <span className={a.bloqueada ? 'text-red-600' : 'text-slate-500'}>
+                                <span className="font-medium text-texto">{a.segmento}</span>
+                                <span className={a.bloqueada ? 'text-btn-destructive' : 'text-texto-secundario'}>
                                   {a.bloqueada ? 'Bloqueada' : a.ajustado ? 'Ajustado' : 'Sin ajustar'}
                                 </span>
                               </div>
                               {(a.tipo_ajuste?.length > 0 || a.tecnica || a.direccion) && (
-                                <p className="text-slate-600 text-xs mt-0.5">
+                                <p className="text-texto text-xs mt-0.5">
                                   {[a.tipo_ajuste?.join(', '), a.tecnica, a.direccion]
                                     .filter(Boolean)
                                     .join(' — ')}
                                 </p>
                               )}
-                              {a.notas && <p className="text-slate-500 text-xs mt-0.5 italic">{a.notas}</p>}
+                              {a.notas && <p className="text-texto-secundario text-xs mt-0.5 italic">{a.notas}</p>}
                             </li>
                           ))}
                         </ul>
@@ -656,26 +653,26 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
               {tab === 'historial_ajustes' && (
                 <div>
                   {!consultasCargadas && (
-                    <p className="text-slate-500 text-sm">Cargando...</p>
+                    <p className="text-texto-secundario text-sm">Cargando...</p>
                   )}
                   {consultasCargadas && consultasError && (
-                    <p className="text-slate-400 text-sm">Este contenido es clínico y no está disponible para tu rol.</p>
+                    <p className="text-texto-secundario text-sm">Este contenido es clínico y no está disponible para tu rol.</p>
                   )}
                   {consultasCargadas && !consultasError && puedeCargarHistorica && (
-                    <div className="mb-4 pb-4 border-b border-slate-100">
-                      <button onClick={toggleFormHistorica} className="text-sm text-blue-600 hover:underline">
+                    <div className="mb-4 pb-4 border-b border-borde-suave">
+                      <button onClick={toggleFormHistorica} className="text-sm text-btn-primary hover:underline">
                         {mostrarFormHistorica ? 'Cancelar' : '+ Cargar consulta histórica'}
                       </button>
 
                       {mostrarFormHistorica && (
-                        <form onSubmit={handleSubmitHistorica} className="mt-3 space-y-3 bg-slate-50 rounded p-3">
+                        <form onSubmit={handleSubmitHistorica} className="mt-3 space-y-3 bg-superficie-hover rounded-lg p-3">
                           {auth.rol === 'dueño' && (
                             <div>
-                              <label className="block text-xs text-slate-500 mb-1">Profesional</label>
+                              <label className="block text-xs text-input-label mb-1">Profesional</label>
                               <select
                                 value={formHistorica.profesional}
                                 onChange={(e) => setFormHistorica({ ...formHistorica, profesional: e.target.value })}
-                                className="w-full text-sm border border-slate-300 rounded px-2 py-1.5"
+                                className="w-full text-sm border border-input-border rounded-lg px-2 py-1.5 focus:outline-none focus:border-input-focus"
                                 required
                               >
                                 <option value="">Seleccione un profesional</option>
@@ -686,56 +683,52 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
                             </div>
                           )}
                           <div>
-                            <label className="block text-xs text-slate-500 mb-1">Fecha</label>
+                            <label className="block text-xs text-input-label mb-1">Fecha</label>
                             <input
                               type="date"
                               value={formHistorica.fecha}
                               max={new Date().toISOString().slice(0, 10)}
                               onChange={(e) => setFormHistorica({ ...formHistorica, fecha: e.target.value })}
-                              className="text-sm border border-slate-300 rounded px-2 py-1.5"
+                              className="text-sm border border-input-border rounded-lg px-2 py-1.5 focus:outline-none focus:border-input-focus"
                               required
                             />
                           </div>
                           <div>
-                            <label className="block text-xs text-slate-500 mb-1">Motivo</label>
+                            <label className="block text-xs text-input-label mb-1">Motivo</label>
                             <input
                               type="text"
                               value={formHistorica.motivo}
                               onChange={(e) => setFormHistorica({ ...formHistorica, motivo: e.target.value })}
-                              className="w-full text-sm border border-slate-300 rounded px-2 py-1.5"
+                              className="w-full text-sm border border-input-border rounded-lg px-2 py-1.5 focus:outline-none focus:border-input-focus"
                             />
                           </div>
                           <div>
-                            <label className="block text-xs text-slate-500 mb-1">Observaciones</label>
+                            <label className="block text-xs text-input-label mb-1">Observaciones</label>
                             <textarea
                               value={formHistorica.observaciones}
                               onChange={(e) => setFormHistorica({ ...formHistorica, observaciones: e.target.value })}
-                              className="w-full text-sm border border-slate-300 rounded px-2 py-1.5"
+                              className="w-full text-sm border border-input-border rounded-lg px-2 py-1.5 focus:outline-none focus:border-input-focus"
                               rows={2}
                             />
                           </div>
-                          {errorHistorica && <p className="text-red-600 text-xs">{errorHistorica}</p>}
+                          {errorHistorica && <p className="text-input-error text-xs">{errorHistorica}</p>}
                           <div className="text-right">
-                            <button
-                              type="submit"
-                              disabled={guardandoHistorica}
-                              className="bg-blue-600 text-white text-sm rounded px-4 py-1.5 hover:bg-blue-700 disabled:opacity-50"
-                            >
+                            <Boton type="submit" tamaño="sm" disabled={guardandoHistorica}>
                               {guardandoHistorica ? 'Guardando...' : 'Guardar consulta histórica'}
-                            </button>
+                            </Boton>
                           </div>
                         </form>
                       )}
 
                       {consultaHistoricaCreada && (
-                        <div className="mt-3 text-sm bg-green-50 border border-green-200 rounded p-3 flex items-center justify-between gap-3">
+                        <div className="mt-3 text-sm bg-green-50 border border-green-200 rounded-lg p-3 flex items-center justify-between gap-3">
                           <span className="text-green-800">
                             Consulta histórica del {consultaHistoricaCreada.fecha} guardada.
                           </span>
                           <Link
                             to={`/consultas/${consultaHistoricaCreada.id}`}
                             onClick={onClose}
-                            className="text-xs text-blue-600 hover:underline whitespace-nowrap"
+                            className="text-xs text-btn-primary hover:underline whitespace-nowrap"
                           >
                             Completar ficha clínica →
                           </Link>
@@ -744,25 +737,25 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
                     </div>
                   )}
                   {consultasCargadas && !consultasError && !hayConsultaCompletada && (
-                    <p className="text-slate-500 text-sm">Este paciente todavía no tiene consultas completadas.</p>
+                    <p className="text-texto-secundario text-sm">Este paciente todavía no tiene consultas completadas.</p>
                   )}
                   {consultasCargadas && !consultasError && hayConsultaCompletada && historialError && (
-                    <p className="text-red-600 text-sm">No se pudo cargar el historial de ajustes.</p>
+                    <p className="text-input-error text-sm">No se pudo cargar el historial de ajustes.</p>
                   )}
                   {consultasCargadas && !consultasError && hayConsultaCompletada && !historialError && !historialAjustes && (
-                    <p className="text-slate-500 text-sm">Cargando...</p>
+                    <p className="text-texto-secundario text-sm">Cargando...</p>
                   )}
                   {historialAjustes && (
                     <div>
-                      <p className="text-xs text-slate-500 mb-2">
+                      <p className="text-xs text-texto-secundario mb-2">
                         Segmentos ajustados alguna vez, acumulado de todas las consultas completadas.
                         La dirección y el estado de bloqueo reflejan la consulta más reciente.
                       </p>
-                      <ul className="divide-y divide-slate-100 mb-4">
+                      <ul className="divide-y divide-borde-suave mb-4">
                         {consultas.filter((c) => c.estado === 'completada').map((c) => (
                           <li key={c.id} className="py-1.5 flex justify-between items-center text-sm">
-                            <span className="text-slate-700">{c.fecha}</span>
-                            <Link to={`/consultas/${c.id}`} onClick={onClose} className="text-xs text-blue-600 hover:underline">
+                            <span className="text-texto">{c.fecha}</span>
+                            <Link to={`/consultas/${c.id}`} onClick={onClose} className="text-xs text-btn-primary hover:underline">
                               Ver consulta →
                             </Link>
                           </li>
@@ -778,11 +771,11 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
 
               {tab === 'notas' && (
                 <div>
-                  <p className="text-sm text-slate-800 whitespace-pre-wrap">
+                  <p className="text-sm text-texto whitespace-pre-wrap">
                     {paciente.historia_clinica || 'Sin datos cargados.'}
                   </p>
                   {paciente.discapacidad && (
-                    <p className="text-sm text-slate-800 mt-2">
+                    <p className="text-sm text-texto mt-2">
                       <span className="font-medium">Discapacidad:</span> {paciente.discapacidad_detalle || 'Sí'}
                     </p>
                   )}
