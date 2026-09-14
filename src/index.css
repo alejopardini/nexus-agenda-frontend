@@ -54,15 +54,14 @@
 
   /* Sistema de botones (rama prueba-sidebar-visual): tokens de color para
      las 4 variantes (primary/secondary/ghost/destructive) x 4 estados
-     (default/hover/active/disabled). Ver componente Boton.jsx — todavía no
-     aplicado a ninguna pantalla.
-     #3B769F es un azul NUEVO, uso exclusivo de botones. NO reemplaza
-     --color-primary (#26457A), que sigue tal cual en sidebar, minicalendario,
-     gráfico de Estadísticas y headers — conviven a propósito (decisión de
-     la diseñadora). */
-  --color-btn-primary: #3b769f;
-  --color-btn-primary-hover: #326688;
-  --color-btn-primary-active: #2b5874;
+     (default/hover/active/disabled). Ver componente Boton.jsx.
+     #3B769F fue un azul NUEVO de uso exclusivo de botones, pensado para NO
+     reemplazar --color-primary (#26457A). El rediseño de Login (Figma)
+     confirmó unificarlos: btn-primary pasa a valer lo mismo que
+     --color-primary. */
+  --color-btn-primary: #26457a;
+  --color-btn-primary-hover: #203b68;
+  --color-btn-primary-active: #1c335a;
   --color-btn-primary-disabled: #d5dee4;
   --color-btn-primary-disabled-text: #8a969d;
 
@@ -86,7 +85,7 @@
 
   /* Sistema de input de texto (rama prueba-sidebar-visual): tokens de color
      para sus 4 estados (default/focus/error/disabled). Ver componente
-     CampoTexto.jsx — todavía no aplicado a ninguna pantalla.
+     CampoTexto.jsx.
      --color-input-focus y --color-input-error coinciden en valor con
      --color-btn-primary/--color-btn-destructive respectivamente (son el
      mismo azul y rojo de marca), pero quedan como tokens propios porque
@@ -94,7 +93,7 @@
   --color-input-label: #34434d;
   --color-input-placeholder: #7a8790;
   --color-input-border: #d1d9de;
-  --color-input-focus: #3b769f;
+  --color-input-focus: #26457a;
   --color-input-error: #c95c5c;
   --color-input-border-disabled: #dce2e5;
   --color-input-bg-disabled: #f3f5f6;
