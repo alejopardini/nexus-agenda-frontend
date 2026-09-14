@@ -179,8 +179,8 @@ export default function Sidebar() {
     <>
       {/* Sidebar desktop: fijo a la izquierda, solo íconos */}
       <aside className="hidden md:flex fixed inset-y-0 left-0 w-16 flex-col items-center gap-1 bg-primary py-4 z-40">
-        <Link to="/" className="mb-4 rounded-full bg-white/90 p-1.5">
-          <img src={logoQnexus} alt="QuiroNexus" className="h-8 w-8 object-contain" />
+        <Link to="/" className="mb-4 flex rounded-full bg-white/90 p-0">
+          <img src={logoQnexus} alt="QuiroNexus" className="h-11 w-11 object-contain" />
         </Link>
 
         <nav className="flex-1 flex flex-col items-center gap-3">
@@ -211,7 +211,7 @@ export default function Sidebar() {
       {/* Mobile: barra superior angosta + panel desplegable con texto */}
       <div className="md:hidden bg-primary px-4 py-2 flex items-center justify-between">
         <Link to="/">
-          <img src={logoQnexus} alt="QuiroNexus" className="h-10 w-auto rounded bg-white/90 p-1" />
+          <img src={logoQnexus} alt="QuiroNexus" className="h-11 w-auto rounded bg-white/90 p-0" />
         </Link>
         <div className="flex items-center gap-3">
           <div className="bg-white/90 rounded-full [&>div>button]:w-8 [&>div>button]:h-8 [&>div>button]:flex [&>div>button]:items-center [&>div>button]:justify-center">
