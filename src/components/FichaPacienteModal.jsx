@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import apiClient from '../api/client'
 import ColumnaVertebral from './ColumnaVertebral'
 import SelectorPlantillaPlan from './SelectorPlantillaPlan'
@@ -43,6 +43,7 @@ function resumenUltimaConsulta(consulta, etapaCuidado, frecuenciaSeguimiento) {
 export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar = false }) {
   const esQuiro = useEsVerticalQuiro()
   const { auth } = useAuth()
+  const navigate = useNavigate()
   const [paciente, setPaciente] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -67,7 +68,6 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
   const [formHistorica, setFormHistorica] = useState({ profesional: '', fecha: '', motivo: '', observaciones: '' })
   const [guardandoHistorica, setGuardandoHistorica] = useState(false)
   const [errorHistorica, setErrorHistorica] = useState('')
-  const [consultaHistoricaCreada, setConsultaHistoricaCreada] = useState(null)
 
   const [planes, setPlanes] = useState([])
   const [planesError, setPlanesError] = useState(false)
@@ -255,10 +255,8 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
       }
       if (auth.rol === 'dueño') payload.profesional = formHistorica.profesional
       const res = await apiClient.post(`/pacientes/${pacienteId}/consulta-historica/`, payload)
-      setFormHistorica({ profesional: '', fecha: '', motivo: '', observaciones: '' })
-      setMostrarFormHistorica(false)
-      setConsultaHistoricaCreada(res.data)
-      cargarConsultas()
+      onClose()
+      navigate(`/consultas/${res.data.id}`)
     } catch (err) {
       const data = err.response?.data
       const mensaje = data?.detail
@@ -718,21 +716,6 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
                             </Boton>
                           </div>
                         </form>
-                      )}
-
-                      {consultaHistoricaCreada && (
-                        <div className="mt-3 text-sm bg-green-50 border border-green-200 rounded-lg p-3 flex items-center justify-between gap-3">
-                          <span className="text-green-800">
-                            Consulta histórica del {consultaHistoricaCreada.fecha} guardada.
-                          </span>
-                          <Link
-                            to={`/consultas/${consultaHistoricaCreada.id}`}
-                            onClick={onClose}
-                            className="text-xs text-btn-primary hover:underline whitespace-nowrap"
-                          >
-                            Completar ficha clínica →
-                          </Link>
-                        </div>
                       )}
                     </div>
                   )}
