@@ -44,7 +44,7 @@ export default function Soporte() {
   return (
     <Layout>
       <div className="space-y-4 max-w-2xl">
-        <BotonVolver to="/" />
+        <BotonVolver to="/" className="mb-4" />
 
         <div className="bg-white rounded-lg shadow-md p-6">
           <h1 className="text-xl font-bold text-slate-800 mb-1">Soporte técnico</h1>

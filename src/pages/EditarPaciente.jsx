@@ -66,7 +66,7 @@ export default function EditarPaciente() {
   return (
     <Layout>
       <div className="max-w-lg">
-        <BotonVolver to={`/pacientes/${id}`} />
+        <BotonVolver to={`/pacientes/${id}`} className="mb-4" />
         <div className="bg-white rounded-lg shadow-md p-6">
           <h1 className="text-xl font-bold text-slate-800 mb-4">Editar paciente</h1>
 

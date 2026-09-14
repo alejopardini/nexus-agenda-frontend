@@ -115,7 +115,7 @@ export default function NuevoTurno() {
   if (auth.rol === 'profesional' && auth.puede_crear_turnos !== true) {
     return (
       <Layout>
-        <BotonVolver to="/turnos/lista" />
+        <BotonVolver to="/turnos/lista" className="mb-4" />
         <p className="text-red-600">No tenés permiso para agendar turnos. Pedile a la secretaría o al dueño que lo haga.</p>
       </Layout>
     )
@@ -276,7 +276,7 @@ export default function NuevoTurno() {
   return (
     <Layout>
       <div className="max-w-lg">
-        <BotonVolver to="/turnos/lista" />
+        <BotonVolver to="/turnos/lista" className="mb-4" />
         <div className="bg-white rounded-lg shadow-md p-6">
           <h1 className="text-xl font-bold text-slate-800 mb-4">Nuevo turno</h1>
 

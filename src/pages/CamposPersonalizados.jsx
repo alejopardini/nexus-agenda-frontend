@@ -103,7 +103,7 @@ export default function CamposPersonalizados() {
 
   return (
     <Layout>
-      <BotonVolver to="/" />
+      <BotonVolver to="/" className="mb-4" />
       {loading && <p className="text-slate-500">Cargando...</p>}
       {error && <p className="text-red-600">{error}</p>}
       {!loading && !error && (

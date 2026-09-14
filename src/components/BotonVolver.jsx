@@ -1,6 +1,12 @@
 import { useNavigate } from 'react-router-dom'
+import { ArrowLeft } from 'lucide-react'
 
-export default function BotonVolver({ to, texto = 'Volver' }) {
+// Mismo patrón visual que Boton variante="secondary" (Boton.jsx): outline,
+// fondo blanco, borde/texto en btn-primary. Reemplaza el link de texto plano
+// que tenía antes — unificado para usarse en cualquier pantalla con flujo de
+// alta/edición. Sin margen propio: quien lo usa decide el espaciado con
+// className (arriba de una card, dentro de un header en fila, etc).
+export default function BotonVolver({ to, texto = 'Volver', className = '' }) {
   const navigate = useNavigate()
 
   const volver = () => {
@@ -18,9 +24,10 @@ export default function BotonVolver({ to, texto = 'Volver' }) {
     <button
       type="button"
       onClick={volver}
-      className="text-sm text-slate-500 hover:text-blue-600 hover:underline inline-block mb-3"
+      className={`inline-flex items-center gap-2 rounded-lg h-10 px-4 bg-white text-btn-primary border border-btn-primary font-sans font-semibold text-[12px] leading-[15px] transition-colors hover:bg-btn-outline-hover active:bg-btn-outline-active ${className}`.trim()}
     >
-      ← {texto}
+      <ArrowLeft size={16} strokeWidth={2} aria-hidden="true" />
+      {texto}
     </button>
   )
 }

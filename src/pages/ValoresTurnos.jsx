@@ -23,7 +23,7 @@ export default function ValoresTurnos() {
   if (auth.rol !== 'dueño') {
     return (
       <Layout>
-        <BotonVolver to="/turnos" />
+        <BotonVolver to="/turnos" className="mb-4" />
         <p className="text-red-600">No tenés permiso para ver esta pantalla. Pedile al dueño que administre los valores de turnos.</p>
       </Layout>
     )
@@ -31,7 +31,7 @@ export default function ValoresTurnos() {
 
   return (
     <Layout>
-      <BotonVolver to="/turnos" />
+      <BotonVolver to="/turnos" className="mb-4" />
       <h1 className="text-xl font-bold text-slate-800 mb-4">Valores turnos</h1>
       <div className="space-y-6">
         <CatalogoEditable

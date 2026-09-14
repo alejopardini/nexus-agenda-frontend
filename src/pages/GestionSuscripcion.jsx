@@ -4,7 +4,7 @@ import BotonVolver from '../components/BotonVolver'
 export default function GestionSuscripcion() {
   return (
     <Layout>
-      <BotonVolver to="/profesionales" />
+      <BotonVolver to="/profesionales" className="mb-4" />
       <div className="bg-white rounded-lg shadow-md p-6 max-w-md">
         <h1 className="text-xl font-bold text-slate-800 mb-2">Gestión de suscripción</h1>
         <p className="text-slate-600 text-sm">

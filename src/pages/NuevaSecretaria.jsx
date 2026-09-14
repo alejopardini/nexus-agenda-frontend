@@ -34,7 +34,7 @@ export default function NuevaSecretaria() {
   return (
     <Layout>
       <div className="max-w-lg">
-        <BotonVolver to="/secretarias" />
+        <BotonVolver to="/secretarias" className="mb-4" />
         <div className="bg-white rounded-lg shadow-md p-6">
           <h1 className="text-xl font-bold text-slate-800 mb-4">Nueva secretaria</h1>
 

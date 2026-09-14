@@ -222,7 +222,7 @@ export default function DetallePaciente() {
   return (
     <Layout>
       <div className="space-y-4 max-w-2xl">
-        <BotonVolver to="/pacientes" />
+        <BotonVolver to="/pacientes" className="mb-4" />
 
         <div className="bg-white rounded-lg shadow-md p-6">
           <div className="flex justify-between items-start">

@@ -364,20 +364,23 @@ export default function CalendarioTurnos() {
               {fecha.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}
             </span>
           )}
-        </div>
 
-        <div className="grid grid-cols-3 gap-3">
-          <div className="bg-white rounded-lg shadow-md p-3 text-center">
-            <p className="text-xl font-bold text-slate-800">{vista === 'semana' ? turnosSemana : turnosHoy}</p>
-            <p className="text-xs text-slate-500 mt-1">{vista === 'semana' ? 'Turnos esta semana' : 'Turnos hoy'}</p>
-          </div>
-          <div className="bg-white rounded-lg shadow-md p-3 text-center">
-            <p className="text-xl font-bold text-slate-800">{vista === 'semana' ? atendidosSemana : atendidos}</p>
-            <p className="text-xs text-slate-500 mt-1">Atendidos</p>
-          </div>
-          <div className="bg-white rounded-lg shadow-md p-3 text-center">
-            <p className="text-xl font-bold text-slate-800">{vista === 'semana' ? turnosLibresSemana : turnosLibres}</p>
-            <p className="text-xs text-slate-500 mt-1">Turnos libres</p>
+          {/* Contadores: un solo item de flex para el bloque de navegación de
+              arriba, así en pantallas angostas los 3 bajan juntos a una
+              segunda fila en vez de desparramarse uno por uno. */}
+          <div className="flex flex-wrap gap-2 sm:ml-auto">
+            <div className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-center min-w-[84px]">
+              <p className="text-base font-bold text-slate-800 leading-tight">{vista === 'semana' ? turnosSemana : turnosHoy}</p>
+              <p className="text-[10px] text-slate-500 leading-tight">{vista === 'semana' ? 'Turnos esta semana' : 'Turnos hoy'}</p>
+            </div>
+            <div className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-center min-w-[84px]">
+              <p className="text-base font-bold text-slate-800 leading-tight">{vista === 'semana' ? atendidosSemana : atendidos}</p>
+              <p className="text-[10px] text-slate-500 leading-tight">Atendidos</p>
+            </div>
+            <div className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-center min-w-[84px]">
+              <p className="text-base font-bold text-slate-800 leading-tight">{vista === 'semana' ? turnosLibresSemana : turnosLibres}</p>
+              <p className="text-[10px] text-slate-500 leading-tight">Turnos libres</p>
+            </div>
           </div>
         </div>
 

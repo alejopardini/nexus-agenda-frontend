@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import apiClient from '../api/client'
 import Boton from './Boton'
+import CampoTexto from './CampoTexto'
 
 export default function PacienteForm({ onCreado }) {
   const [error, setError] = useState('')
@@ -47,17 +48,19 @@ export default function PacienteForm({ onCreado }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      {error && <p className="text-red-600 text-sm">{error}</p>}
+    <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+      {error && <p className="font-sans text-[14px] text-input-error">{error}</p>}
 
       {sucursales.length > 1 && (
         <div>
-          <label className="block text-sm text-slate-600 mb-1">Sucursal</label>
+          <label className="block font-sans font-medium text-[12px] leading-[15px] text-input-label mb-2">
+            Sucursal
+          </label>
           <select
             name="sucursal"
             value={form.sucursal}
             onChange={handleChange}
-            className="w-full border border-slate-300 rounded px-3 py-2"
+            className="w-full h-10 px-3 rounded-lg border border-input-border bg-white text-left font-sans text-[14px] outline-none focus:border-2 focus:border-input-focus"
             required
           >
             {sucursales.map((s) => (
@@ -67,61 +70,64 @@ export default function PacienteForm({ onCreado }) {
         </div>
       )}
 
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="flex-1">
-          <label className="block text-sm text-slate-600 mb-1">Nombre</label>
-          <input
-            type="text" name="nombre" value={form.nombre} onChange={handleChange}
-            className="w-full border border-slate-300 rounded px-3 py-2" required
-          />
-        </div>
-        <div className="flex-1">
-          <label className="block text-sm text-slate-600 mb-1">Apellido</label>
-          <input
-            type="text" name="apellido" value={form.apellido} onChange={handleChange}
-            className="w-full border border-slate-300 rounded px-3 py-2" required
-          />
-        </div>
-      </div>
-
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="flex-1">
-          <label className="block text-sm text-slate-600 mb-1">DNI</label>
-          <input
-            type="text" name="dni" value={form.dni} onChange={handleChange}
-            className="w-full border border-slate-300 rounded px-3 py-2"
-          />
-        </div>
-        <div className="flex-1">
-          <label className="block text-sm text-slate-600 mb-1">Obra social</label>
-          <input
-            type="text" name="obra_social" value={form.obra_social} onChange={handleChange}
-            className="w-full border border-slate-300 rounded px-3 py-2"
-          />
-        </div>
-      </div>
-
-      <div>
-        <label className="block text-sm text-slate-600 mb-1">Email</label>
-        <input
-          type="email" name="email" value={form.email} onChange={handleChange}
-          className="w-full border border-slate-300 rounded px-3 py-2"
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <CampoTexto
+          label="Nombre"
+          id="nombre"
+          name="nombre"
+          value={form.nombre}
+          onChange={handleChange}
+          required
         />
-      </div>
-
-      <div>
-        <label className="block text-sm text-slate-600 mb-1">Celular</label>
-        <input
-          type="text" name="celular" value={form.celular} onChange={handleChange}
-          className="w-full border border-slate-300 rounded px-3 py-2"
+        <CampoTexto
+          label="Apellido"
+          id="apellido"
+          name="apellido"
+          value={form.apellido}
+          onChange={handleChange}
+          required
         />
-      </div>
 
-      <div>
-        <label className="block text-sm text-slate-600 mb-1">Fecha de nacimiento</label>
-        <input
-          type="date" name="fecha_nacimiento" value={form.fecha_nacimiento} onChange={handleChange}
-          max={hoy} className="w-full border border-slate-300 rounded px-3 py-2"
+        <CampoTexto
+          label="DNI"
+          id="dni"
+          name="dni"
+          value={form.dni}
+          onChange={handleChange}
+        />
+        <CampoTexto
+          label="Obra social"
+          id="obra_social"
+          name="obra_social"
+          value={form.obra_social}
+          onChange={handleChange}
+        />
+
+        <CampoTexto
+          label="Fecha de nacimiento"
+          id="fecha_nacimiento"
+          name="fecha_nacimiento"
+          type="date"
+          max={hoy}
+          value={form.fecha_nacimiento}
+          onChange={handleChange}
+        />
+        <CampoTexto
+          label="Teléfono"
+          id="celular"
+          name="celular"
+          value={form.celular}
+          onChange={handleChange}
+        />
+
+        <CampoTexto
+          label="Email"
+          id="email"
+          name="email"
+          type="email"
+          value={form.email}
+          onChange={handleChange}
+          className="md:col-span-2"
         />
       </div>
 

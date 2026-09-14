@@ -253,7 +253,7 @@ export default function ConsultaDetalle() {
 
   return (
     <Layout>
-      <BotonVolver to={`/pacientes/${consulta.paciente}`} />
+      <BotonVolver to={`/pacientes/${consulta.paciente}`} className="mb-4" />
       <div className="bg-white rounded-lg shadow-md p-6 max-w-5xl">
         <h1 className="text-xl font-bold text-slate-800 mb-1">
           Consulta — {consulta.estado === 'completada' ? 'completada' : 'pendiente'}
