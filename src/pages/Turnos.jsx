@@ -9,6 +9,11 @@ import { buscarConsultaCompletadaPrevia } from '../utils/consultas'
 const COLOR_ESTADO = {
   pendiente: 'bg-yellow-100 text-yellow-800',
   confirmado: 'bg-green-100 text-green-800',
+  ausente: 'bg-orange-100 text-orange-800',
+}
+
+function turnoYaOcurrio(turno) {
+  return new Date(`${turno.fecha}T${turno.hora}`) < new Date()
 }
 
 export default function Turnos() {
@@ -52,6 +57,16 @@ export default function Turnos() {
       cargarTurnos()
     } catch {
       alert('No se pudo cancelar el turno.')
+    }
+  }
+
+  const marcarAusente = async (id) => {
+    if (!confirm('¿Marcar este turno como ausente?')) return
+    try {
+      await apiClient.patch(`/turnos/${id}/`, { estado: 'ausente' })
+      cargarTurnos()
+    } catch {
+      alert('No se pudo marcar el turno como ausente.')
     }
   }
 
@@ -140,6 +155,14 @@ export default function Turnos() {
                           className="text-green-600 text-xs hover:underline"
                         >
                           Confirmar
+                        </button>
+                      )}
+                      {t.estado === 'confirmado' && turnoYaOcurrio(t) && (
+                        <button
+                          onClick={() => marcarAusente(t.id)}
+                          className="text-orange-600 text-xs hover:underline"
+                        >
+                          Marcar ausente
                         </button>
                       )}
                       <button
