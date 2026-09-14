@@ -20,6 +20,19 @@ export default function Profesionales() {
   const [cantidadSucursales, setCantidadSucursales] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [copiado, setCopiado] = useState(false)
+
+  const linkReserva = `${window.location.origin}/reservar/${auth.organizacion_id}`
+
+  const copiarLinkReserva = async () => {
+    try {
+      await navigator.clipboard.writeText(linkReserva)
+      setCopiado(true)
+      setTimeout(() => setCopiado(false), 2000)
+    } catch {
+      alert('No se pudo copiar el link.')
+    }
+  }
 
   const cargar = () => {
     Promise.all([
@@ -58,14 +71,13 @@ export default function Profesionales() {
       : null
 
   return (
-    <Layout>
+    <Layout titulo="Profesionales">
       {loading && <p className="text-slate-500">Cargando...</p>}
       {error && <p className="text-red-600">{error}</p>}
       {!loading && !error && (
         <div className="space-y-4 max-w-2xl">
           <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex justify-between items-center mb-1">
-              <h1 className="text-xl font-bold text-slate-800">Profesionales</h1>
+            <div className="flex justify-end items-center mb-1">
               {auth.rol === 'dueño' && infoOrg && (
                 !enElLimite ? (
                   <Boton to="/profesionales/nuevo" variante="primary">
@@ -123,6 +135,27 @@ export default function Profesionales() {
               </div>
             )}
           </div>
+
+          {auth.rol === 'dueño' && (
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <h2 className="text-lg font-bold text-slate-800 mb-1">Reserva online</h2>
+              <p className="text-sm text-slate-500 mb-3">
+                Compartí este link con tus pacientes para que reserven turnos por su cuenta.
+              </p>
+              <div className="flex flex-wrap items-center gap-2">
+                <input
+                  type="text"
+                  readOnly
+                  value={linkReserva}
+                  onClick={(e) => e.target.select()}
+                  className="flex-1 min-w-[220px] border border-slate-300 rounded px-3 py-1.5 text-sm text-slate-600 bg-slate-50"
+                />
+                <Boton onClick={copiarLinkReserva} variante="secondary">
+                  {copiado ? 'Copiado ✓' : 'Copiar'}
+                </Boton>
+              </div>
+            </div>
+          )}
 
           {auth.rol === 'dueño' && infoOrg && (
             <div className="bg-white rounded-lg shadow-md p-6">
