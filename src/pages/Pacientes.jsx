@@ -63,13 +63,14 @@ export default function Pacientes() {
             <p className="text-slate-500">Ningún paciente coincide con "{busqueda}".</p>
           ) : (
             <div className="overflow-x-auto">
-            <table className="text-sm">
+            <table className="w-full table-fixed text-sm">
               <thead>
                 <tr className="text-left text-slate-500 border-b border-slate-200">
-                  <th className="py-2 pr-8">Nombre</th>
-                  <th className="py-2 pr-8">Email</th>
-                  <th className="py-2 pr-8">Celular</th>
-                  <th className="py-2 pr-8">Última consulta</th>
+                  <th className="py-2 pr-8 w-[25%]">Nombre</th>
+                  <th className="py-2 pr-8 w-[10%]">DNI</th>
+                  <th className="py-2 pr-8 w-[28%]">Email</th>
+                  <th className="py-2 pr-8 w-[15%]">Celular</th>
+                  <th className="py-2 pr-8 w-[22%]">Última consulta</th>
                 </tr>
               </thead>
               <tbody>
@@ -83,6 +84,7 @@ export default function Pacientes() {
                         {p.nombre} {p.apellido}
                       </button>
                     </td>
+                    <td className="py-2 pr-8">{p.dni || '—'}</td>
                     <td className="py-2 pr-8">{p.email || '—'}</td>
                     <td className="py-2 pr-8">{p.celular || '—'}</td>
                     <td className="py-2 pr-8">{p.ultima_consulta || '—'}</td>
