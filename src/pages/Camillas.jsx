@@ -526,6 +526,7 @@ export default function Camillas() {
         <PanelCamillaCondensado
           pacienteId={panelCondensado.pacienteId}
           consultaId={panelCondensado.consultaId}
+          ladoIzquierdo
           onClose={() => {
             setPanelCondensado(null)
             cargarDatos()

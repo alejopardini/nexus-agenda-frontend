@@ -20,7 +20,7 @@ const PANEL_TABS = [
   { key: 'archivos', label: 'Archivos' },
 ]
 
-export default function PanelCamillaCondensado({ pacienteId, consultaId, onClose }) {
+export default function PanelCamillaCondensado({ pacienteId, consultaId, onClose, ladoIzquierdo = false }) {
   const navigate = useNavigate()
   const esQuiro = useEsVerticalQuiro()
   const [consulta, setConsulta] = useState(null)
@@ -163,8 +163,16 @@ export default function PanelCamillaCondensado({ pacienteId, consultaId, onClose
   }
 
   return (
-    <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+    <div
+      className={`fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 ${
+        ladoIzquierdo ? 'min-[1920px]:left-16 min-[1920px]:right-auto' : ''
+      }`}
+    >
+      <div
+        className={`bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] flex flex-col overflow-hidden ${
+          ladoIzquierdo ? 'min-[1920px]:w-[72rem] min-[1920px]:max-w-none' : ''
+        }`}
+      >
         <div className="shrink-0 flex justify-between items-start p-4 border-b border-slate-200">
           <div>
             <h2 className="font-bold text-slate-800 text-lg">{consulta ? consulta.paciente_nombre : 'Consulta'}</h2>
