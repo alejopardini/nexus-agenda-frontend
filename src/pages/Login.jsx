@@ -20,7 +20,16 @@ export default function Login() {
       await login(username, password)
       navigate('/')
     } catch (err) {
-      setError('Usuario o contraseña incorrectos.')
+      // Único caso real de credenciales inválidas: el serializer de login
+      // (AuthTokenSerializer) rechaza con este shape puntual. Cualquier otra
+      // falla (sin response por caída/CORS/DNS, 500, lo que sea) no es un
+      // problema de las credenciales del usuario, así que no hay que
+      // decirle que lo es.
+      if (err.response?.status === 400 && err.response?.data?.non_field_errors) {
+        setError('Usuario o contraseña incorrectos.')
+      } else {
+        setError('Estamos haciendo mejoras en la app. Va a estar disponible a la brevedad — probá de nuevo en unos minutos.')
+      }
     }
   }
 
