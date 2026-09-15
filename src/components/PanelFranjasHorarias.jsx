@@ -94,7 +94,7 @@ export default function PanelFranjasHorarias({
   })
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-3 h-fit">
+    <div className="bg-white rounded-lg shadow-md p-3 h-fit max-w-xs">
       <div className="flex items-center gap-2 mb-3">
         <h2 className="font-bold text-slate-800 text-sm">{titulo}</h2>
         <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-slate-100 text-slate-500 text-[10px] font-semibold">
@@ -139,7 +139,7 @@ export default function PanelFranjasHorarias({
                 <span className="text-slate-400 w-12 shrink-0">{minutosAHM(fila.minuto)}</span>
                 <div className="flex-1 space-y-1">
                   {fila.ocupantes.map((t) => (
-                    <Badge key={t.id} estado={t.estado} className="w-full gap-1.5">
+                    <Badge key={t.id} estado={t.estado} className="gap-1.5">
                       <span className="truncate min-w-0">{abreviarPaciente(t.paciente_nombre)}</span>
                       {mostrarProfesional && (
                         <Tooltip texto={t.profesional_nombre} position="bottom" className="shrink-0">
