@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import DatePicker from 'react-datepicker'
+import DatePicker, { registerLocale } from 'react-datepicker'
+import { es } from 'date-fns/locale/es'
 import 'react-datepicker/dist/react-datepicker.css'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
@@ -11,12 +12,18 @@ import CalendarioSemanal from '../components/CalendarioSemanal'
 import PopoverTurno from '../components/PopoverTurno'
 import { hmAMinutos, minutosAHM, duracionAMinutos, diaSemanaBackend, fechaToStr, inicioDeSemana } from '../utils/fechas'
 
+registerLocale('es', es)
+
 function diaClassName(date) {
   const strDia = fechaToStr(date)
   const strHoy = fechaToStr(new Date())
   if (strDia === strHoy) return 'dia-hoy'
   if (strDia < strHoy) return 'dia-pasado'
   return undefined
+}
+
+function conMayusculaInicial(texto) {
+  return texto.charAt(0).toUpperCase() + texto.slice(1)
 }
 
 // Mismo algoritmo que usa la vista diaria para "turnos libres" (columnas por
@@ -350,18 +357,18 @@ export default function CalendarioTurnos() {
             {vista === 'semana' ? 'Semana siguiente →' : 'Día siguiente →'}
           </button>
           {vista === 'semana' ? (
-            <span className="text-sm text-slate-500 capitalize">
-              Semana del {inicioDeSemana(fecha).toLocaleDateString('es-AR', { day: 'numeric', month: 'long' })}
-              {' '}al{' '}
-              {(() => {
-                const domingo = new Date(inicioDeSemana(fecha))
-                domingo.setDate(domingo.getDate() + 6)
-                return domingo.toLocaleDateString('es-AR', { day: 'numeric', month: 'long' })
-              })()}
+            <span className="text-sm text-slate-500">
+              {conMayusculaInicial(
+                `Semana del ${inicioDeSemana(fecha).toLocaleDateString('es-AR', { day: 'numeric', month: 'long' })} al ${(() => {
+                  const domingo = new Date(inicioDeSemana(fecha))
+                  domingo.setDate(domingo.getDate() + 6)
+                  return domingo.toLocaleDateString('es-AR', { day: 'numeric', month: 'long' })
+                })()}`
+              )}
             </span>
           ) : (
-            <span className="text-sm text-slate-500 capitalize">
-              {fecha.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}
+            <span className="text-sm text-slate-500">
+              {conMayusculaInicial(fecha.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' }))}
             </span>
           )}
 
@@ -455,6 +462,7 @@ export default function CalendarioTurnos() {
             <div className="bg-white rounded-lg shadow-md p-4 h-fit minicalendario">
               <DatePicker
                 inline
+                locale="es"
                 selected={fechaLateral}
                 onChange={(nueva) => setFechaLateral(nueva)}
                 dayClassName={diaClassName}

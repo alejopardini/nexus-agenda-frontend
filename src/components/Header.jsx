@@ -36,7 +36,10 @@ export default function Header({ titulo, controles }) {
   return (
     <header className="hidden md:flex md:ml-16 h-14 items-center justify-between px-6 bg-page border-b border-borde-suave">
       <div className="flex items-center gap-2 min-w-0">
-        <span className="font-sans font-semibold text-[18px] text-texto shrink-0">QuiroNexus</span>
+        <span className="font-sans font-semibold text-[22px] shrink-0">
+          <span className="text-primary">Quiro</span>
+          <span className="text-secondary">Nexus</span>
+        </span>
         {titulo && (
           <>
             <span className="text-texto-secundario shrink-0">/</span>
