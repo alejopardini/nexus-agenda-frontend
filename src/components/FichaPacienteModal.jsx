@@ -226,7 +226,6 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
 
   const toggleFormHistorica = () => {
     setErrorHistorica('')
-    setConsultaHistoricaCreada(null)
     setMostrarFormHistorica((v) => !v)
   }
 
