@@ -94,7 +94,12 @@ export default function PanelFranjasHorarias({
 
   return (
     <div className="bg-white rounded-lg shadow-md p-3 h-fit">
-      <h2 className="font-bold text-slate-800 mb-3 text-sm">{titulo}</h2>
+      <div className="flex items-center gap-2 mb-3">
+        <h2 className="font-bold text-slate-800 text-sm">{titulo}</h2>
+        <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-slate-100 text-slate-500 text-[10px] font-semibold">
+          {turnosPanel.length}
+        </span>
+      </div>
       {franjas.length === 0 ? (
         <p className="text-slate-400 text-xs">Sin disponibilidad configurada para este día.</p>
       ) : (
