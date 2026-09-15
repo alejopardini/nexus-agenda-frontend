@@ -110,6 +110,7 @@ export default function Turnos() {
                   <th className="py-2">Hora</th>
                   <th className="py-2">Paciente</th>
                   <th className="py-2">Profesional</th>
+                  <th className="py-2">Tipo</th>
                   <th className="py-2">Estado</th>
                   <th className="py-2"></th>
                 </tr>
@@ -128,6 +129,7 @@ export default function Turnos() {
                       </button>
                     </td>
                     <td className="py-2">{t.profesional_nombre}</td>
+                    <td className="py-2 text-slate-500">{t.tipo_turno_texto || '—'}</td>
                     <td className="py-2">
                       <span className={`px-2 py-1 rounded text-xs font-medium ${COLOR_ESTADO[t.estado] || ''}`}>
                         {t.estado}
