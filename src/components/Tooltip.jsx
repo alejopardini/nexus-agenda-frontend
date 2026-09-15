@@ -7,6 +7,7 @@
 
 const POSICION = {
   top: 'left-1/2 bottom-full -translate-x-1/2 mb-1.5',
+  bottom: 'left-1/2 top-full -translate-x-1/2 mt-1.5',
   right: 'left-full top-1/2 -translate-y-1/2 ml-2',
 }
 

@@ -43,7 +43,7 @@ function BloqueTurno({ turno, onClick }) {
       title={`${turno.hora.slice(0, 5)} — ${turno.paciente_nombre}`}
       className="w-full text-left hover:brightness-95 transition-[filter]"
     >
-      <Badge estado={estado} className="w-full gap-1 whitespace-nowrap overflow-hidden">
+      <Badge estado={estado} className="w-full gap-1 whitespace-nowrap">
         <span className="font-semibold shrink-0">{turno.hora.slice(0, 5)}</span>
         <span className="shrink-0">-</span>
         <span className="truncate min-w-0">{abreviarPaciente(turno.paciente_nombre)}</span>

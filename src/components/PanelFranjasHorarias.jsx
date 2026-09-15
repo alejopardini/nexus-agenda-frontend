@@ -146,7 +146,7 @@ export default function PanelFranjasHorarias({
                     >
                       <span className="truncate min-w-0">{abreviarPaciente(t.paciente_nombre)}</span>
                       {mostrarProfesional && (
-                        <Tooltip texto={t.profesional_nombre} className="shrink-0">
+                        <Tooltip texto={t.profesional_nombre} position="bottom" className="shrink-0">
                           <span className="w-3.5 h-3.5 rounded-full bg-white/70 text-[8px] flex items-center justify-center font-bold">
                             {inicialesDe(t.profesional_nombre)}
                           </span>
