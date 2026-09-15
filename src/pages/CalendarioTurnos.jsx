@@ -11,8 +11,25 @@ import PanelFranjasHorarias from '../components/PanelFranjasHorarias'
 import CalendarioSemanal from '../components/CalendarioSemanal'
 import PopoverTurno from '../components/PopoverTurno'
 import { hmAMinutos, minutosAHM, duracionAMinutos, diaSemanaBackend, fechaToStr, inicioDeSemana } from '../utils/fechas'
+import { estadoVisual } from '../utils/turnos'
 
 registerLocale('es', es)
+
+// Mismos tokens bg-turno-*/text-turno-*-text que usa Badge.jsx / CalendarioSemanal.jsx
+// (celda ocupada de la tabla diaria no es un Badge/píldora, es el fondo de la celda
+// entera — por eso no se reusa el componente Badge acá, solo sus tokens de color).
+const CLASE_FONDO_ESTADO = {
+  pendiente: 'bg-turno-pendiente',
+  confirmado: 'bg-turno-confirmado',
+  cancelado: 'bg-turno-cancelado',
+  'en-camilla': 'bg-turno-en-camilla',
+}
+const CLASE_TEXTO_ESTADO = {
+  pendiente: 'text-turno-pendiente-text',
+  confirmado: 'text-turno-confirmado-text',
+  cancelado: 'text-turno-cancelado-text',
+  'en-camilla': 'text-turno-en-camilla-text',
+}
 
 function diaClassName(date) {
   const strDia = fechaToStr(date)
@@ -432,21 +449,25 @@ export default function CalendarioTurnos() {
                         const ocupado = Boolean(turno)
                         const esInicioTurno = ocupado && hmAMinutos(turno.hora.slice(0, 5)) === minuto
                         const pasado = esHoy && minuto < ahoraMin + MARGEN_MINUTOS_MINIMO
+                        const estado = ocupado ? estadoVisual(turno) : null
+                        const clickeable = disponible && !ocupado && !pasado
 
                         let claseColor = 'bg-slate-50'
                         if (disponible && !ocupado) {
-                          claseColor = pasado ? 'bg-slate-200' : 'bg-green-100 hover:bg-green-200 cursor-pointer'
+                          claseColor = pasado ? 'bg-slate-200' : 'bg-page'
                         }
-                        if (ocupado) claseColor = 'bg-red-100'
+                        if (ocupado) claseColor = CLASE_FONDO_ESTADO[estado]
 
                         return (
                           <td
                             key={profesional.id}
                             onClick={(e) => handleClickCelda(profesional.id, disponible && !pasado, turno, minuto, e)}
-                            className={`border-b border-slate-50 px-2 py-1 align-top ${claseColor}`}
+                            className={`border-b border-slate-50 px-2 py-1 align-top ${claseColor} ${
+                              clickeable ? 'cursor-pointer hover:brightness-95 transition-[filter]' : ''
+                            }`}
                           >
                             {esInicioTurno && (
-                              <span className="text-[10px] text-red-800 leading-tight block">{turno.paciente_nombre}</span>
+                              <span className={`text-[10px] leading-tight block ${CLASE_TEXTO_ESTADO[estado]}`}>{turno.paciente_nombre}</span>
                             )}
                           </td>
                         )

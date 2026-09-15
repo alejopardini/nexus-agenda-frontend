@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { hmAMinutos, duracionAMinutos, diaSemanaBackend, fechaToStr, inicioDeSemana } from '../utils/fechas'
 import { abreviarPaciente, inicialesDe } from '../utils/nombres'
+import { estadoVisual } from '../utils/turnos'
 import Tooltip from './Tooltip'
 import Badge from './Badge'
 import PopoverElegirProfesional from './PopoverElegirProfesional'
@@ -13,17 +14,6 @@ import PopoverElegirProfesional from './PopoverElegirProfesional'
 const NOMBRES_DIA = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
 const HORA_MIN_DEFAULT = 8
 const HORA_MAX_DEFAULT = 20
-
-// "En camilla" no es un Turno.estado — se deriva igual que en Camillas.jsx
-// (hora_llamado seteada + la consulta que generó todavía sigue pendiente).
-// "ausente" no tiene token de color propio pedido; se agrupa con "cancelado"
-// (el turno ya no está "en curso").
-function estadoVisual(turno) {
-  if (turno.estado === 'cancelado' || turno.estado === 'ausente') return 'cancelado'
-  if (turno.hora_llamado && turno.consulta_pendiente_id) return 'en-camilla'
-  if (turno.estado === 'confirmado') return 'confirmado'
-  return 'pendiente'
-}
 
 function BloqueTurno({ turno, onClick }) {
   const estado = estadoVisual(turno)
