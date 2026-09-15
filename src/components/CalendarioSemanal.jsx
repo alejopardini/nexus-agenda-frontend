@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { hmAMinutos, duracionAMinutos, diaSemanaBackend, fechaToStr, inicioDeSemana } from '../utils/fechas'
+import { hmAMinutos, minutosAHM, duracionAMinutos, diaSemanaBackend, fechaToStr, inicioDeSemana } from '../utils/fechas'
 import { abreviarPaciente, inicialesDe } from '../utils/nombres'
 import { estadoVisual } from '../utils/turnos'
 import Tooltip from './Tooltip'
@@ -103,64 +103,65 @@ export default function CalendarioSemanal({
     ;(turnosPorDiaHora[key] ||= []).push(t)
   })
 
-  // Mismo cálculo de disponibilidad que usa la vista diaria (CalendarioTurnos.jsx):
-  // profesional con un bloque de disponibilidad ese día de la semana, sin
-  // excepción puntual para esa fecha ni cierre de sucursal ese día. Acá se
-  // resuelve por hora (bucket), no por franja de 15 min, porque esta vista
-  // agrupa por hora igual que turnosPorDiaHora de arriba. Devuelve el bloque
-  // (no solo un booleano) porque hace falta su sucursal para dar de alta un
-  // turno nuevo — ver asignarTurno más abajo.
-  const bloqueDisponibleDe = (profesionalId, diaIdx, hora) => {
+  // Reemplaza a bloqueDisponibleDe + profesionalesDisponiblesEn (ver historial
+  // del archivo). Calcula el primer hueco real de 15 min, libre de turnos,
+  // para este profesional dentro de esta hora — recorriendo franja a franja
+  // (00/15/30/45) en vez de tratar la hora como un bloque atómico. Antes, un
+  // solo turno de 15 min bloqueaba la hora entera para ese profesional aunque
+  // le quedaran 45 min libres. null si no tiene ningún hueco (sin
+  // disponibilidad configurada, excepción puntual, cierre de sucursal, o ya
+  // todo ocupado).
+  const primerHuecoLibreDe = (profesionalId, diaIdx, hora) => {
     const fechaStr = diasStr[diaIdx]
     const diaSemana = diaSemanaBackend(dias[diaIdx])
     const tieneExcepcion = excepciones.some(
       (ex) => String(ex.profesional) === String(profesionalId) && ex.fecha === fechaStr
     )
     if (tieneExcepcion) return null
+
     const bloques = disponibilidad
       .filter((d) => String(d.profesional) === String(profesionalId) && d.dia_semana === diaSemana)
       .filter((d) => !cierres.some((c) => String(c.sucursal) === String(d.sucursal) && c.fecha === fechaStr))
-    return (
-      bloques.find((b) => {
+    if (bloques.length === 0) return null
+
+    const turnosDelProfesional = turnosSemana.filter(
+      (t) => String(t.profesional) === String(profesionalId) && t.fecha === fechaStr
+    )
+    const ocupaMinuto = (minuto) => turnosDelProfesional.some((t) => {
+      const inicio = hmAMinutos(t.hora.slice(0, 5))
+      return minuto >= inicio && minuto < inicio + duracionAMinutos(t.duracion)
+    })
+
+    for (let m = hora * 60; m < (hora + 1) * 60; m += 15) {
+      const bloque = bloques.find((b) => {
         const inicio = hmAMinutos(b.hora_inicio.slice(0, 5))
         const fin = hmAMinutos(b.hora_fin.slice(0, 5))
-        return inicio < (hora + 1) * 60 && fin > hora * 60
-      }) || null
-    )
+        return m >= inicio && m < fin
+      })
+      if (bloque && !ocupaMinuto(m)) return { minuto: m, sucursal: bloque.sucursal }
+    }
+    return null
   }
 
-  const profesionalesDisponiblesEn = (diaIdx, hora) =>
-    profesionales.filter((p) => bloqueDisponibleDe(p.id, diaIdx, hora))
+  // Profesionales con al menos un hueco real de 15 min libre en esta hora —
+  // a estos se les puede dar de alta un turno nuevo al clickear la celda
+  // (ver handleClickCelda).
+  const profesionalesLibresEn = (diaIdx, hora) =>
+    profesionales.filter((p) => primerHuecoLibreDe(p.id, diaIdx, hora) !== null)
 
-  // Subconjunto de "disponibles" que todavía no tiene un turno asignado en
-  // este día+hora — a estos se les puede dar de alta un turno nuevo al
-  // clickear la celda (ver handleClickCelda).
-  const profesionalesLibresEn = (diaIdx, hora) => {
-    const disponibles = profesionalesDisponiblesEn(diaIdx, hora)
-    const items = turnosPorDiaHora[`${diaIdx}-${hora}`] || []
-    // Sin filtro de estado acá: turnosPorDiaHora ya excluye los cancelados
-    // (turnosSemana los saca desde el origen, más arriba).
-    const idsOcupados = new Set(
-      items
-        .filter((t) => disponibles.some((p) => String(p.id) === String(t.profesional)))
-        .map((t) => String(t.profesional))
-    )
-    return disponibles.filter((p) => !idsOcupados.has(String(p.id)))
-  }
-
-  // Da de alta el turno con el profesional ya resuelto (uno solo disponible,
-  // o el elegido en el popover) — mismo modal que usa la vista diaria
+  // Da de alta el turno con el profesional ya resuelto (uno solo libre, o el
+  // elegido en el popover) — mismo modal que usa la vista diaria
   // (NuevoTurnoModal, vía el callback onCrearTurno que arma el padre). La
-  // hora queda fija al inicio del bucket (HH:00): esta vista agrupa por
-  // hora, no tiene granularidad de minuto para ofrecer otra cosa.
+  // hora ya no queda fija al inicio del bucket (HH:00): usa el primer hueco
+  // real libre de ese profesional dentro de la hora clickeada.
   const asignarTurno = (diaIdx, hora, profesional) => {
-    const bloque = bloqueDisponibleDe(profesional.id, diaIdx, hora)
-    if (!bloque) return
+    const hueco = primerHuecoLibreDe(profesional.id, diaIdx, hora)
+    if (!hueco) return
     onCrearTurno?.({
       profesional,
-      sucursalId: bloque.sucursal,
+      sucursalId: hueco.sucursal,
       fecha: diasStr[diaIdx],
-      hora: `${String(hora).padStart(2, '0')}:00`,
+      hora: minutosAHM(hueco.minuto),
     })
   }
 
