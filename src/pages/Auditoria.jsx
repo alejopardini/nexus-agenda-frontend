@@ -78,12 +78,12 @@ export default function Auditoria() {
             <BuscadorPaciente pacientes={pacientes} value={pacienteId} onChange={setPacienteId} />
           </div>
           <div>
-            <label className="block text-xs text-slate-500 mb-1">Usuario</label>
+            <label className="block text-xs text-input-label mb-1">Usuario</label>
             <select
               value={usuarioId}
               onChange={(e) => setUsuarioId(e.target.value)}
               disabled={usuariosEnResultados.length === 0}
-              className="border border-slate-300 rounded px-2 py-1.5 text-sm w-48 disabled:bg-slate-100 disabled:text-slate-400"
+              className="border border-input-border rounded px-2 py-1.5 text-sm w-48 focus:outline-none focus:border-input-focus disabled:bg-input-bg-disabled disabled:border-input-border-disabled disabled:text-input-text-disabled disabled:cursor-not-allowed"
             >
               <option value="">Todos</option>
               {usuariosEnResultados.map(([id, nombre]) => (

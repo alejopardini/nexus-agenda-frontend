@@ -95,14 +95,14 @@ export default function CatalogoEditable({ titulo, endpoint, campos, valoresInic
         <form onSubmit={handleSubmit} className="flex flex-wrap gap-2 items-end bg-slate-50 rounded p-3 mb-4">
           {campos.map((c) => (
             <div key={c.name} className={c.width || ''}>
-              <label className="block text-xs text-slate-500 mb-1">{c.label}</label>
+              <label className="block text-xs text-input-label mb-1">{c.label}</label>
               <input
                 type={c.type}
                 min={c.min}
                 step={c.step}
                 value={form[c.name]}
                 onChange={(e) => setForm({ ...form, [c.name]: e.target.value })}
-                className="w-full text-sm border border-slate-300 rounded px-2 py-1.5"
+                className="w-full text-sm border border-input-border rounded px-2 py-1.5 focus:outline-none focus:border-input-focus"
                 required
               />
             </div>
@@ -127,14 +127,14 @@ export default function CatalogoEditable({ titulo, endpoint, campos, valoresInic
                   <div className="flex flex-wrap gap-2 items-end">
                     {campos.map((c) => (
                       <div key={c.name} className={c.width || ''}>
-                        <label className="block text-xs text-slate-500 mb-1">{c.label}</label>
+                        <label className="block text-xs text-input-label mb-1">{c.label}</label>
                         <input
                           type={c.type}
                           min={c.min}
                           step={c.step}
                           value={editForm[c.name] ?? ''}
                           onChange={(e) => setEditForm({ ...editForm, [c.name]: e.target.value })}
-                          className="w-full text-sm border border-slate-300 rounded px-2 py-1.5"
+                          className="w-full text-sm border border-input-border rounded px-2 py-1.5 focus:outline-none focus:border-input-focus"
                           required
                         />
                       </div>

@@ -124,6 +124,17 @@
   --color-slot-bloqueado: #f4c2c2;
 }
 
+/* La app nunca tuvo soporte de modo oscuro pensado (no hay un solo "dark:"
+   en todo el proyecto). Sin esto, los controles nativos sin estilo propio
+   (input/select en pantallas todavía no rediseñadas, ej. ValoresTurnos,
+   Auditoria, HistorialTurnos) heredan el esquema de color del SO/navegador
+   en vez del claro que asume el resto del diseño — Chrome es más agresivo
+   que Firefox adaptando ese "chrome" nativo al modo oscuro del sistema, lo
+   que generaba una discrepancia visual entre navegadores en esos controles. */
+:root {
+  color-scheme: light;
+}
+
 /* Valores que difieren en desktop (mismo breakpoint md=768px que usa el
    resto de la app, p.ej. Sidebar/Navbar). Redefinir la custom property acá
    alcanza: las utilidades de Tailwind (text-titulo, p-esp-5, etc.) ya

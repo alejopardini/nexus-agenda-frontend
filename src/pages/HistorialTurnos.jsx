@@ -70,7 +70,7 @@ export default function HistorialTurnos() {
               placeholder="Buscar por nombre del paciente..."
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
-              className="flex-1 max-w-xs border border-slate-300 rounded px-3 py-1.5 text-sm"
+              className="flex-1 max-w-xs border border-input-border rounded px-3 py-1.5 text-sm placeholder:text-input-placeholder focus:outline-none focus:border-input-focus"
             />
           </div>
 
@@ -117,7 +117,7 @@ export default function HistorialTurnos() {
                         <select
                           value={t.estado}
                           onChange={(e) => cambiarEstado(t, e.target.value)}
-                          className="border border-slate-300 rounded px-2 py-1 text-xs"
+                          className="border border-input-border rounded px-2 py-1 text-xs focus:outline-none focus:border-input-focus"
                         >
                           {ESTADOS_EDITABLES.map((op) => (
                             <option key={op.value} value={op.value}>{op.label}</option>
