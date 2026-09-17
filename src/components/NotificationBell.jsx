@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Bell } from 'lucide-react'
 import apiClient from '../api/client'
 import useClickOutside from '../hooks/useClickOutside'
+import Boton from './Boton'
 import { formatearFecha, formatearHora } from '../utils/fechas'
 
 const INTERVALO_POLLING_MS = 60000
@@ -14,16 +15,21 @@ const RESUMEN_VACIO = {
 
 export default function NotificationBell() {
   const [resumen, setResumen] = useState(RESUMEN_VACIO)
+  const [error, setError] = useState(false)
   const [abierto, setAbierto] = useState(false)
   const ref = useClickOutside(() => setAbierto(false))
 
+  const cargar = () => {
+    apiClient
+      .get('/turnos/resumen_notificaciones/')
+      .then((res) => {
+        setResumen(res.data)
+        setError(false)
+      })
+      .catch(() => setError(true))
+  }
+
   useEffect(() => {
-    const cargar = () => {
-      apiClient
-        .get('/turnos/resumen_notificaciones/')
-        .then((res) => setResumen(res.data))
-        .catch(() => {})
-    }
     cargar()
     const intervalo = setInterval(cargar, INTERVALO_POLLING_MS)
     return () => clearInterval(intervalo)
@@ -55,61 +61,76 @@ export default function NotificationBell() {
             Notificaciones
           </div>
 
-          <div className="border-b border-slate-100">
-            <p className="px-3 pt-2 text-xs font-semibold text-slate-400 uppercase tracking-wide">
-              Turnos sin confirmar
-            </p>
-            {turnosPendientes.items.length === 0 ? (
-              <p className="p-3 text-sm text-slate-500">Nada pendiente.</p>
-            ) : (
-              <ul className="divide-y divide-slate-100">
-                {turnosPendientes.items.map((t) => (
-                  <li key={t.id} className="p-3 text-sm">
-                    <Link to="/turnos/lista" onClick={cerrar} className="block hover:text-blue-600">
-                      <div className="flex justify-between">
-                        <span className="font-medium">{t.paciente_nombre}</span>
-                        <span className="text-slate-500">{formatearHora(t.hora)}</span>
-                      </div>
-                      <span className="text-slate-500 text-xs">{formatearFecha(t.fecha)}</span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-            {turnosPendientes.cantidad > turnosPendientes.items.length && (
-              <Link to="/turnos/lista" onClick={cerrar} className="block p-3 text-sm text-blue-600 hover:underline">
-                Ver los {turnosPendientes.cantidad} turnos sin confirmar →
-              </Link>
-            )}
-          </div>
+          {error ? (
+            <div className="p-4 text-center">
+              <p className="text-sm text-input-error mb-2">No se pudieron cargar las notificaciones.</p>
+              <button onClick={cargar} className="text-sm text-btn-primary hover:underline">
+                Reintentar
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="border-b border-slate-100">
+                <p className="px-3 pt-2 text-xs font-semibold text-slate-400 uppercase tracking-wide">
+                  Turnos sin confirmar
+                </p>
+                {turnosPendientes.items.length === 0 ? (
+                  <p className="p-3 text-sm text-slate-500">Nada pendiente.</p>
+                ) : (
+                  <ul className="divide-y divide-slate-100">
+                    {turnosPendientes.items.map((t) => (
+                      <li key={t.id} className="p-3 text-sm">
+                        <Link to="/turnos/lista" onClick={cerrar} className="block hover:text-blue-600">
+                          <div className="flex justify-between">
+                            <span className="font-medium">{t.paciente_nombre}</span>
+                            <span className="text-slate-500">{formatearHora(t.hora)}</span>
+                          </div>
+                          <span className="text-slate-500 text-xs">{formatearFecha(t.fecha)}</span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {turnosPendientes.cantidad > turnosPendientes.items.length && (
+                  <div className="p-3">
+                    <Boton to="/turnos/lista" onClick={cerrar} variante="ghost" tamaño="sm" className="w-full">
+                      Ver todo
+                    </Boton>
+                  </div>
+                )}
+              </div>
 
-          <div>
-            <p className="px-3 pt-2 text-xs font-semibold text-slate-400 uppercase tracking-wide">
-              Consultas vencidas sin completar
-            </p>
-            {consultasVencidas.items.length === 0 ? (
-              <p className="p-3 text-sm text-slate-500">Nada vencido.</p>
-            ) : (
-              <ul className="divide-y divide-slate-100">
-                {consultasVencidas.items.map((t) => (
-                  <li key={t.id} className="p-3 text-sm">
-                    <Link to={`/consultas/${t.consulta_pendiente_id}`} onClick={cerrar} className="block hover:text-blue-600">
-                      <div className="flex justify-between">
-                        <span className="font-medium">{t.paciente_nombre}</span>
-                        <span className="text-slate-500">{formatearHora(t.hora)}</span>
-                      </div>
-                      <span className="text-slate-500 text-xs">{formatearFecha(t.fecha)}</span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-            {consultasVencidas.cantidad > consultasVencidas.items.length && (
-              <Link to="/pacientes/consultas-pendientes" onClick={cerrar} className="block p-3 text-sm text-blue-600 hover:underline">
-                Ver las {consultasVencidas.cantidad} consultas vencidas →
-              </Link>
-            )}
-          </div>
+              <div>
+                <p className="px-3 pt-2 text-xs font-semibold text-slate-400 uppercase tracking-wide">
+                  Consultas vencidas sin completar
+                </p>
+                {consultasVencidas.items.length === 0 ? (
+                  <p className="p-3 text-sm text-slate-500">Nada vencido.</p>
+                ) : (
+                  <ul className="divide-y divide-slate-100">
+                    {consultasVencidas.items.map((t) => (
+                      <li key={t.id} className="p-3 text-sm">
+                        <Link to={`/consultas/${t.consulta_pendiente_id}`} onClick={cerrar} className="block hover:text-blue-600">
+                          <div className="flex justify-between">
+                            <span className="font-medium">{t.paciente_nombre}</span>
+                            <span className="text-slate-500">{formatearHora(t.hora)}</span>
+                          </div>
+                          <span className="text-slate-500 text-xs">{formatearFecha(t.fecha)}</span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {consultasVencidas.cantidad > consultasVencidas.items.length && (
+                  <div className="p-3">
+                    <Boton to="/pacientes/consultas-pendientes" onClick={cerrar} variante="ghost" tamaño="sm" className="w-full">
+                      Ver todo
+                    </Boton>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>
