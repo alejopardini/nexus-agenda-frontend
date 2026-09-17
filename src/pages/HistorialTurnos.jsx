@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { Search, Eye } from 'lucide-react'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
 import FichaPacienteModal from '../components/FichaPacienteModal'
+import BotonIcono from '../components/BotonIcono'
+import { claseBadge, BASE_PILL } from '../utils/badge'
 import { formatearFecha } from '../utils/fechas'
 
 const ESTADOS_EDITABLES = [
@@ -10,6 +13,15 @@ const ESTADOS_EDITABLES = [
   { value: 'confirmado', label: 'Confirmado' },
   { value: 'ausente', label: 'Ausente' },
 ]
+
+// Pago no es un estado de turno (--color-turno-*): reusa el verde de
+// "confirmado" para "pagado" (mismo significado semántico, éxito) y un gris
+// neutro genérico (texto-secundario/superficie-hover) para "pendiente de
+// pago" — ninguno de los dos es un tono inventado, son tokens ya existentes.
+const CLASE_PAGO = {
+  si: 'bg-turno-confirmado text-turno-confirmado-text',
+  no: 'bg-superficie-hover text-texto-secundario',
+}
 
 function turnoYaOcurrio(turno) {
   return new Date(`${turno.fecha}T${turno.hora}`) < new Date()
@@ -35,9 +47,9 @@ export default function HistorialTurnos() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const togglePagado = async (t) => {
+  const cambiarPago = async (t, valor) => {
     try {
-      const res = await apiClient.patch(`/turnos/${t.id}/`, { pagado: !t.pagado })
+      const res = await apiClient.patch(`/turnos/${t.id}/`, { pagado: valor === 'si' })
       setTurnos((prev) => prev.map((x) => (x.id === t.id ? res.data : x)))
     } catch {
       alert('No se pudo actualizar el estado de pago.')
@@ -59,20 +71,27 @@ export default function HistorialTurnos() {
     : turnos
 
   return (
-    <Layout>
+    <Layout titulo="Historial de turnos">
       {loading && <p className="text-slate-500">Cargando...</p>}
       {error && <p className="text-red-600">{error}</p>}
       {!loading && !error && (
         <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex justify-between items-center mb-4 gap-4">
-            <h1 className="text-xl font-bold text-slate-800 whitespace-nowrap">Historial de turnos</h1>
-            <input
-              type="text"
-              placeholder="Buscar por nombre del paciente..."
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
-              className="flex-1 max-w-xs border border-input-border rounded px-3 py-1.5 text-sm placeholder:text-input-placeholder focus:outline-none focus:border-input-focus"
-            />
+          <div className="flex justify-end items-center mb-4 gap-4">
+            <div className="relative">
+              <Search
+                size={16}
+                strokeWidth={2}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-texto-secundario"
+                aria-hidden="true"
+              />
+              <input
+                type="text"
+                placeholder="Buscar por nombre del paciente..."
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+                className="w-64 h-10 pl-9 pr-3 rounded-lg border border-input-border text-[14px] outline-none focus:border-2 focus:border-input-focus"
+              />
+            </div>
           </div>
 
           {turnos.length === 0 ? (
@@ -103,14 +122,17 @@ export default function HistorialTurnos() {
                       <td className="py-2">
                         <button
                           onClick={() => setPacienteAbiertoId(t.paciente)}
-                          className="text-blue-600 hover:underline"
+                          className="text-texto hover:text-btn-primary transition-colors"
                         >
                           {t.paciente_nombre}
                         </button>
                       </td>
                       <td className="py-2">{formatearFecha(t.fecha)}</td>
                       <td className="py-2">
-                        <Link to={`/profesionales/${t.profesional}/editar`} className="text-blue-600 hover:underline">
+                        <Link
+                          to={`/profesionales/${t.profesional}/editar`}
+                          className="text-texto hover:text-btn-primary transition-colors"
+                        >
                           {t.profesional_nombre}
                         </Link>
                       </td>
@@ -118,7 +140,7 @@ export default function HistorialTurnos() {
                         <select
                           value={t.estado}
                           onChange={(e) => cambiarEstado(t, e.target.value)}
-                          className="border border-input-border rounded px-2 py-1 text-xs focus:outline-none focus:border-input-focus"
+                          className={`${claseBadge(t.estado)} border-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-input-focus`}
                         >
                           {ESTADOS_EDITABLES.map((op) => (
                             <option key={op.value} value={op.value}>{op.label}</option>
@@ -126,33 +148,37 @@ export default function HistorialTurnos() {
                         </select>
                       </td>
                       <td className="py-2">
-                        <label className="inline-flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={t.pagado}
-                            onChange={() => togglePagado(t)}
-                          />
-                          <span>
-                            {t.pagado ? 'Sí' : 'No'}
-                            {t.pagado && t.monto_cobrado && ` ($${t.monto_cobrado})`}
-                            {t.pagado && !t.monto_cobrado && t.monto_sugerido && ` (sugerido: $${t.monto_sugerido})`}
-                          </span>
-                        </label>
+                        <div className="flex items-center gap-2">
+                          <select
+                            value={t.pagado ? 'si' : 'no'}
+                            onChange={(e) => cambiarPago(t, e.target.value)}
+                            className={`${BASE_PILL} ${CLASE_PAGO[t.pagado ? 'si' : 'no']} border-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-input-focus`}
+                          >
+                            <option value="si">Pagado</option>
+                            <option value="no">Pendiente de pago</option>
+                          </select>
+                          {t.pagado && t.monto_cobrado && (
+                            <span className="text-xs text-texto-secundario">${t.monto_cobrado}</span>
+                          )}
+                          {t.pagado && !t.monto_cobrado && t.monto_sugerido && (
+                            <span className="text-xs text-texto-secundario">sugerido: ${t.monto_sugerido}</span>
+                          )}
+                        </div>
                       </td>
                       <td className="py-2">
-                        {t.consulta_id ? (
-                          <Link to={`/consultas/${t.consulta_id}`} className="text-blue-600 hover:underline">
-                            Ver consulta
-                          </Link>
-                        ) : (
-                          '—'
-                        )}
-                        {sinCompletar && (
-                          <span
-                            className="inline-block w-2 h-2 rounded-full bg-red-500 ml-2 align-middle"
-                            title="Turno vencido sin completar la consulta"
-                          />
-                        )}
+                        <div className="flex items-center gap-2">
+                          {t.consulta_id ? (
+                            <BotonIcono icono={Eye} texto="Ver consulta" to={`/consultas/${t.consulta_id}`} />
+                          ) : (
+                            <span className="text-texto-secundario">—</span>
+                          )}
+                          {sinCompletar && (
+                            <span
+                              className="inline-block w-2 h-2 rounded-full bg-red-500 align-middle"
+                              title="Turno vencido sin completar la consulta"
+                            />
+                          )}
+                        </div>
                       </td>
                     </tr>
                   )
