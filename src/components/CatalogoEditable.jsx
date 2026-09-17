@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
+import { Pencil, Trash2 } from 'lucide-react'
 import apiClient from '../api/client'
 import Boton from './Boton'
+import BotonIcono from './BotonIcono'
 
 export default function CatalogoEditable({ titulo, endpoint, campos, valoresIniciales, renderResumen }) {
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [mostrarInactivos, setMostrarInactivos] = useState(false)
   const [form, setForm] = useState(valoresIniciales)
   const [guardando, setGuardando] = useState(false)
   const [errorForm, setErrorForm] = useState('')
@@ -65,63 +66,54 @@ export default function CatalogoEditable({ titulo, endpoint, campos, valoresInic
     }
   }
 
-  const toggleActivo = async (item) => {
+  const desactivar = async (item) => {
     try {
-      await apiClient.patch(`${endpoint}${item.id}/`, { activo: !item.activo })
+      await apiClient.patch(`${endpoint}${item.id}/`, { activo: false })
       cargar()
     } catch {
-      alert('No se pudo actualizar el estado.')
+      alert('No se pudo desactivar.')
     }
   }
 
   if (loading) return <p className="text-slate-500 text-sm">Cargando...</p>
   if (error) return <p className="text-red-600 text-sm">{error}</p>
 
-  const itemsFiltrados = items.filter((item) => (mostrarInactivos ? !item.activo : item.activo))
+  // El backend sigue devolviendo activos e inactivos mezclados (el borrado
+  // es soft, no DELETE — ver desactivar) pero esta pantalla ya no tiene UI
+  // para ver ni reactivar inactivos, así que se filtran acá.
+  const itemsActivos = items.filter((item) => item.activo)
 
   return (
     <div className="bg-white rounded-lg shadow-md p-4">
-      <div className="flex justify-between items-center mb-3">
-        <h2 className="font-bold text-slate-800">{titulo}</h2>
-        <button
-          onClick={() => setMostrarInactivos(!mostrarInactivos)}
-          className="text-sm text-blue-600 hover:underline"
-        >
-          {mostrarInactivos ? 'Ver activos' : 'Ver inactivos'}
-        </button>
-      </div>
+      <h2 className="font-bold text-slate-800 mb-3">{titulo}</h2>
 
-      {!mostrarInactivos && (
-        <form onSubmit={handleSubmit} className="flex flex-wrap gap-2 items-end bg-slate-50 rounded p-3 mb-4">
-          {campos.map((c) => (
-            <div key={c.name} className={c.width || ''}>
-              <label className="block text-xs text-input-label mb-1">{c.label}</label>
-              <input
-                type={c.type}
-                min={c.min}
-                step={c.step}
-                value={form[c.name]}
-                onChange={(e) => setForm({ ...form, [c.name]: e.target.value })}
-                className="w-full text-sm border border-input-border rounded px-2 py-1.5 focus:outline-none focus:border-input-focus"
-                required
-              />
-            </div>
-          ))}
-          <Boton type="submit" tamaño="sm" disabled={guardando}>
-            {guardando ? 'Guardando...' : '+ Agregar'}
-          </Boton>
-          {errorForm && <p className="text-red-600 text-xs w-full">{errorForm}</p>}
-        </form>
-      )}
+      <form onSubmit={handleSubmit} className="flex flex-wrap gap-2 items-end bg-white border border-borde-suave rounded p-3 mb-4">
+        {campos.map((c) => (
+          <div key={c.name} className={c.width || ''}>
+            <label className="block text-xs text-input-label mb-1">{c.label}</label>
+            <input
+              type={c.type}
+              min={c.min}
+              step={c.step}
+              value={form[c.name]}
+              onChange={(e) => setForm({ ...form, [c.name]: e.target.value })}
+              className="w-full text-sm border border-input-border rounded px-2 py-1.5 focus:outline-none focus:border-input-focus"
+              required
+            />
+          </div>
+        ))}
+        <Boton type="submit" tamaño="sm" disabled={guardando}>
+          {guardando ? 'Guardando...' : '+ Agregar'}
+        </Boton>
+        {errorForm && <p className="text-red-600 text-xs w-full">{errorForm}</p>}
+      </form>
 
-      {itemsFiltrados.length === 0 ? (
-        <p className="text-slate-500 text-sm">
-          {mostrarInactivos ? 'No hay inactivos.' : 'No hay nada cargado todavía.'}
-        </p>
+      {itemsActivos.length === 0 ? (
+        <p className="text-slate-500 text-sm">No hay nada cargado todavía.</p>
       ) : (
         <ul className="divide-y divide-slate-100">
-          {itemsFiltrados.map((item) => (
-            <li key={item.id} className={`py-2 text-sm ${item.activo ? '' : 'opacity-50'}`}>
+          {itemsActivos.map((item) => (
+            <li key={item.id} className="py-2 text-sm">
               {editandoId === item.id ? (
                 <div className="space-y-2">
                   <div className="flex flex-wrap gap-2 items-end">
@@ -155,26 +147,10 @@ export default function CatalogoEditable({ titulo, endpoint, campos, valoresInic
                 </div>
               ) : (
                 <div className="flex justify-between items-center">
-                  <div>
-                    <span className="font-medium text-slate-800">{renderResumen(item)}</span>
-                    {!item.activo && (
-                      <span className="ml-2 text-xs bg-slate-200 text-slate-600 rounded px-1.5 py-0.5">
-                        Inactivo
-                      </span>
-                    )}
-                  </div>
-                  <div className="space-x-3 shrink-0">
-                    {item.activo && (
-                      <button onClick={() => iniciarEdicion(item)} className="text-blue-600 text-xs hover:underline">
-                        Editar
-                      </button>
-                    )}
-                    <button
-                      onClick={() => toggleActivo(item)}
-                      className={item.activo ? 'text-red-600 text-xs hover:underline' : 'text-green-600 text-xs hover:underline'}
-                    >
-                      {item.activo ? 'Desactivar' : 'Activar'}
-                    </button>
+                  <span className="font-medium text-slate-800">{renderResumen(item)}</span>
+                  <div className="flex gap-3 items-center shrink-0">
+                    <BotonIcono icono={Pencil} texto="Editar" color="primary" onClick={() => iniciarEdicion(item)} />
+                    <BotonIcono icono={Trash2} texto="Desactivar" color="destructive" onClick={() => desactivar(item)} />
                   </div>
                 </div>
               )}
