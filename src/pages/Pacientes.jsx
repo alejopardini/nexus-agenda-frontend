@@ -7,13 +7,14 @@ import FichaPacienteModal from '../components/FichaPacienteModal'
 import { useAuth } from '../context/AuthContext'
 import Boton from '../components/Boton'
 import Badge from '../components/Badge'
+import { formatearFecha, formatearHora } from '../utils/fechas'
 
 const TAMANO_PAGINA = 10
 
 function formatearTurno(turno) {
   if (!turno) return '—'
-  const hora = turno.hora ? turno.hora.slice(0, 5) : ''
-  return hora ? `${turno.fecha} ${hora}` : turno.fecha
+  const hora = turno.hora ? formatearHora(turno.hora) : ''
+  return hora ? `${formatearFecha(turno.fecha)} ${hora}` : formatearFecha(turno.fecha)
 }
 
 export default function Pacientes() {

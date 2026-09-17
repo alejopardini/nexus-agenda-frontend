@@ -14,7 +14,7 @@ import Badge from '../components/Badge'
 import Card, { CardTextoSecundario } from '../components/Card'
 import Modal from '../components/Modal'
 import Boton from '../components/Boton'
-import { fechaToStr } from '../utils/fechas'
+import { fechaToStr, formatearHora } from '../utils/fechas'
 import { buscarConsultaCompletadaPrevia } from '../utils/consultas'
 import { useEsVerticalQuiro } from '../hooks/useVertical'
 
@@ -378,7 +378,7 @@ export default function Camillas() {
                             <div key={turno.id} className="bg-blue-50 border border-blue-200 rounded p-3">
                               <Badge estado="en-camilla" className="mb-1">En camilla ahora</Badge>
                               <p className="font-medium text-slate-800 text-sm">{turno.paciente_nombre}</p>
-                              <p className="text-xs text-slate-500 mb-2">{turno.hora}</p>
+                              <p className="text-xs text-slate-500 mb-2">{formatearHora(turno.hora)}</p>
                               <div className="space-x-2">
                                 <button
                                   onClick={() => setPacienteAbiertoId(turno.paciente)}
@@ -445,7 +445,7 @@ export default function Camillas() {
                               <Badge estado="pendiente" className="mb-1">Sin confirmar</Badge>
                             )}
                             <p className="text-sm font-medium text-slate-700">{turno.paciente_nombre}</p>
-                            <p className="text-xs text-slate-500 mb-1">{turno.hora}</p>
+                            <p className="text-xs text-slate-500 mb-1">{formatearHora(turno.hora)}</p>
                             <div className="space-x-2">
                               <button
                                 onClick={() => setPacienteAbiertoId(turno.paciente)}

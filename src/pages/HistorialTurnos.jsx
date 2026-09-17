@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
 import FichaPacienteModal from '../components/FichaPacienteModal'
+import { formatearFecha } from '../utils/fechas'
 
 const ESTADOS_EDITABLES = [
   { value: 'pendiente', label: 'Pendiente' },
@@ -107,7 +108,7 @@ export default function HistorialTurnos() {
                           {t.paciente_nombre}
                         </button>
                       </td>
-                      <td className="py-2">{t.fecha}</td>
+                      <td className="py-2">{formatearFecha(t.fecha)}</td>
                       <td className="py-2">
                         <Link to={`/profesionales/${t.profesional}/editar`} className="text-blue-600 hover:underline">
                           {t.profesional_nombre}

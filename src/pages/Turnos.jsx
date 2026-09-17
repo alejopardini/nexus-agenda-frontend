@@ -5,6 +5,7 @@ import Layout from '../components/Layout'
 import FichaPacienteModal from '../components/FichaPacienteModal'
 import PanelCamillaCondensado from '../components/PanelCamillaCondensado'
 import { buscarConsultaCompletadaPrevia } from '../utils/consultas'
+import { formatearFecha, formatearHora } from '../utils/fechas'
 
 const COLOR_ESTADO = {
   pendiente: 'bg-yellow-100 text-yellow-800',
@@ -118,8 +119,8 @@ export default function Turnos() {
               <tbody>
                 {turnosFiltrados.map((t) => (
                   <tr key={t.id} className="border-b border-slate-100">
-                    <td className="py-2">{t.fecha}</td>
-                    <td className="py-2">{t.hora}</td>
+                    <td className="py-2">{formatearFecha(t.fecha)}</td>
+                    <td className="py-2">{formatearHora(t.hora)}</td>
                     <td className="py-2">
                       <button
                         onClick={() => setPacienteAbiertoId(t.paciente)}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
+import { formatearFecha, formatearHora } from '../utils/fechas'
 
 export default function TurnosCancelados() {
   const [turnos, setTurnos] = useState([])
@@ -38,8 +39,8 @@ export default function TurnosCancelados() {
               <tbody>
                 {turnos.map((t) => (
                   <tr key={t.id} className="border-b border-slate-100">
-                    <td className="py-2">{t.fecha}</td>
-                    <td className="py-2">{t.hora}</td>
+                    <td className="py-2">{formatearFecha(t.fecha)}</td>
+                    <td className="py-2">{formatearHora(t.hora)}</td>
                     <td className="py-2">{t.paciente_nombre}</td>
                     <td className="py-2">{t.profesional_nombre}</td>
                   </tr>

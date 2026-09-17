@@ -5,6 +5,7 @@ import Layout from '../components/Layout'
 import FichaPacienteModal from '../components/FichaPacienteModal'
 import PanelCamillaCondensado from '../components/PanelCamillaCondensado'
 import { buscarConsultaCompletadaPrevia } from '../utils/consultas'
+import { formatearFecha, formatearHora } from '../utils/fechas'
 
 function diasVencido(fecha) {
   const hoy = new Date()
@@ -84,7 +85,7 @@ export default function ConsultasPendientes() {
                         </td>
                         <td className="py-2">{t.profesional_nombre}</td>
                         <td className="py-2">
-                          {t.fecha} {t.hora.slice(0, 5)}
+                          {formatearFecha(t.fecha)} {formatearHora(t.hora)}
                           <span className="block text-xs text-red-600">{diasVencido(t.fecha)}</span>
                         </td>
                         <td className="py-2">
