@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import DatePicker, { registerLocale } from 'react-datepicker'
 import { es } from 'date-fns/locale/es'
 import 'react-datepicker/dist/react-datepicker.css'
@@ -10,25 +9,24 @@ import FichaPacienteModal from '../components/FichaPacienteModal'
 import PanelFranjasHorarias from '../components/PanelFranjasHorarias'
 import CalendarioSemanal from '../components/CalendarioSemanal'
 import PopoverTurno from '../components/PopoverTurno'
+import Badge from '../components/Badge'
+import Boton from '../components/Boton'
 import { hmAMinutos, minutosAHM, duracionAMinutos, diaSemanaBackend, fechaToStr, inicioDeSemana } from '../utils/fechas'
 import { estadoVisual } from '../utils/turnos'
 
 registerLocale('es', es)
 
-// Mismos tokens bg-turno-*/text-turno-*-text que usa Badge.jsx / CalendarioSemanal.jsx
-// (celda ocupada de la tabla diaria no es un Badge/píldora, es el fondo de la celda
-// entera — por eso no se reusa el componente Badge acá, solo sus tokens de color).
+// Fondo de la celda ocupada: se mantiene como color solido de td (no Badge)
+// a proposito, para que un turno de mas de 15 min siga viendose como un
+// bloque de color continuo a lo largo de varias franjas apiladas. El Badge
+// (mismo componente y tokens que CalendarioSemanal.jsx) va solo en la celda
+// donde arranca el turno, con el mismo color de estado que el fondo de esa
+// celda -> no genera costura visible contra el bloque de abajo.
 const CLASE_FONDO_ESTADO = {
   pendiente: 'bg-turno-pendiente',
   confirmado: 'bg-turno-confirmado',
   cancelado: 'bg-turno-cancelado',
   'en-camilla': 'bg-turno-en-camilla',
-}
-const CLASE_TEXTO_ESTADO = {
-  pendiente: 'text-turno-pendiente-text',
-  confirmado: 'text-turno-confirmado-text',
-  cancelado: 'text-turno-cancelado-text',
-  'en-camilla': 'text-turno-en-camilla-text',
 }
 
 function diaClassName(date) {
@@ -349,7 +347,7 @@ export default function CalendarioTurnos() {
               Semana
             </button>
           </div>
-          <Link to="/turnos/lista" className="text-sm text-blue-600 hover:underline">Ver lista</Link>
+          <Boton to="/turnos/lista" variante="ghost" tamaño="sm">Ver lista</Boton>
         </div>
       }
     >
@@ -458,6 +456,33 @@ export default function CalendarioTurnos() {
                         }
                         if (ocupado) claseColor = CLASE_FONDO_ESTADO[estado]
 
+                        // Badge (tamaño="xs") solo en la celda de inicio. La
+                        // continuidad visual de un turno de mas de 15 min depende
+                        // de que el color del Badge (token del estado) coincida
+                        // exacto con el fondo del td de abajo (CLASE_FONDO_ESTADO,
+                        // mismo estado) — al ser el mismo color, las puntas
+                        // redondeadas del Badge quedan invisibles contra el padding
+                        // del propio td y se lee como un solo bloque continuo. Si
+                        // alguna vez se desalinean (un token cambia de un lado y no
+                        // del otro, o el Badge suma borde/sombra propia), la costura
+                        // entre la celda de inicio y las de continuacion se va a notar.
+                        let contenido = null
+                        if (esInicioTurno) {
+                          const badge = (
+                            <Badge estado={estado} tamaño="xs" className="w-full">
+                              <span className="truncate min-w-0">{turno.paciente_nombre}</span>
+                            </Badge>
+                          )
+                          contenido = turno.tipo_turno_texto ? (
+                            <span className="group relative inline-flex w-full">
+                              {badge}
+                              <span className="pointer-events-none absolute left-1/2 bottom-full -translate-x-1/2 mb-1.5 max-w-[180px] whitespace-normal text-center rounded-md bg-primary px-2.5 py-1.5 text-xs font-medium text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100 z-50">
+                                {turno.tipo_turno_texto}
+                              </span>
+                            </span>
+                          ) : badge
+                        }
+
                         return (
                           <td
                             key={profesional.id}
@@ -466,9 +491,7 @@ export default function CalendarioTurnos() {
                               clickeable ? 'cursor-pointer hover:brightness-95 transition-[filter]' : ''
                             }`}
                           >
-                            {esInicioTurno && (
-                              <span className={`text-[10px] leading-tight block ${CLASE_TEXTO_ESTADO[estado]}`}>{turno.paciente_nombre}</span>
-                            )}
+                            {contenido}
                           </td>
                         )
                       })}

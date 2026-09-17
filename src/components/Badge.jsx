@@ -5,6 +5,9 @@
 // pensado para poder usarse también en cualquier card de paciente/turno.
 //
 // Uso: <Badge estado="pendiente">Sin confirmar</Badge>
+// Con tamaño="xs" (default "md", igual que siempre): pill compacta sin
+// padding vertical, para espacios muy ajustados (ver CalendarioTurnos.jsx,
+// tabla del día). Mismo patrón que la prop tamaño de Boton.jsx.
 //
 // Las clases en sí viven en utils/badge.js (claseBadge/BASE_PILL) para que
 // otros elementos que no son un <span> (ej. el <select> de Estado en
@@ -14,9 +17,9 @@
 
 import { claseBadge } from '../utils/badge'
 
-export default function Badge({ estado, className = '', children, ...props }) {
+export default function Badge({ estado, tamaño = 'md', className = '', children, ...props }) {
   return (
-    <span className={`${claseBadge(estado)} ${className}`.trim()} {...props}>
+    <span className={`${claseBadge(estado, tamaño)} ${className}`.trim()} {...props}>
       {children}
     </span>
   )
