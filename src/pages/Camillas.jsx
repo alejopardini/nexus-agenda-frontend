@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { X, LogIn, LogOut, User, Search, Plus } from 'lucide-react'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
 import FichaPacienteModal from '../components/FichaPacienteModal'
@@ -14,6 +14,7 @@ import Badge from '../components/Badge'
 import Card, { CardTextoSecundario } from '../components/Card'
 import Modal from '../components/Modal'
 import Boton from '../components/Boton'
+import BotonIcono from '../components/BotonIcono'
 import { fechaToStr, formatearHora } from '../utils/fechas'
 import { buscarConsultaCompletadaPrevia } from '../utils/consultas'
 import { useEsVerticalQuiro } from '../hooks/useVertical'
@@ -339,12 +340,12 @@ export default function Camillas() {
                   titulo={t.profesional ? `${t.profesional.nombre} ${t.profesional.apellido}` : 'Profesional'}
                 >
                   {auth.rol !== 'profesional' && (
-                    <button
+                    <BotonIcono
+                      icono={Plus}
+                      texto="Agregar sin turno"
                       onClick={() => abrirWalkIn(t.profesionalId)}
-                      className="text-xs text-blue-600 hover:underline self-start"
-                    >
-                      + Agregar sin turno
-                    </button>
+                      className="self-start"
+                    />
                   )}
 
                   {t.items.length > 0 ? (
@@ -379,42 +380,36 @@ export default function Camillas() {
                               <Badge estado="en-camilla" className="mb-1">En camilla ahora</Badge>
                               <p className="font-medium text-slate-800 text-sm">{turno.paciente_nombre}</p>
                               <p className="text-xs text-slate-500 mb-2">{formatearHora(turno.hora)}</p>
-                              <div className="space-x-2">
-                                <button
+                              <div className="flex gap-3">
+                                <BotonIcono
+                                  icono={User}
+                                  texto="Ver ficha"
                                   onClick={() => setPacienteAbiertoId(turno.paciente)}
-                                  className="text-xs text-blue-600 hover:underline"
-                                >
-                                  Ver ficha
-                                </button>
+                                />
                                 {item.tieneConsultaCompletada ? (
-                                  <button
+                                  <BotonIcono
+                                    icono={Search}
+                                    texto="Ir a la consulta"
                                     onClick={() => setPanelCondensado({
                                       pacienteId: turno.paciente,
                                       consultaId: turno.consulta_pendiente_id,
                                     })}
-                                    className="text-xs text-blue-600 hover:underline"
-                                  >
-                                    Ir a la consulta
-                                  </button>
+                                  />
                                 ) : (
-                                  <Link to={`/consultas/${turno.consulta_pendiente_id}`} className="text-xs text-blue-600 hover:underline">
-                                    Ir a la consulta
-                                  </Link>
+                                  <BotonIcono icono={Search} texto="Ir a la consulta" to={`/consultas/${turno.consulta_pendiente_id}`} />
                                 )}
-                                <button
+                                <BotonIcono
+                                  icono={LogOut}
+                                  texto="Vuelve a la cola de espera, sigue en la lista de hoy"
+                                  color="destructive"
                                   onClick={() => sacarDeCamilla(turno.id)}
-                                  title="Vuelve a la cola de espera, sigue en la lista de hoy"
-                                  className="text-xs text-red-600 hover:underline"
-                                >
-                                  Sacar de camilla
-                                </button>
-                                <button
+                                />
+                                <BotonIcono
+                                  icono={X}
+                                  texto="Cancela el turno y libera este lugar para otro paciente"
+                                  color="destructive"
                                   onClick={() => quitarTurno(turno.id)}
-                                  title="Cancela el turno y libera este lugar para otro paciente"
-                                  className="text-xs text-red-600 hover:underline"
-                                >
-                                  Quitar
-                                </button>
+                                />
                               </div>
                               {esQuiro && item.ultimoAjusteMapa && (
                                 <div className="mt-2 pt-2 border-t border-blue-100">
@@ -446,13 +441,12 @@ export default function Camillas() {
                             )}
                             <p className="text-sm font-medium text-slate-700">{turno.paciente_nombre}</p>
                             <p className="text-xs text-slate-500 mb-1">{formatearHora(turno.hora)}</p>
-                            <div className="space-x-2">
-                              <button
+                            <div className="flex gap-3 items-center">
+                              <BotonIcono
+                                icono={User}
+                                texto="Ver ficha"
                                 onClick={() => setPacienteAbiertoId(turno.paciente)}
-                                className="text-xs text-blue-600 hover:underline"
-                              >
-                                Ver ficha
-                              </button>
+                              />
                               {turno.estado === 'pendiente' ? (
                                 <button
                                   onClick={() => confirmarTurno(turno.id)}
@@ -463,35 +457,31 @@ export default function Camillas() {
                               ) : (
                                 <>
                                   {item.tieneConsultaCompletada ? (
-                                    <button
+                                    <BotonIcono
+                                      icono={Search}
+                                      texto="Ir a la consulta"
                                       onClick={() => setPanelCondensado({
                                         pacienteId: turno.paciente,
                                         consultaId: turno.consulta_pendiente_id,
                                       })}
-                                      className="text-xs text-blue-600 hover:underline"
-                                    >
-                                      Ir a la consulta
-                                    </button>
+                                    />
                                   ) : (
-                                    <Link to={`/consultas/${turno.consulta_pendiente_id}`} className="text-xs text-blue-600 hover:underline">
-                                      Ir a la consulta
-                                    </Link>
+                                    <BotonIcono icono={Search} texto="Ir a la consulta" to={`/consultas/${turno.consulta_pendiente_id}`} />
                                   )}
-                                  <button
+                                  <BotonIcono
+                                    icono={LogIn}
+                                    texto="Llamar"
+                                    color="success"
                                     onClick={() => llamar(turno.id)}
-                                    className="text-xs text-green-600 hover:underline"
-                                  >
-                                    Llamar
-                                  </button>
+                                  />
                                 </>
                               )}
-                              <button
+                              <BotonIcono
+                                icono={X}
+                                texto="Cancela el turno y libera este lugar para otro paciente"
+                                color="destructive"
                                 onClick={() => quitarTurno(turno.id)}
-                                title="Cancela el turno y libera este lugar para otro paciente"
-                                className="text-xs text-red-600 hover:underline"
-                              >
-                                Quitar
-                              </button>
+                              />
                             </div>
                           </div>
                         )
