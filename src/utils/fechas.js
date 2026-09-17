@@ -33,3 +33,14 @@ export function fechaToStr(fecha) {
   const d = String(fecha.getDate()).padStart(2, '0')
   return `${y}-${m}-${d}`
 }
+
+export function formatearFecha(fechaStr) {
+  if (!fechaStr) return ''
+  const [y, m, d] = fechaStr.slice(0, 10).split('-')
+  return `${d}/${m}/${y}`
+}
+
+export function formatearHora(horaStr) {
+  if (!horaStr) return ''
+  return horaStr.slice(0, 5)
+}

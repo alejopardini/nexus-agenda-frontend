@@ -5,6 +5,7 @@ import ColumnaVertebral from './ColumnaVertebral'
 import Modal from './Modal'
 import Boton from './Boton'
 import { useEsVerticalQuiro } from '../hooks/useVertical'
+import { formatearFecha } from '../utils/fechas'
 
 const ESTADO_CONDICION_LABELS = {
   mejoria_marcada: 'Mejoría marcada',
@@ -96,7 +97,7 @@ export default function FichaCamillaModal({ consultaId, onClose }) {
         <>
           {consulta ? consulta.paciente_nombre : 'Consulta'}
           {consulta && (
-            <span className="block text-[14px] font-normal text-texto-secundario mt-1">{consulta.fecha}</span>
+            <span className="block text-[14px] font-normal text-texto-secundario mt-1">{formatearFecha(consulta.fecha)}</span>
           )}
         </>
       }

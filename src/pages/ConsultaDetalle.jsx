@@ -6,6 +6,7 @@ import BotonVolver from '../components/BotonVolver'
 import EditorColumnaVertebral from '../components/EditorColumnaVertebral'
 import Boton from '../components/Boton'
 import { useEsVerticalQuiro } from '../hooks/useVertical'
+import { formatearFecha } from '../utils/fechas'
 
 const CARACTERISTICAS_DOLOR_OPCIONES = [
   'Doloroso', 'Ardor', 'Sordo', 'Agudo', 'Punzante', 'Pulsátil', 'Debilidad', 'Entumecimiento', 'Tensión',
@@ -259,7 +260,7 @@ export default function ConsultaDetalle() {
           Consulta — {consulta.estado === 'completada' ? 'completada' : 'pendiente'}
         </h1>
         <p className="text-sm text-slate-500 mb-4">
-          {consulta.paciente_nombre} — {consulta.fecha}
+          {consulta.paciente_nombre} — {formatearFecha(consulta.fecha)}
         </p>
 
         {error && <p className="text-red-600 text-sm mb-4">{error}</p>}

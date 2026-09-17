@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import apiClient from '../api/client'
 import AnotadorArchivo from './AnotadorArchivo'
 import Boton from './Boton'
+import { formatearFecha } from '../utils/fechas'
 
 export default function GestionArchivosPaciente({ pacienteId }) {
   const [archivos, setArchivos] = useState([])
@@ -256,7 +257,7 @@ export default function GestionArchivosPaciente({ pacienteId }) {
                     </>
                   )}
                   <span className="text-slate-400 text-xs">
-                    {new Date(a.fecha_subida).toLocaleDateString()}
+                    {formatearFecha(a.fecha_subida)}
                   </span>
                 </div>
               </li>

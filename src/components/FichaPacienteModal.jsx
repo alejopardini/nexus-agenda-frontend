@@ -8,6 +8,7 @@ import Modal from './Modal'
 import Boton from './Boton'
 import { useEsVerticalQuiro } from '../hooks/useVertical'
 import { useAuth } from '../context/AuthContext'
+import { formatearFecha, formatearHora } from '../utils/fechas'
 
 const TABS = [
   { key: 'datos', label: 'Datos' },
@@ -401,7 +402,7 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
                       <dl className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm mb-2">
                         <div>
                           <dt className="text-texto-secundario">Fecha</dt>
-                          <dd className="text-texto">{ultimaConsultaCompletada.fecha}</dd>
+                          <dd className="text-texto">{formatearFecha(ultimaConsultaCompletada.fecha)}</dd>
                         </div>
                         <div>
                           <dt className="text-texto-secundario">Motivo</dt>
@@ -430,7 +431,7 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
                   <ul className="divide-y divide-borde-suave">
                     {turnos.map((t) => (
                       <li key={t.id} className="py-2 text-sm flex justify-between">
-                        <span className="text-texto">{t.fecha} {t.hora}</span>
+                        <span className="text-texto">{formatearFecha(t.fecha)} {formatearHora(t.hora)}</span>
                         <span className="text-texto-secundario">{t.profesional_nombre} — {t.estado}</span>
                       </li>
                     ))}
@@ -584,7 +585,7 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
                     <ul className="divide-y divide-borde-suave">
                       {pagosRealizados.map((t) => (
                         <li key={t.id} className="py-2 text-sm flex justify-between">
-                          <span className="text-texto">{t.fecha}</span>
+                          <span className="text-texto">{formatearFecha(t.fecha)}</span>
                           <span className="text-texto-secundario">{t.plan ? 'Con plan' : 'Sin plan'}</span>
                           <span className="font-medium text-texto">${t.monto_cobrado}</span>
                         </li>
@@ -614,12 +615,12 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
                   {ultimoAjuste && (
                     ultimoAjuste.ajustes.length === 0 ? (
                       <p className="text-texto-secundario text-sm">
-                        La consulta del {ultimoAjuste.consulta.fecha} no tiene ajustes vertebrales cargados.
+                        La consulta del {formatearFecha(ultimoAjuste.consulta.fecha)} no tiene ajustes vertebrales cargados.
                       </p>
                     ) : (
                       <div>
                         <p className="text-xs text-texto-secundario mb-2">
-                          Consulta del {ultimoAjuste.consulta.fecha} — {ultimoAjuste.consulta.profesional_nombre}
+                          Consulta del {formatearFecha(ultimoAjuste.consulta.fecha)} — {ultimoAjuste.consulta.profesional_nombre}
                         </p>
                         <ul className="divide-y divide-borde-suave">
                           {ultimoAjuste.ajustes.map((a) => (
@@ -736,7 +737,7 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
                       <ul className="divide-y divide-borde-suave mb-4">
                         {consultas.filter((c) => c.estado === 'completada').map((c) => (
                           <li key={c.id} className="py-1.5 flex justify-between items-center text-sm">
-                            <span className="text-texto">{c.fecha}</span>
+                            <span className="text-texto">{formatearFecha(c.fecha)}</span>
                             <Link to={`/consultas/${c.id}`} onClick={onClose} className="text-xs text-btn-primary hover:underline">
                               Ver consulta →
                             </Link>

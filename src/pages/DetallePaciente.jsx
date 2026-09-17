@@ -6,6 +6,7 @@ import BotonVolver from '../components/BotonVolver'
 import { useAuth } from '../context/AuthContext'
 import AnotadorArchivo from '../components/AnotadorArchivo'
 import Boton from '../components/Boton'
+import { formatearFecha } from '../utils/fechas'
 
 export default function DetallePaciente() {
   const { id } = useParams()
@@ -396,7 +397,7 @@ export default function DetallePaciente() {
                   <li key={c.id} className="py-2 text-sm">
                     <Link to={`/consultas/${c.id}`} className="block hover:text-blue-600">
                       <div className="flex justify-between">
-                        <span className="font-medium text-slate-800">{c.fecha}</span>
+                        <span className="font-medium text-slate-800">{formatearFecha(c.fecha)}</span>
                         <span className="text-slate-500">{c.profesional_nombre} — {c.estado}</span>
                       </div>
                       <p className="text-slate-600 mt-1">{c.motivo || '(sin motivo cargado)'}</p>
@@ -538,7 +539,7 @@ export default function DetallePaciente() {
                           </>
                         )}
                         <span className="text-slate-400 text-xs">
-                          {new Date(a.fecha_subida).toLocaleDateString()}
+                          {formatearFecha(a.fecha_subida)}
                         </span>
                       </div>
                     </li>

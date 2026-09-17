@@ -6,6 +6,7 @@ import FichaPacienteModal from './FichaPacienteModal'
 import GestionArchivosPaciente from './GestionArchivosPaciente'
 import Boton from './Boton'
 import { useEsVerticalQuiro } from '../hooks/useVertical'
+import { formatearFecha } from '../utils/fechas'
 
 const ETAPA_CUIDADO_OPCIONES = [
   ['aguda', 'Aguda'],
@@ -178,7 +179,7 @@ export default function PanelCamillaCondensado({ pacienteId, consultaId, onClose
             <h2 className="font-bold text-slate-800 text-lg">{consulta ? consulta.paciente_nombre : 'Consulta'}</h2>
             {consulta && (
               <p className="text-sm text-slate-500">
-                {consulta.fecha} {consulta.estado === 'completada' && '— completada'}
+                {formatearFecha(consulta.fecha)} {consulta.estado === 'completada' && '— completada'}
               </p>
             )}
           </div>
@@ -240,7 +241,7 @@ export default function PanelCamillaCondensado({ pacienteId, consultaId, onClose
                   {historial.length > 0 && (
                     <div>
                       <p className="block text-xs text-slate-600 mb-1">Última consulta</p>
-                      <p className="text-sm text-slate-700 px-1 py-1.5">{historial[0].fecha}</p>
+                      <p className="text-sm text-slate-700 px-1 py-1.5">{formatearFecha(historial[0].fecha)}</p>
                     </div>
                   )}
                 </div>
@@ -285,7 +286,8 @@ export default function PanelCamillaCondensado({ pacienteId, consultaId, onClose
                                 <div key={n.id} className="bg-slate-50 rounded p-2 text-sm">
                                   <p className="text-slate-800 whitespace-pre-wrap">{n.texto}</p>
                                   <p className="text-xs text-slate-400 mt-1">
-                                    {n.autor_nombre || 'Desconocido'} — {new Date(n.fecha_hora).toLocaleString()}
+                                    {n.autor_nombre || 'Desconocido'} — {formatearFecha(n.fecha_hora)}{' '}
+                                    {new Date(n.fecha_hora).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
                                   </p>
                                 </div>
                               ))
