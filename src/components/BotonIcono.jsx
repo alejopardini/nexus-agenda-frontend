@@ -17,6 +17,7 @@ const COLORES = {
   neutral: 'text-slate-500 hover:text-slate-700',
   primary: 'text-blue-600 hover:text-blue-800',
   success: 'text-green-600 hover:text-green-800',
+  warning: 'text-orange-600 hover:text-orange-800',
   destructive: 'text-red-600 hover:text-red-800',
 }
 

@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { Check, UserX, X } from 'lucide-react'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
 import FichaPacienteModal from '../components/FichaPacienteModal'
 import PanelCamillaCondensado from '../components/PanelCamillaCondensado'
+import BotonIcono from '../components/BotonIcono'
 import { buscarConsultaCompletadaPrevia } from '../utils/consultas'
 import { formatearFecha, formatearHora } from '../utils/fechas'
 
@@ -151,29 +153,31 @@ export default function Turnos() {
                         )
                       )}
                     </td>
-                    <td className="py-2 space-x-2">
-                      {t.estado === 'pendiente' && (
-                        <button
-                          onClick={() => confirmarTurno(t.id)}
-                          className="text-green-600 text-xs hover:underline"
-                        >
-                          Confirmar
-                        </button>
-                      )}
-                      {t.estado === 'confirmado' && turnoYaOcurrio(t) && (
-                        <button
-                          onClick={() => marcarAusente(t.id)}
-                          className="text-orange-600 text-xs hover:underline"
-                        >
-                          Marcar ausente
-                        </button>
-                      )}
-                      <button
-                        onClick={() => cancelarTurno(t.id)}
-                        className="text-red-600 text-xs hover:underline"
-                      >
-                        Cancelar
-                      </button>
+                    <td className="py-2">
+                      <div className="flex gap-3 items-center">
+                        {t.estado === 'pendiente' && (
+                          <BotonIcono
+                            icono={Check}
+                            texto="Confirmar"
+                            color="success"
+                            onClick={() => confirmarTurno(t.id)}
+                          />
+                        )}
+                        {t.estado === 'confirmado' && turnoYaOcurrio(t) && (
+                          <BotonIcono
+                            icono={UserX}
+                            texto="Marcar ausente"
+                            color="warning"
+                            onClick={() => marcarAusente(t.id)}
+                          />
+                        )}
+                        <BotonIcono
+                          icono={X}
+                          texto="Cancelar"
+                          color="destructive"
+                          onClick={() => cancelarTurno(t.id)}
+                        />
+                      </div>
                     </td>
                   </tr>
                 ))}
