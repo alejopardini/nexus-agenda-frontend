@@ -138,18 +138,35 @@ export default function PanelFranjasHorarias({
               <div key={fila.minuto} className="flex items-start gap-2 text-xs py-1.5 border-b border-slate-50">
                 <span className="text-slate-400 w-12 shrink-0">{minutosAHM(fila.minuto)}</span>
                 <div className="flex-1 space-y-1">
-                  {fila.ocupantes.map((t) => (
-                    <Badge key={t.id} estado={t.estado} className="gap-1.5">
-                      <span className="truncate min-w-0">{abreviarPaciente(t.paciente_nombre)}</span>
-                      {mostrarProfesional && (
-                        <Tooltip texto={t.profesional_nombre} position="bottom" className="shrink-0">
-                          <span className="w-3.5 h-3.5 rounded-full bg-white/70 text-[8px] flex items-center justify-center font-bold">
-                            {inicialesDe(t.profesional_nombre)}
-                          </span>
-                        </Tooltip>
-                      )}
-                    </Badge>
-                  ))}
+                  {fila.ocupantes.map((t) => {
+                    const contenidoBadge = (
+                      <Badge key={t.id} estado={t.estado} className="gap-1.5">
+                        <span className="truncate min-w-0">{abreviarPaciente(t.paciente_nombre)}</span>
+                        {mostrarProfesional && (
+                          <Tooltip texto={t.profesional_nombre} position="bottom" className="shrink-0">
+                            <span className="w-3.5 h-3.5 rounded-full bg-white/70 text-[8px] flex items-center justify-center font-bold">
+                              {inicialesDe(t.profesional_nombre)}
+                            </span>
+                          </Tooltip>
+                        )}
+                      </Badge>
+                    )
+                    if (!t.tipo_turno_texto) return contenidoBadge
+                    // Tooltip.jsx a medida puntual: el genérico usa whitespace-nowrap
+                    // sin límite de ancho, y un tipo de turno largo (texto libre en
+                    // ValoresTurnos.jsx) se corta contra el borde del panel de 320px
+                    // (el contenedor padre es overflow-y-auto, que también recorta en
+                    // X). Acá se limita el ancho y se deja hacer wrap en su lugar, sin
+                    // tocar el componente compartido.
+                    return (
+                      <span key={t.id} className="group relative inline-flex">
+                        {contenidoBadge}
+                        <span className="pointer-events-none absolute left-1/2 bottom-full -translate-x-1/2 mb-1.5 max-w-[180px] whitespace-normal text-center rounded-md bg-primary px-2.5 py-1.5 text-xs font-medium text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100 z-50">
+                          {t.tipo_turno_texto}
+                        </span>
+                      </span>
+                    )
+                  })}
                 </div>
               </div>
             )

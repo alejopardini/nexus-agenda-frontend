@@ -15,6 +15,7 @@ import Card, { CardTextoSecundario } from '../components/Card'
 import Modal from '../components/Modal'
 import Boton from '../components/Boton'
 import BotonIcono from '../components/BotonIcono'
+import Tooltip from '../components/Tooltip'
 import { fechaToStr, formatearHora } from '../utils/fechas'
 import { buscarConsultaCompletadaPrevia } from '../utils/consultas'
 import { useEsVerticalQuiro } from '../hooks/useVertical'
@@ -355,14 +356,14 @@ export default function Camillas() {
 
                         if (!item) {
                           return auth.rol !== 'profesional' ? (
-                            <button
-                              key={`vacio-${i}`}
-                              onClick={() => abrirWalkIn(t.profesionalId)}
-                              title="Agregar sin turno"
-                              className="border border-dashed border-slate-200 rounded p-3 flex items-center justify-center text-slate-300 hover:text-blue-500 hover:border-blue-300 hover:bg-blue-50 text-lg font-medium min-h-[76px] transition-colors"
-                            >
-                              +
-                            </button>
+                            <Tooltip key={`vacio-${i}`} texto="Agregar sin turno" className="w-full">
+                              <button
+                                onClick={() => abrirWalkIn(t.profesionalId)}
+                                className="w-full border border-dashed border-slate-200 rounded p-3 flex items-center justify-center text-slate-300 hover:text-blue-500 hover:border-blue-300 hover:bg-blue-50 text-lg font-medium min-h-[76px] transition-colors"
+                              >
+                                +
+                              </button>
+                            </Tooltip>
                           ) : (
                             <div
                               key={`vacio-${i}`}
