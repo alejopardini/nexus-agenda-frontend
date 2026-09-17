@@ -5,7 +5,7 @@ import 'react-datepicker/dist/react-datepicker.css'
 import apiClient from '../api/client'
 import CampoTexto from '../components/CampoTexto'
 import Boton from '../components/Boton'
-import { diaSemanaBackend, duracionAMinutos, fechaToStr, hmAMinutos, minutosAHM } from '../utils/fechas'
+import { diaSemanaBackend, duracionAMinutos, fechaToStr, formatearFecha, formatearHora, hmAMinutos, minutosAHM } from '../utils/fechas'
 
 const CUALQUIERA = 'cualquiera'
 const DURACION_PUBLICA_MINUTOS = 60
@@ -424,7 +424,7 @@ export default function ReservarPublico() {
                   <strong>Profesional:</strong>{' '}
                   {profesionalId === CUALQUIERA ? 'Cualquiera disponible' : `${profesionalSeleccionado?.nombre} ${profesionalSeleccionado?.apellido}`}
                 </li>
-                <li><strong>Fecha:</strong> {fechaSeleccionada?.toLocaleDateString('es-AR')}</li>
+                <li><strong>Fecha:</strong> {fechaSeleccionada && formatearFecha(fechaToStr(fechaSeleccionada))}</li>
                 <li><strong>Hora:</strong> {horarioSeleccionado?.hora}</li>
               </ul>
             </div>
@@ -444,8 +444,8 @@ export default function ReservarPublico() {
           <div className="flex flex-col gap-2">
             <p className="font-sans font-semibold text-[14px] text-turno-confirmado-text">✓ ¡Listo!</p>
             <p className="font-sans text-[14px] text-texto">
-              Tu turno quedó reservado para el <strong>{fechaSeleccionada?.toLocaleDateString('es-AR')}</strong> a las{' '}
-              <strong>{turnoConfirmado?.hora?.slice(0, 5) || horarioSeleccionado?.hora}</strong>.
+              Tu turno quedó reservado para el <strong>{fechaSeleccionada && formatearFecha(fechaToStr(fechaSeleccionada))}</strong> a las{' '}
+              <strong>{formatearHora(turnoConfirmado?.hora) || horarioSeleccionado?.hora}</strong>.
             </p>
             <p className="font-sans text-[14px] text-texto-secundario">
               El consultorio va a confirmarlo a la brevedad — todavía está pendiente de confirmación, no es definitivo.

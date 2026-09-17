@@ -4,6 +4,7 @@ import Layout from '../components/Layout'
 import BuscadorPaciente from '../components/BuscadorPaciente'
 import { useAuth } from '../context/AuthContext'
 import Boton from '../components/Boton'
+import { formatearFecha } from '../utils/fechas'
 
 const TIPOS_DATO_LABEL = {
   historia_clinica: 'Historia clínica',
@@ -115,7 +116,10 @@ export default function Auditoria() {
                 <tbody>
                   {accesos.map((a) => (
                     <tr key={a.id} className="border-b border-slate-100">
-                      <td className="py-2">{new Date(a.fecha_hora).toLocaleString('es-AR')}</td>
+                      <td className="py-2">
+                        {formatearFecha(a.fecha_hora)}{' '}
+                        {new Date(a.fecha_hora).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
+                      </td>
                       <td className="py-2">{a.usuario_nombre || '—'}</td>
                       <td className="py-2">{a.paciente_nombre}</td>
                       <td className="py-2">{TIPOS_DATO_LABEL[a.tipo_dato] || a.tipo_dato}</td>
