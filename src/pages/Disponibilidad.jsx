@@ -3,6 +3,7 @@ import apiClient from '../api/client'
 import Layout from '../components/Layout'
 import { useAuth } from '../context/AuthContext'
 import Boton from '../components/Boton'
+import { formatearFecha } from '../utils/fechas'
 
 const DIAS = [
   { value: 0, label: 'Lunes' }, { value: 1, label: 'Martes' }, { value: 2, label: 'Miércoles' },
@@ -339,7 +340,7 @@ export default function Disponibilidad() {
             <ul className="divide-y divide-slate-100">
               {excepciones.map((ex) => (
                 <li key={ex.id} className="py-2 flex justify-between items-center text-sm">
-                  <span>{ex.profesional_nombre} — {ex.fecha} {ex.motivo && `(${ex.motivo})`}</span>
+                  <span>{ex.profesional_nombre} — {formatearFecha(ex.fecha)} {ex.motivo && `(${ex.motivo})`}</span>
                   <button onClick={() => eliminarExcepcion(ex.id)} className="text-red-600 text-xs hover:underline">
                     Eliminar
                   </button>
@@ -396,7 +397,7 @@ export default function Disponibilidad() {
               <ul className="divide-y divide-slate-100">
                 {cierres.map((c) => (
                   <li key={c.id} className="py-2 flex justify-between items-center text-sm">
-                    <span>{c.fecha} {c.motivo && `— ${c.motivo}`}</span>
+                    <span>{formatearFecha(c.fecha)} {c.motivo && `— ${c.motivo}`}</span>
                     <button onClick={() => eliminarCierre(c.id)} className="text-red-600 text-xs hover:underline">
                       Eliminar
                     </button>
