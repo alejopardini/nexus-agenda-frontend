@@ -45,7 +45,7 @@ function segmentoHermano(segmento) {
   return null
 }
 
-export default function EditorColumnaVertebral({ ajustes, onChangeAjustes, onGuardarSegmento }) {
+export default function EditorColumnaVertebral({ ajustes, onChangeAjustes, onGuardarSegmento, apilado = false }) {
   const [segmentoActivo, setSegmentoActivo] = useState(null)
   const ajustesRef = useRef(ajustes)
 
@@ -142,14 +142,14 @@ export default function EditorColumnaVertebral({ ajustes, onChangeAjustes, onGua
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-[320px_1fr] gap-4" ref={panelRef}>
+    <div className={`grid grid-cols-1 ${apilado ? '' : 'md:grid-cols-[320px_1fr]'} gap-4`} ref={panelRef}>
       <ColumnaVertebral
         ajustes={ajustes}
         segmentoActivo={segmentoActivo}
         onClickSegmento={handleClickSegmento}
       />
 
-      <div className="sticky top-4 self-start">
+      <div className={apilado ? '' : 'sticky top-4 self-start'}>
         {datosSegmentoActivo ? (
           <div className="bg-slate-50 rounded p-3 text-sm">
             <p className="font-medium text-slate-700 mb-2">
