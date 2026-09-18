@@ -1,14 +1,38 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { ArrowUpRight, Pencil, Check, X } from 'lucide-react'
 import apiClient from '../api/client'
 import ColumnaVertebral from './ColumnaVertebral'
 import SelectorPlantillaPlan from './SelectorPlantillaPlan'
 import GestionArchivosPaciente from './GestionArchivosPaciente'
 import Modal from './Modal'
 import Boton from './Boton'
+import BotonIcono from './BotonIcono'
 import { useEsVerticalQuiro } from '../hooks/useVertical'
 import { useAuth } from '../context/AuthContext'
 import { formatearFecha, formatearHora } from '../utils/fechas'
+
+const CAMPOS_EDITABLES = [
+  ['dni', 'DNI', 'text'],
+  ['obra_social', 'Obra social', 'text'],
+  ['email', 'Email', 'email'],
+  ['celular', 'Celular', 'text'],
+  ['fecha_nacimiento', 'Fecha de nacimiento', 'date'],
+]
+
+function listaAjustesAMapa(ajustes) {
+  const mapa = {}
+  ajustes.forEach((a) => {
+    mapa[a.segmento] = {
+      ajustado: a.ajustado,
+      tipo_ajuste: a.tipo_ajuste || [],
+      tecnica: a.tecnica ? [a.tecnica] : [],
+      direccion: a.direccion ?? null,
+      bloqueada: a.bloqueada || false,
+    }
+  })
+  return mapa
+}
 
 const TABS = [
   { key: 'datos', label: 'Datos' },
@@ -63,6 +87,13 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
   const [historialAjustes, setHistorialAjustes] = useState(null)
   const [historialError, setHistorialError] = useState(false)
   const historialFetchIniciadoRef = useRef(false)
+  const [ajustesPorConsulta, setAjustesPorConsulta] = useState({})
+  const [consultaSeleccionadaId, setConsultaSeleccionadaId] = useState(null)
+
+  const [editandoCampo, setEditandoCampo] = useState(null)
+  const [valorEditado, setValorEditado] = useState('')
+  const [guardandoCampo, setGuardandoCampo] = useState(false)
+  const [errorCampo, setErrorCampo] = useState('')
 
   const [profesionalesOrg, setProfesionalesOrg] = useState([])
   const [mostrarFormHistorica, setMostrarFormHistorica] = useState(false)
@@ -151,6 +182,33 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
   }, [pacienteId])
 
   const hayConsultaCompletada = consultas.some((c) => c.estado === 'completada')
+  const consultasCompletadas = consultas.filter((c) => c.estado === 'completada')
+
+  const iniciarEdicionCampo = (campo) => {
+    setEditandoCampo(campo)
+    setValorEditado(paciente[campo] || '')
+    setErrorCampo('')
+  }
+
+  const cancelarEdicionCampo = () => {
+    setEditandoCampo(null)
+    setErrorCampo('')
+  }
+
+  const guardarCampo = async (campo) => {
+    setGuardandoCampo(true)
+    setErrorCampo('')
+    try {
+      const res = await apiClient.patch(`/pacientes/${pacienteId}/`, { [campo]: valorEditado })
+      setPaciente((prev) => ({ ...prev, [campo]: res.data[campo] }))
+      setEditandoCampo(null)
+    } catch (err) {
+      const data = err.response?.data
+      setErrorCampo(data ? Object.values(data).flat().join(' ') : 'No se pudo guardar.')
+    } finally {
+      setGuardandoCampo(false)
+    }
+  }
 
   useEffect(() => {
     if (tab !== 'ultimo_ajuste' || !consultasCargadas || consultasError) return
@@ -179,7 +237,10 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
     )
       .then((listas) => {
         const merged = {}
-        listas.forEach((ajustes) => {
+        const porConsulta = {}
+        completadasAscendente.forEach((c, i) => {
+          const ajustes = listas[i]
+          porConsulta[c.id] = listaAjustesAMapa(ajustes)
           ajustes.forEach((a) => {
             const previo = merged[a.segmento] || { ajustado: false, tipo_ajuste: [], tecnica: [], direccion: null, bloqueada: false }
             merged[a.segmento] = {
@@ -192,6 +253,7 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
           })
         })
         setHistorialAjustes(merged)
+        setAjustesPorConsulta(porConsulta)
       })
       .catch(() => setHistorialError(true))
   }, [tab, consultasCargadas, consultasError, consultas])
@@ -368,26 +430,45 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
             {tab === 'datos' && (
                 <>
                   <dl className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
-                    <div>
-                      <dt className="text-texto-secundario">DNI</dt>
-                      <dd className="text-texto">{paciente.dni || '—'}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-texto-secundario">Obra social</dt>
-                      <dd className="text-texto">{paciente.obra_social || '—'}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-texto-secundario">Email</dt>
-                      <dd className="text-texto">{paciente.email || '—'}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-texto-secundario">Celular</dt>
-                      <dd className="text-texto">{paciente.celular || '—'}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-texto-secundario">Fecha de nacimiento</dt>
-                      <dd className="text-texto">{paciente.fecha_nacimiento || '—'}</dd>
-                    </div>
+                    {CAMPOS_EDITABLES.map(([campo, label, tipo]) => (
+                      <div key={campo}>
+                        <dt className="text-texto-secundario">{label}</dt>
+                        {editandoCampo === campo ? (
+                          <div>
+                            <div className="flex items-center gap-1 mt-0.5">
+                              <input
+                                type={tipo}
+                                value={valorEditado}
+                                onChange={(e) => setValorEditado(e.target.value)}
+                                disabled={guardandoCampo}
+                                autoFocus
+                                className="w-full border border-input-border rounded px-2 py-1 text-sm focus:outline-none focus:border-input-focus"
+                              />
+                              <BotonIcono
+                                icono={Check}
+                                texto="Guardar"
+                                color="success"
+                                disabled={guardandoCampo}
+                                onClick={() => guardarCampo(campo)}
+                              />
+                              <BotonIcono
+                                icono={X}
+                                texto="Cancelar"
+                                color="neutral"
+                                disabled={guardandoCampo}
+                                onClick={cancelarEdicionCampo}
+                              />
+                            </div>
+                            {errorCampo && <p className="text-input-error text-xs mt-1">{errorCampo}</p>}
+                          </div>
+                        ) : (
+                          <dd className="text-texto flex items-center gap-1">
+                            {paciente[campo] || '—'}
+                            <BotonIcono icono={Pencil} texto={`Editar ${label}`} onClick={() => iniciarEdicionCampo(campo)} />
+                          </dd>
+                        )}
+                      </div>
+                    ))}
                     <div>
                       <dt className="text-texto-secundario">Profesional a cargo</dt>
                       <dd className="text-texto">
@@ -411,13 +492,12 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
                       </dl>
                       {resumenUltima && <p className="text-texto text-sm">{resumenUltima}</p>}
                       <div className="text-right mt-2">
-                        <Link
+                        <BotonIcono
+                          icono={ArrowUpRight}
+                          texto="Ver consulta completa"
                           to={`/consultas/${ultimaConsultaCompletada.id}`}
                           onClick={onClose}
-                          className="text-xs text-btn-primary hover:underline"
-                        >
-                          Ver consulta completa →
-                        </Link>
+                        />
                       </div>
                     </div>
                   )}
@@ -668,23 +748,63 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
                   {historialAjustes && (
                     <div>
                       <p className="text-xs text-texto-secundario mb-2">
-                        Segmentos ajustados alguna vez, acumulado de todas las consultas completadas.
-                        La dirección y el estado de bloqueo reflejan la consulta más reciente.
+                        {consultaSeleccionadaId
+                          ? 'Ajustes de la consulta seleccionada.'
+                          : 'Segmentos ajustados alguna vez, acumulado de todas las consultas completadas. La dirección y el estado de bloqueo reflejan la consulta más reciente.'}
                       </p>
                       {esQuiro && (
-                        <ColumnaVertebral ajustes={historialAjustes} segmentoActivo={null} onClickSegmento={() => {}} />
+                        <ColumnaVertebral
+                          ajustes={consultaSeleccionadaId ? (ajustesPorConsulta[consultaSeleccionadaId] || {}) : historialAjustes}
+                          segmentoActivo={null}
+                          onClickSegmento={() => {}}
+                        />
                       )}
+
+                      {consultasCompletadas.length > 1 && (
+                        <div className="mt-4 pt-4 border-t border-borde-suave">
+                          <p className="text-xs font-semibold text-texto-secundario mb-2">Ver ajustes de una consulta puntual</p>
+                          <ul className="divide-y divide-borde-suave max-h-32 overflow-y-auto">
+                            <li>
+                              <button
+                                type="button"
+                                onClick={() => setConsultaSeleccionadaId(null)}
+                                className={`w-full text-left py-1.5 text-sm ${!consultaSeleccionadaId ? 'text-btn-primary font-medium' : 'text-texto'}`}
+                              >
+                                Acumulado (todas las consultas)
+                              </button>
+                            </li>
+                            {consultasCompletadas.map((c) => (
+                              <li key={c.id}>
+                                <button
+                                  type="button"
+                                  onClick={() => setConsultaSeleccionadaId(c.id)}
+                                  className={`w-full text-left py-1.5 text-sm ${consultaSeleccionadaId === c.id ? 'text-btn-primary font-medium' : 'text-texto'}`}
+                                >
+                                  {formatearFecha(c.fecha)} — {c.profesional_nombre}
+                                </button>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
                       {ultimaConsultaCompletada && (
                         <div className="mt-4 pt-4 border-t border-borde-suave flex justify-between items-center text-sm">
-                          <span className="text-texto">{formatearFecha(ultimaConsultaCompletada.fecha)}</span>
+                          <span className="text-texto">
+                            {formatearFecha(
+                              (consultaSeleccionadaId
+                                ? consultasCompletadas.find((c) => c.id === consultaSeleccionadaId)
+                                : ultimaConsultaCompletada
+                              )?.fecha
+                            )}
+                          </span>
                           <div className="flex gap-3">
-                            <Link
-                              to={`/consultas/${ultimaConsultaCompletada.id}`}
+                            <BotonIcono
+                              icono={ArrowUpRight}
+                              texto="Ver consulta completa"
+                              to={`/consultas/${consultaSeleccionadaId || ultimaConsultaCompletada.id}`}
                               onClick={onClose}
-                              className="text-xs text-btn-primary hover:underline"
-                            >
-                              Ver consulta →
-                            </Link>
+                            />
                             <Link
                               to={`/pacientes/${pacienteId}`}
                               onClick={onClose}
