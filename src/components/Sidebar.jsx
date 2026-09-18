@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext'
 import apiClient from '../api/client'
 import NotificationBell from './NotificationBell'
 import NuevoPacienteModal from './NuevoPacienteModal'
+import SoporteModal from './SoporteModal'
 import Boton from './Boton'
 import logoQnexus from '../assets/logo_qnexus.png'
 
@@ -86,14 +87,25 @@ function SidebarIcon({ to, onClick, Icon, label, items, active, danger }) {
 }
 
 function ItemMobile({ to, Icon, label, onClick }) {
-  return (
-    <Link
-      to={to}
-      onClick={onClick}
-      className="flex items-center gap-3 px-3 py-2 text-sm text-slate-600 hover:text-primary"
-    >
+  const contenido = (
+    <>
       <Icon size={20} strokeWidth={GROSOR_TRAZO} aria-hidden="true" />
       {label}
+    </>
+  )
+  const clases = 'flex items-center gap-3 px-3 py-2 text-sm text-slate-600 hover:text-primary'
+
+  if (!to) {
+    return (
+      <button type="button" onClick={onClick} className={`w-full text-left ${clases}`}>
+        {contenido}
+      </button>
+    )
+  }
+
+  return (
+    <Link to={to} onClick={onClick} className={clases}>
+      {contenido}
     </Link>
   )
 }
@@ -147,6 +159,7 @@ export default function Sidebar() {
   const location = useLocation()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [modalNuevoPacienteAbierto, setModalNuevoPacienteAbierto] = useState(false)
+  const [modalSoporteAbierto, setModalSoporteAbierto] = useState(false)
 
   const handleLogout = async () => {
     try {
@@ -223,7 +236,7 @@ export default function Sidebar() {
         <div className="flex flex-col items-center gap-3 pt-3 mt-2 border-t border-white/15 w-full">
           {/* Ícono TEMPORAL: placeholder de "Zoe" (el asistente) hasta que la
               diseñadora defina el ícono/branding final de soporte. */}
-          <SidebarIcon to="/soporte" Icon={MessageCircle} label="Soporte técnico" active={location.pathname === '/soporte'} />
+          <SidebarIcon onClick={() => setModalSoporteAbierto(true)} Icon={MessageCircle} label="Soporte técnico" />
           <div className="[&>div>button]:w-11 [&>div>button]:h-11 [&>div>button]:flex [&>div>button]:items-center [&>div>button]:justify-center [&>div>button]:rounded-xl [&>div>button]:text-white/80 [&>div>button:hover]:bg-white/15 [&>div>button:hover]:text-white">
             <NotificationBell />
           </div>
@@ -273,7 +286,11 @@ export default function Sidebar() {
             )
           ))}
           {/* Ícono TEMPORAL, ver nota en el bloque desktop. */}
-          <ItemMobile to="/soporte" Icon={MessageCircle} label="Soporte técnico" onClick={() => setMobileOpen(false)} />
+          <ItemMobile
+            Icon={MessageCircle}
+            label="Soporte técnico"
+            onClick={() => { setModalSoporteAbierto(true); setMobileOpen(false) }}
+          />
           <div className="border-t border-slate-100 pt-3 px-3 mt-2">
             <p className="text-xs text-slate-400">{auth.organizacion_nombre}</p>
             <Link
@@ -295,6 +312,10 @@ export default function Sidebar() {
           onClose={() => setModalNuevoPacienteAbierto(false)}
           onCreado={(p) => navigate('/pacientes', { state: { abrirPacienteId: p.id } })}
         />
+      )}
+
+      {modalSoporteAbierto && (
+        <SoporteModal onClose={() => setModalSoporteAbierto(false)} />
       )}
     </>
   )
