@@ -192,7 +192,7 @@ export default function ConsultaDetalle() {
 
         return Promise.all([promesaSeguimiento, promesaAjustes])
       })
-      .then(([seguimiento, ajustesRes]) => {
+      .then(([, ajustesRes]) => {
         if (ajustesRes) {
           const mapa = {}
           ajustesRes.data.forEach((a) => {
@@ -215,7 +215,7 @@ export default function ConsultaDetalle() {
           (d.aliviado_por || []).length
         )
         const evaluacionVacia = !(d.estado_condicion || d.progresando || d.tratamiento_eficaz || d.pronostico)
-        const planVacio = !(seguimiento.etapa || seguimiento.frecuencia || d.observaciones)
+        const planVacio = !d.observaciones
         const camposDisponibles = d.campos_personalizados_disponibles || []
         const valores = d.valores_personalizados || {}
         const camposVacios = !camposDisponibles.some((c) => {
@@ -247,7 +247,13 @@ export default function ConsultaDetalle() {
     aliviadoPor.length
   )
   const evaluacionTocada = Boolean(estadoCondicion || progresando || tratamientoEficaz || pronostico)
-  const planTocado = Boolean(etapaCuidado || frecuenciaSeguimiento || observaciones)
+  // Etapa de cuidado y frecuencia son del paciente (SeguimientoQuiropractico
+  // es OneToOne con Paciente, no con Consulta) — casi siempre vienen
+  // heredadas de una consulta anterior, no "cargadas acá". Si contaran para
+  // la completitud, "Plan" aparecería tocado en consultas donde el
+  // profesional no escribió nada. Observaciones sí es un campo propio de
+  // esta consulta, es lo único que cuenta.
+  const planTocado = Boolean(observaciones)
   const camposTocados = camposPersonalizados.some((c) => {
     const valor = valoresPersonalizados[c.id]
     return Array.isArray(valor) ? valor.length > 0 : Boolean(valor)
