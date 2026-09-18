@@ -1,7 +1,9 @@
 import { useEffect, useId, useRef, useState } from 'react'
+import { Pencil, PenTool, Archive, ArchiveRestore, Trash2 } from 'lucide-react'
 import apiClient from '../api/client'
 import AnotadorArchivo from './AnotadorArchivo'
 import Boton from './Boton'
+import BotonIcono from './BotonIcono'
 import { formatearFecha } from '../utils/fechas'
 
 export default function GestionArchivosPaciente({ pacienteId }) {
@@ -132,12 +134,9 @@ export default function GestionArchivosPaciente({ pacienteId }) {
   return (
     <div>
       <div className="flex justify-between items-center mb-3">
-        <button
-          onClick={() => setMostrarArchivados(!mostrarArchivados)}
-          className="text-sm text-blue-600 hover:underline"
-        >
+        <Boton variante="ghost" tamaño="sm" onClick={() => setMostrarArchivados(!mostrarArchivados)}>
           {mostrarArchivados ? 'Ver archivos activos' : 'Ver archivados'}
-        </button>
+        </Boton>
       </div>
 
       {!mostrarArchivados && (
@@ -214,47 +213,43 @@ export default function GestionArchivosPaciente({ pacienteId }) {
                     <a href={a.archivo} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
                       {a.nombre}
                     </a>
-                    <button
-                      type="button"
+                    <BotonIcono
+                      icono={Pencil}
+                      texto="Renombrar"
                       onClick={() => iniciarEdicionNombre(a)}
-                      className="text-slate-400 hover:text-blue-600 text-xs"
-                      title="Renombrar"
-                    >
-                      ✏️
-                    </button>
+                    />
                   </div>
                 )}
                 <div className="flex items-center gap-3">
                   {!mostrarArchivados && esImagen && (
-                    <button
+                    <BotonIcono
+                      icono={PenTool}
+                      texto="Anotar"
                       onClick={() => setArchivoAAnotar(a)}
-                      className="text-slate-500 text-xs hover:text-blue-600 hover:underline"
-                    >
-                      ✏️ Anotar
-                    </button>
+                    />
                   )}
                   {!mostrarArchivados && (
-                    <button
+                    <BotonIcono
+                      icono={Archive}
+                      texto="Archivar"
+                      color="warning"
                       onClick={() => archivarArchivo(a.id)}
-                      className="text-slate-500 text-xs hover:text-amber-600 hover:underline"
-                    >
-                      Archivar
-                    </button>
+                    />
                   )}
                   {mostrarArchivados && (
                     <>
-                      <button
+                      <BotonIcono
+                        icono={ArchiveRestore}
+                        texto="Restaurar"
+                        color="success"
                         onClick={() => desarchivarArchivo(a.id)}
-                        className="text-slate-500 text-xs hover:text-green-600 hover:underline"
-                      >
-                        Restaurar
-                      </button>
-                      <button
+                      />
+                      <BotonIcono
+                        icono={Trash2}
+                        texto="Eliminar"
+                        color="destructive"
                         onClick={() => eliminarArchivo(a.id)}
-                        className="text-slate-500 text-xs hover:text-red-600 hover:underline"
-                      >
-                        Eliminar
-                      </button>
+                      />
                     </>
                   )}
                   <span className="text-slate-400 text-xs">
