@@ -123,11 +123,13 @@ export default function NuevoTurno() {
 
   const pacienteSeleccionado = pacientes.find((p) => String(p.id) === String(form.paciente))
 
-  const idsConDisponibilidad = new Set(todaDisponibilidad.map((d) => String(d.profesional)))
-  const profesionalesElegibles = profesionales.filter((p) => idsConDisponibilidad.has(String(p.id)))
+  const idsConDisponibilidadEnSucursal = new Set(
+    todaDisponibilidad.filter((d) => String(d.sucursal) === String(form.sucursal)).map((d) => String(d.profesional))
+  )
+  const profesionalesElegibles = profesionales.filter((p) => idsConDisponibilidadEnSucursal.has(String(p.id)))
 
   const disponibilidadDelProfesional = todaDisponibilidad.filter(
-    (d) => String(d.profesional) === String(form.profesional)
+    (d) => String(d.profesional) === String(form.profesional) && String(d.sucursal) === String(form.sucursal)
   )
   const diasPermitidos = new Set(disponibilidadDelProfesional.map((d) => d.dia_semana))
 
@@ -188,6 +190,24 @@ export default function NuevoTurno() {
 
   const handleChange = (e) => {
     const { name, value } = e.target
+    if (name === 'sucursal') {
+      // La disponibilidad (días/horarios) es específica de cada sucursal, así
+      // que fecha/hora siempre se reinician al cambiar. El profesional elegido
+      // se conserva solo si también atiende en la sucursal nueva — si no, se
+      // limpia para no dejar seleccionado a alguien que ya no aparece en la lista.
+      const idsElegiblesEnNueva = new Set(
+        todaDisponibilidad.filter((d) => String(d.sucursal) === String(value)).map((d) => String(d.profesional))
+      )
+      const profesionalSigueValido = idsElegiblesEnNueva.has(String(form.profesional))
+      setForm({
+        ...form,
+        sucursal: value,
+        profesional: profesionalSigueValido ? form.profesional : '',
+        hora: '',
+      })
+      setFechaSeleccionada(null)
+      return
+    }
     if (name === 'profesional') {
       setForm({ ...form, profesional: value, hora: '' })
       setFechaSeleccionada(null)
@@ -332,7 +352,7 @@ export default function NuevoTurno() {
               </select>
               {profesionales.length > profesionalesElegibles.length && (
                 <p className="text-xs text-slate-400 mt-1">
-                  Algunos profesionales no aparecen porque todavía no tienen disponibilidad configurada.
+                  Algunos profesionales no aparecen porque no atienden en esta sucursal.
                 </p>
               )}
             </div>
