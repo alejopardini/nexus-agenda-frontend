@@ -116,7 +116,7 @@ export default function Profesionales() {
                     <tr key={p.id} className="border-b border-slate-100">
                       <td className="py-2">
                         {auth.rol === 'dueño' ? (
-                          <Link to={`/profesionales/${p.id}/editar`} className="text-blue-600 hover:underline">
+                          <Link to={`/profesionales/${p.id}/editar`} className="text-texto hover:text-btn-primary transition-colors">
                             {p.nombre} {p.apellido}
                           </Link>
                         ) : (

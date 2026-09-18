@@ -78,7 +78,7 @@ export default function Consultas() {
                       <td className="py-2">
                         <button
                           onClick={() => setPacienteAbiertoId(p.id)}
-                          className="text-blue-600 hover:underline"
+                          className="text-texto hover:text-btn-primary transition-colors"
                         >
                           {p.nombre}
                         </button>

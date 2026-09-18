@@ -64,7 +64,7 @@ export default function PacientesSinTurno() {
                 {pacientesOrdenados.map((p) => (
                   <tr key={p.id} className="border-b border-slate-100">
                     <td className="py-2">
-                      <button onClick={() => setPacienteAbiertoId(p.id)} className="text-blue-600 hover:underline">
+                      <button onClick={() => setPacienteAbiertoId(p.id)} className="text-texto hover:text-btn-primary transition-colors">
                         {p.nombre} {p.apellido}
                       </button>
                     </td>
