@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { UserMinus } from 'lucide-react'
+import { UserMinus, Pencil } from 'lucide-react'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
 import { useAuth } from '../context/AuthContext'
 import Boton from '../components/Boton'
 import BotonIcono from '../components/BotonIcono'
+import SucursalModal from '../components/SucursalModal'
 
 const ESTADO_SUSCRIPCION_LABELS = {
   trial: 'Prueba gratuita',
@@ -19,10 +20,11 @@ export default function Profesionales() {
   const { auth } = useAuth()
   const [profesionales, setProfesionales] = useState([])
   const [infoOrg, setInfoOrg] = useState(null)
-  const [cantidadSucursales, setCantidadSucursales] = useState(null)
+  const [sucursales, setSucursales] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [copiado, setCopiado] = useState(false)
+  const [modalSucursalAbierto, setModalSucursalAbierto] = useState(null) // null=cerrado, true=alta, objeto sucursal=edición
 
   const linkReserva = `${window.location.origin}/reservar/${auth.organizacion_id}`
 
@@ -45,7 +47,7 @@ export default function Profesionales() {
       .then(([profesionalesRes, orgRes, sucursalesRes]) => {
         setProfesionales(profesionalesRes.data)
         setInfoOrg(orgRes.data)
-        setCantidadSucursales(sucursalesRes.data.length)
+        setSucursales(sucursalesRes.data)
       })
       .catch(() => setError('No se pudieron cargar los profesionales.'))
       .finally(() => setLoading(false))
@@ -66,6 +68,7 @@ export default function Profesionales() {
   }
 
   const enElLimite = infoOrg && infoOrg.cantidad_profesionales >= infoOrg.limite_profesionales
+  const enElLimiteSucursales = infoOrg && sucursales.length >= infoOrg.limite_sucursales
 
   const diasRestantesTrial =
     infoOrg?.suscripcion_estado === 'trial' && infoOrg.fecha_fin_trial
@@ -140,6 +143,41 @@ export default function Profesionales() {
 
           {auth.rol === 'dueño' && (
             <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="flex justify-between items-center mb-3">
+                <h2 className="text-lg font-bold text-slate-800">Sucursales</h2>
+                {!enElLimiteSucursales ? (
+                  <Boton variante="ghost" tamaño="sm" onClick={() => setModalSucursalAbierto(true)}>
+                    + Agregar sucursal
+                  </Boton>
+                ) : (
+                  <span className="text-sm text-red-600">Límite del plan alcanzado</span>
+                )}
+              </div>
+
+              {sucursales.length === 0 ? (
+                <p className="text-slate-500 text-sm">No hay sucursales cargadas todavía.</p>
+              ) : (
+                <ul className="divide-y divide-slate-100">
+                  {sucursales.map((s) => (
+                    <li key={s.id} className="py-2 flex justify-between items-center gap-2">
+                      <div className="text-sm">
+                        <p className="text-slate-800">{s.nombre}</p>
+                        {s.direccion && <p className="text-slate-400 text-xs">{s.direccion}</p>}
+                      </div>
+                      <BotonIcono
+                        icono={Pencil}
+                        texto="Editar"
+                        onClick={() => setModalSucursalAbierto(s)}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+
+          {auth.rol === 'dueño' && (
+            <div className="bg-white rounded-lg shadow-md p-6">
               <h2 className="text-lg font-bold text-slate-800 mb-1">Reserva online</h2>
               <p className="text-sm text-slate-500 mb-3">
                 Compartí este link con tus pacientes para que reserven turnos por su cuenta.
@@ -179,11 +217,7 @@ export default function Profesionales() {
                 </div>
                 <div className="flex justify-between">
                   <dt>Sucursales</dt>
-                  <dd>
-                    {cantidadSucursales !== null
-                      ? `${cantidadSucursales} de ${infoOrg.limite_sucursales}`
-                      : `Hasta ${infoOrg.limite_sucursales}`}
-                  </dd>
+                  <dd>{sucursales.length} de {infoOrg.limite_sucursales}</dd>
                 </div>
                 <div className="flex justify-between">
                   <dt>Estado</dt>
@@ -200,6 +234,14 @@ export default function Profesionales() {
             </div>
           )}
         </div>
+      )}
+
+      {modalSucursalAbierto && (
+        <SucursalModal
+          sucursal={modalSucursalAbierto === true ? null : modalSucursalAbierto}
+          onClose={() => setModalSucursalAbierto(null)}
+          onGuardado={cargar}
+        />
       )}
     </Layout>
   )
