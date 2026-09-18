@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { ChevronDown } from 'lucide-react'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
 import BotonVolver from '../components/BotonVolver'
@@ -7,6 +8,32 @@ import EditorColumnaVertebral from '../components/EditorColumnaVertebral'
 import Boton from '../components/Boton'
 import { useEsVerticalQuiro } from '../hooks/useVertical'
 import { formatearFecha } from '../utils/fechas'
+
+// Acordeón de una sección del formulario — una sola abierta a la vez, con un
+// punto de color que indica si tiene algo cargado (no si "cumple" campos
+// obligatorios: el backend no tiene ninguno, ver Consulta model). El punto
+// es una señal de "tocaste esto", no una validación real.
+function SeccionAcordeon({ id, titulo, abierta, completa, onToggle, children }) {
+  return (
+    <div className="border-t border-slate-100 first:border-t-0 pt-4 first:pt-0">
+      <button
+        type="button"
+        onClick={() => onToggle(id)}
+        className="w-full flex items-center justify-between gap-2 text-left"
+      >
+        <span className="flex items-center gap-2">
+          <span
+            className={`w-2 h-2 rounded-full shrink-0 ${completa ? 'bg-blue-600' : 'bg-slate-300'}`}
+            title={completa ? 'Tiene datos cargados' : 'Sin completar'}
+          />
+          <h2 className="text-lg font-bold text-slate-800">{titulo}</h2>
+        </span>
+        <ChevronDown size={18} className={`text-slate-400 transition-transform shrink-0 ${abierta ? 'rotate-180' : ''}`} />
+      </button>
+      {abierta && <div className="space-y-4 mt-4">{children}</div>}
+    </div>
+  )
+}
 
 const CARACTERISTICAS_DOLOR_OPCIONES = [
   'Doloroso', 'Ardor', 'Sordo', 'Agudo', 'Punzante', 'Pulsátil', 'Debilidad', 'Entumecimiento', 'Tensión',
@@ -70,6 +97,13 @@ const ETAPA_CUIDADO_OPCIONES = [
   ['reactivacion', 'Reactivación'],
 ]
 
+const TITULO_SECCION = {
+  subjetivo: 'Subjetivo',
+  evaluacion: 'Evaluación',
+  plan: 'Plan',
+  campos: 'Campos adicionales',
+}
+
 export default function ConsultaDetalle() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -82,7 +116,10 @@ export default function ConsultaDetalle() {
   const [caracteristicasDolor, setCaracteristicasDolor] = useState([])
   const [detalleDolor, setDetalleDolor] = useState('')
   const [frecuenciaDolor, setFrecuenciaDolor] = useState('')
-  const [dolorPromedio, setDolorPromedio] = useState(0)
+  // null hasta que el usuario mueve el slider o llega un valor guardado —
+  // 0/10 es un resultado real y querido (paciente sin dolor), no hay forma
+  // de distinguirlo de "nunca tocado" si el estado inicial fuera 0.
+  const [dolorPromedio, setDolorPromedio] = useState(null)
   const [agravadoPor, setAgravadoPor] = useState([])
   const [progresionDesdeUltimaVisita, setProgresionDesdeUltimaVisita] = useState('')
   const [progresionDespuesActividad, setProgresionDespuesActividad] = useState('')
@@ -97,6 +134,7 @@ export default function ConsultaDetalle() {
   const [camposPersonalizados, setCamposPersonalizados] = useState([])
   const [valoresPersonalizados, setValoresPersonalizados] = useState({})
   const [ajustes, setAjustes] = useState({})
+  const [seccionAbierta, setSeccionAbierta] = useState('subjetivo')
 
   const esQuiro = useEsVerticalQuiro()
   // esQuiropractico ya filtraba por la especialidad del profesional (mas
@@ -106,16 +144,19 @@ export default function ConsultaDetalle() {
   const esQuiropractico = consulta?.profesional_especialidad === 'kinesiologo_quiropra'
 
   useEffect(() => {
+    let datosConsulta = null
+
     apiClient
       .get(`/consultas/${id}/`)
       .then((res) => {
+        datosConsulta = res.data
         setConsulta(res.data)
         setMotivo(res.data.motivo || '')
         setObservaciones(res.data.observaciones || '')
         setCaracteristicasDolor(res.data.caracteristicas_dolor || [])
         setDetalleDolor(res.data.detalle_dolor || '')
         setFrecuenciaDolor(res.data.frecuencia_dolor || '')
-        setDolorPromedio(res.data.dolor_promedio ?? 0)
+        setDolorPromedio(res.data.dolor_promedio ?? null)
         setAgravadoPor(res.data.agravado_por || [])
         setProgresionDesdeUltimaVisita(res.data.progresion_desde_ultima_visita || '')
         setProgresionDespuesActividad(res.data.progresion_despues_actividad || '')
@@ -127,24 +168,34 @@ export default function ConsultaDetalle() {
         setPronostico(res.data.pronostico || '')
         setValoresPersonalizados(res.data.valores_personalizados || {})
         setCamposPersonalizados(res.data.campos_personalizados_disponibles || [])
-        apiClient
+
+        // Antes esta llamada no se esperaba (se disparaba pero no se
+        // encadenaba en el then/finally). Ahora se espera junto con la de
+        // ajustes vertebrales, y devuelve los valores ya resueltos (no los
+        // vuelve a leer del estado de React) para poder calcular más abajo,
+        // en el mismo then, qué sección del acordeón abrir por default sin
+        // depender de un segundo efecto ni de una condición de carrera.
+        const promesaSeguimiento = apiClient
           .get(`/pacientes/${res.data.paciente}/seguimiento_quiropractico/`)
           .then((r) => {
-            if (r.data) {
-              setEtapaCuidado(r.data.etapa_cuidado || '')
-              setFrecuenciaSeguimiento(r.data.frecuencia || '')
-            }
+            const etapa = r.data?.etapa_cuidado || ''
+            const frecuencia = r.data?.frecuencia || ''
+            setEtapaCuidado(etapa)
+            setFrecuenciaSeguimiento(frecuencia)
+            return { etapa, frecuencia }
           })
-          .catch(() => {})
-        if (res.data.profesional_especialidad === 'kinesiologo_quiropra') {
-          return apiClient.get(`/consultas/${id}/ajustes_vertebrales/`)
-        }
-        return null
+          .catch(() => ({ etapa: '', frecuencia: '' }))
+
+        const promesaAjustes = res.data.profesional_especialidad === 'kinesiologo_quiropra'
+          ? apiClient.get(`/consultas/${id}/ajustes_vertebrales/`)
+          : Promise.resolve(null)
+
+        return Promise.all([promesaSeguimiento, promesaAjustes])
       })
-      .then((res) => {
-        if (res) {
+      .then(([seguimiento, ajustesRes]) => {
+        if (ajustesRes) {
           const mapa = {}
-          res.data.forEach((a) => {
+          ajustesRes.data.forEach((a) => {
             mapa[a.segmento] = {
               ajustado: a.ajustado,
               tipo_ajuste: a.tipo_ajuste || [],
@@ -155,10 +206,61 @@ export default function ConsultaDetalle() {
           })
           setAjustes(mapa)
         }
+
+        const d = datosConsulta
+        const subjetivoVacio = !(
+          d.motivo || (d.caracteristicas_dolor || []).length || d.detalle_dolor || d.frecuencia_dolor ||
+          d.dolor_promedio != null || (d.agravado_por || []).length ||
+          d.progresion_desde_ultima_visita || d.progresion_despues_actividad || d.progresion_despues_dormir ||
+          (d.aliviado_por || []).length
+        )
+        const evaluacionVacia = !(d.estado_condicion || d.progresando || d.tratamiento_eficaz || d.pronostico)
+        const planVacio = !(seguimiento.etapa || seguimiento.frecuencia || d.observaciones)
+        const camposDisponibles = d.campos_personalizados_disponibles || []
+        const valores = d.valores_personalizados || {}
+        const camposVacios = !camposDisponibles.some((c) => {
+          const valor = valores[c.id]
+          return Array.isArray(valor) ? valor.length > 0 : Boolean(valor)
+        })
+
+        const secciones = [
+          { id: 'subjetivo', vacia: subjetivoVacio },
+          { id: 'evaluacion', vacia: evaluacionVacia },
+          { id: 'plan', vacia: planVacio },
+          ...(camposDisponibles.length > 0 ? [{ id: 'campos', vacia: camposVacios }] : []),
+        ]
+        const primeraVacia = secciones.find((s) => s.vacia)
+        setSeccionAbierta(primeraVacia ? primeraVacia.id : 'subjetivo')
       })
       .catch(() => setError('No se pudo cargar la consulta.'))
       .finally(() => setLoading(false))
   }, [id])
+
+  // "Tocada" = tiene al menos un campo con contenido — no "cumple los
+  // requeridos" (no hay ninguno en el backend, ver Consulta model). Es la
+  // señal para el punto de completitud del acordeón, no una validación —
+  // se recalcula en cada render a partir del estado actual del form.
+  const subjetivoTocado = Boolean(
+    motivo || caracteristicasDolor.length || detalleDolor || frecuenciaDolor ||
+    dolorPromedio !== null || agravadoPor.length ||
+    progresionDesdeUltimaVisita || progresionDespuesActividad || progresionDespuesDormir ||
+    aliviadoPor.length
+  )
+  const evaluacionTocada = Boolean(estadoCondicion || progresando || tratamientoEficaz || pronostico)
+  const planTocado = Boolean(etapaCuidado || frecuenciaSeguimiento || observaciones)
+  const camposTocados = camposPersonalizados.some((c) => {
+    const valor = valoresPersonalizados[c.id]
+    return Array.isArray(valor) ? valor.length > 0 : Boolean(valor)
+  })
+
+  const SECCIONES = [
+    { id: 'subjetivo', completa: subjetivoTocado },
+    { id: 'evaluacion', completa: evaluacionTocada },
+    { id: 'plan', completa: planTocado },
+    ...(camposPersonalizados.length > 0 ? [{ id: 'campos', completa: camposTocados }] : []),
+  ]
+
+  const toggleSeccion = (id) => setSeccionAbierta((prev) => (prev === id ? null : id))
 
   const toggleValorEnArray = (setter, actual, valor) => {
     setter(actual.includes(valor) ? actual.filter((v) => v !== valor) : [...actual, valor])
@@ -178,6 +280,13 @@ export default function ConsultaDetalle() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+
+    const incompletas = SECCIONES.filter((s) => !s.completa).map((s) => TITULO_SECCION[s.id])
+    if (incompletas.length > 0) {
+      const seguir = confirm(`Quedaron sin completar: ${incompletas.join(', ')}. ¿Guardar igual?`)
+      if (!seguir) return
+    }
+
     setError('')
     setGuardando(true)
     try {
@@ -270,9 +379,14 @@ export default function ConsultaDetalle() {
         </div>
 
         <div className={hayColumnaVertebral ? 'grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-4' : ''}>
-          <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-6 space-y-4">
-            <h2 className="text-lg font-bold text-slate-800">Subjetivo</h2>
-
+          <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-6">
+            <SeccionAcordeon
+              id="subjetivo"
+              titulo={TITULO_SECCION.subjetivo}
+              abierta={seccionAbierta === 'subjetivo'}
+              completa={subjetivoTocado}
+              onToggle={toggleSeccion}
+            >
             <div>
               <label className="block text-sm text-slate-600 mb-1">Motivo</label>
               <input
@@ -323,13 +437,16 @@ export default function ConsultaDetalle() {
 
             <div>
               <label className="block text-sm text-slate-600 mb-1">
-                Dolor promedio: <span className="font-medium text-slate-800">{dolorPromedio}</span>
+                Dolor promedio:{' '}
+                <span className="font-medium text-slate-800">
+                  {dolorPromedio === null ? 'Sin registrar' : dolorPromedio}
+                </span>
               </label>
               <input
                 type="range"
                 min={0}
                 max={10}
-                value={dolorPromedio}
+                value={dolorPromedio ?? 0}
                 onChange={(e) => setDolorPromedio(Number(e.target.value))}
                 className="w-full"
               />
@@ -411,10 +528,15 @@ export default function ConsultaDetalle() {
                 ))}
               </div>
             </div>
+            </SeccionAcordeon>
 
-            <div className="pt-4 border-t border-slate-100 space-y-4">
-              <h2 className="text-lg font-bold text-slate-800">Evaluación</h2>
-
+            <SeccionAcordeon
+              id="evaluacion"
+              titulo={TITULO_SECCION.evaluacion}
+              abierta={seccionAbierta === 'evaluacion'}
+              completa={evaluacionTocada}
+              onToggle={toggleSeccion}
+            >
               <div>
                 <label className="block text-sm text-slate-600 mb-1">Estado de la condición</label>
                 <select
@@ -470,11 +592,15 @@ export default function ConsultaDetalle() {
                   ))}
                 </select>
               </div>
-            </div>
+            </SeccionAcordeon>
 
-            <div className="pt-4 border-t border-slate-100 space-y-4">
-              <h2 className="text-lg font-bold text-slate-800">Plan</h2>
-
+            <SeccionAcordeon
+              id="plan"
+              titulo={TITULO_SECCION.plan}
+              abierta={seccionAbierta === 'plan'}
+              completa={planTocado}
+              onToggle={toggleSeccion}
+            >
               <div className="flex gap-4">
                 <div className="flex-1">
                   <label className="block text-sm text-slate-600 mb-1">Etapa de cuidado</label>
@@ -510,12 +636,16 @@ export default function ConsultaDetalle() {
                   rows={4}
                 />
               </div>
-            </div>
+            </SeccionAcordeon>
 
             {camposPersonalizados.length > 0 && (
-              <div className="pt-4 border-t border-slate-100 space-y-4">
-                <h2 className="text-lg font-bold text-slate-800">Campos adicionales</h2>
-
+              <SeccionAcordeon
+                id="campos"
+                titulo={TITULO_SECCION.campos}
+                abierta={seccionAbierta === 'campos'}
+                completa={camposTocados}
+                onToggle={toggleSeccion}
+              >
                 {camposPersonalizados.map((campo) => (
                   <div key={campo.id}>
                     <label className="block text-sm text-slate-600 mb-1">{campo.etiqueta}</label>
@@ -555,12 +685,14 @@ export default function ConsultaDetalle() {
                     )}
                   </div>
                 ))}
-              </div>
+              </SeccionAcordeon>
             )}
 
-            <Boton type="submit" variante="primary" disabled={guardando} className="w-full">
-              {guardando ? 'Guardando...' : consulta.estado === 'completada' ? 'Guardar cambios' : 'Marcar como completada'}
-            </Boton>
+            <div className="pt-4 border-t border-slate-100 mt-4">
+              <Boton type="submit" variante="primary" disabled={guardando} className="w-full">
+                {guardando ? 'Guardando...' : consulta.estado === 'completada' ? 'Guardar cambios' : 'Marcar como completada'}
+              </Boton>
+            </div>
           </form>
 
           {hayColumnaVertebral && (
