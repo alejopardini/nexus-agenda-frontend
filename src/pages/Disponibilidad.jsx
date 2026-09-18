@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
+import { Trash2 } from 'lucide-react'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
 import { useAuth } from '../context/AuthContext'
 import Boton from '../components/Boton'
+import BotonIcono from '../components/BotonIcono'
 import { formatearFecha } from '../utils/fechas'
 
 const DIAS = [
@@ -190,9 +192,7 @@ export default function Disponibilidad() {
                     {grupo.items.map((d) => (
                       <li key={d.id} className="flex justify-between items-center text-slate-600">
                         <span>{d.dia_semana_nombre}: {d.hora_inicio} - {d.hora_fin}</span>
-                        <button onClick={() => eliminar(d.id)} className="text-red-600 text-xs hover:underline">
-                          Eliminar
-                        </button>
+                        <BotonIcono icono={Trash2} texto="Eliminar" color="destructive" onClick={() => eliminar(d.id)} />
                       </li>
                     ))}
                   </ul>
@@ -341,9 +341,7 @@ export default function Disponibilidad() {
               {excepciones.map((ex) => (
                 <li key={ex.id} className="py-2 flex justify-between items-center text-sm">
                   <span>{ex.profesional_nombre} — {formatearFecha(ex.fecha)} {ex.motivo && `(${ex.motivo})`}</span>
-                  <button onClick={() => eliminarExcepcion(ex.id)} className="text-red-600 text-xs hover:underline">
-                    Eliminar
-                  </button>
+                  <BotonIcono icono={Trash2} texto="Eliminar" color="destructive" onClick={() => eliminarExcepcion(ex.id)} />
                 </li>
               ))}
             </ul>
@@ -398,9 +396,7 @@ export default function Disponibilidad() {
                 {cierres.map((c) => (
                   <li key={c.id} className="py-2 flex justify-between items-center text-sm">
                     <span>{formatearFecha(c.fecha)} {c.motivo && `— ${c.motivo}`}</span>
-                    <button onClick={() => eliminarCierre(c.id)} className="text-red-600 text-xs hover:underline">
-                      Eliminar
-                    </button>
+                    <BotonIcono icono={Trash2} texto="Eliminar" color="destructive" onClick={() => eliminarCierre(c.id)} />
                   </li>
                 ))}
               </ul>
