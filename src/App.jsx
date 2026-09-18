@@ -13,7 +13,6 @@ import Pacientes from './pages/Pacientes'
 import DetallePaciente from './pages/DetallePaciente'
 import EditarPaciente from './pages/EditarPaciente'
 import Turnos from './pages/Turnos'
-import NuevoTurno from './pages/NuevoTurno'
 import TurnosCancelados from './pages/TurnosCancelados'
 import HistorialTurnos from './pages/HistorialTurnos'
 import CalendarioTurnos from './pages/CalendarioTurnos'
@@ -56,7 +55,7 @@ function App() {
             <Route path="/pacientes/:id" element={<ProtectedRoute><DetallePaciente /></ProtectedRoute>} />
             <Route path="/turnos" element={<ProtectedRoute><CalendarioTurnos /></ProtectedRoute>} />
             <Route path="/turnos/lista" element={<ProtectedRoute><Turnos /></ProtectedRoute>} />
-            <Route path="/turnos/nuevo" element={<ProtectedRoute><NuevoTurno /></ProtectedRoute>} />
+            <Route path="/turnos/nuevo" element={<Navigate to="/turnos" replace />} />
             <Route path="/turnos/cancelados" element={<ProtectedRoute><TurnosCancelados /></ProtectedRoute>} />
             <Route path="/turnos/historial" element={<ProtectedRoute><HistorialTurnos /></ProtectedRoute>} />
             <Route path="/turnos/valores" element={<ProtectedRoute><ValoresTurnos /></ProtectedRoute>} />
