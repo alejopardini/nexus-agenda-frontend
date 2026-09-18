@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
 import FichaPacienteModal from '../components/FichaPacienteModal'
 import PanelCamillaCondensado from '../components/PanelCamillaCondensado'
+import Boton from '../components/Boton'
 import { buscarConsultaCompletadaPrevia } from '../utils/consultas'
 import { formatearFecha, formatearHora } from '../utils/fechas'
 
@@ -97,22 +97,20 @@ export default function ConsultasPendientes() {
                         </td>
                         <td className="py-2">
                           {tieneHistorial ? (
-                            <button
+                            <Boton
+                              variante="primary"
+                              tamaño="sm"
                               onClick={() => setPanelCondensado({
                                 pacienteId: t.paciente,
                                 consultaId: t.consulta_pendiente_id,
                               })}
-                              className="text-blue-600 hover:underline font-medium"
                             >
                               Completar consulta
-                            </button>
+                            </Boton>
                           ) : (
-                            <Link
-                              to={`/consultas/${t.consulta_pendiente_id}`}
-                              className="text-blue-600 hover:underline font-medium"
-                            >
+                            <Boton to={`/consultas/${t.consulta_pendiente_id}`} variante="primary" tamaño="sm">
                               Completar consulta
-                            </Link>
+                            </Boton>
                           )}
                         </td>
                       </tr>
