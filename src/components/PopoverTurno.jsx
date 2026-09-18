@@ -93,13 +93,9 @@ export default function PopoverTurno({ turno, anchorRect, onClose, onConfirmar, 
           </Boton>
         </div>
 
-        <button
-          type="button"
-          onClick={onVerFicha}
-          className="text-[12px] text-btn-primary hover:underline text-left"
-        >
+        <Boton variante="ghost" tamaño="sm" onClick={onVerFicha} className="w-full">
           Ver ficha completa
-        </button>
+        </Boton>
       </Card>
     </div>
   )
