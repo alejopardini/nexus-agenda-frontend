@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { Trash2 } from 'lucide-react'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
 import { useAuth } from '../context/AuthContext'
 import BotonVolver from '../components/BotonVolver'
 import Boton from '../components/Boton'
+import BotonIcono from '../components/BotonIcono'
 
 const DIAS = [
   { value: 0, label: 'Lunes' }, { value: 1, label: 'Martes' }, { value: 2, label: 'Miércoles' },
@@ -192,9 +194,7 @@ export default function EditarProfesional() {
               {disponibilidades.map((d) => (
                 <li key={d.id} className="py-2 flex justify-between items-center text-sm">
                   <span>{d.dia_semana_nombre}: {d.hora_inicio} - {d.hora_fin}</span>
-                  <button onClick={() => eliminarHorario(d.id)} className="text-red-600 text-xs hover:underline">
-                    Eliminar
-                  </button>
+                  <BotonIcono icono={Trash2} texto="Eliminar" color="destructive" onClick={() => eliminarHorario(d.id)} />
                 </li>
               ))}
             </ul>
