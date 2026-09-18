@@ -183,7 +183,6 @@ export default function Sidebar() {
   const itemsTurnos = [
     { to: '/turnos/lista', label: 'Ver lista' },
     ...(auth.rol !== 'profesional' || auth.puede_crear_turnos === true ? [{ to: '/turnos/nuevo', label: 'Nuevo turno' }] : []),
-    { to: '/turnos', label: 'Ver calendario' },
     { to: '/turnos/historial', label: 'Historial' },
     { to: '/disponibilidad', label: 'Disponibilidad' },
     ...(auth.rol === 'profesional' ? [{ to: '/campos-personalizados', label: 'Campos personalizados' }] : []),
