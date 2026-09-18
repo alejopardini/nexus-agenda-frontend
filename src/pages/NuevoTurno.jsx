@@ -10,6 +10,7 @@ import NuevoPacienteModal from '../components/NuevoPacienteModal'
 import SelectorPlantillaPlan from '../components/SelectorPlantillaPlan'
 import Boton from '../components/Boton'
 import { useAuth } from '../context/AuthContext'
+import { useSucursalActiva } from '../context/SucursalActivaContext'
 import { hmAMinutos, minutosAHM, duracionAMinutos, diaSemanaBackend, fechaToStr } from '../utils/fechas'
 
 const MARGEN_MINUTOS_MINIMO = 30
@@ -17,6 +18,7 @@ const DURACION_PLAN_NUEVO_MINUTOS = 30
 
 export default function NuevoTurno() {
   const { auth } = useAuth()
+  const { sucursalActivaId } = useSucursalActiva()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const hoy = new Date()
@@ -76,10 +78,19 @@ export default function NuevoTurno() {
         const activos = tiposTurnoRes.data.filter((t) => t.activo)
         setTiposTurno(activos)
         setPlantillasPlan(plantillasRes.data.filter((pl) => pl.activo))
-        setForm((prev) => ({ ...prev, sucursal: sucursalesRes.data[0]?.id || '', tipoTurnoId: activos[0]?.id || '' }))
+        setForm((prev) => ({
+          ...prev,
+          sucursal: sucursalActivaId || sucursalesRes.data[0]?.id || '',
+          tipoTurnoId: activos[0]?.id || '',
+        }))
       })
       .catch(() => setError('No se pudieron cargar los datos del formulario.'))
       .finally(() => setLoading(false))
+    // sucursalActivaId solo se usa para el valor inicial del form al entrar
+    // a la pantalla — si cambia después (el usuario tocó el selector del
+    // header mientras ya estaba acá), no debe disparar una recarga completa
+    // ni pisar la sucursal que el usuario ya haya elegido en el form.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {

@@ -151,7 +151,7 @@ export default function Camillas() {
   const abrirWalkIn = (profId) => {
     setWalkInProfesionalId(profId)
     setWalkInPaciente('')
-    setWalkInSucursal(sucursales[0]?.id || '')
+    setWalkInSucursal(sucursalActivaId || sucursales[0]?.id || '')
     setWalkInError('')
     setWalkInPlanDisponible(null)
     setWalkInTipoTurnoId(tiposTurno[0]?.id || '')

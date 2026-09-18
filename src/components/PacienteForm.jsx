@@ -3,9 +3,11 @@ import apiClient from '../api/client'
 import Boton from './Boton'
 import CampoTexto from './CampoTexto'
 import { useAuth } from '../context/AuthContext'
+import { useSucursalActiva } from '../context/SucursalActivaContext'
 
 export default function PacienteForm({ onCreado }) {
   const { auth } = useAuth()
+  const { sucursalActivaId } = useSucursalActiva()
   const [error, setError] = useState('')
   const [guardando, setGuardando] = useState(false)
   const [sucursales, setSucursales] = useState([])
@@ -18,9 +20,12 @@ export default function PacienteForm({ onCreado }) {
     apiClient.get('/sucursales/')
       .then((res) => {
         setSucursales(res.data)
-        setForm((prev) => ({ ...prev, sucursal: res.data[0]?.id || '' }))
+        setForm((prev) => ({ ...prev, sucursal: sucursalActivaId || res.data[0]?.id || '' }))
       })
       .catch(() => setError('No se pudieron cargar las sucursales.'))
+    // sucursalActivaId solo se usa para el valor inicial, ver mismo criterio
+    // en NuevoTurno.jsx.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const handleChange = (e) => {
