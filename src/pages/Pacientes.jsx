@@ -4,6 +4,7 @@ import { Search, ChevronLeft, ChevronRight } from 'lucide-react'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
 import FichaPacienteModal from '../components/FichaPacienteModal'
+import NuevoPacienteModal from '../components/NuevoPacienteModal'
 import { useAuth } from '../context/AuthContext'
 import Boton from '../components/Boton'
 import Badge from '../components/Badge'
@@ -27,6 +28,7 @@ export default function Pacientes() {
   const [busqueda, setBusqueda] = useState('')
   const [pagina, setPagina] = useState(1)
   const [pacienteAbiertoId, setPacienteAbiertoId] = useState(() => location.state?.abrirPacienteId ?? null)
+  const [modalNuevoPacienteAbierto, setModalNuevoPacienteAbierto] = useState(false)
 
   useEffect(() => {
     apiClient
@@ -82,7 +84,12 @@ export default function Pacientes() {
           />
         </div>
         {(auth.rol !== 'profesional' || auth.puede_crear_pacientes === true) && (
-          <Boton to="/pacientes/nuevo" variante="primary" className="whitespace-nowrap">
+          <Boton
+            type="button"
+            onClick={() => setModalNuevoPacienteAbierto(true)}
+            variante="primary"
+            className="whitespace-nowrap"
+          >
             + Nuevo paciente
           </Boton>
         )}
@@ -181,6 +188,16 @@ export default function Pacientes() {
         <FichaPacienteModal
           pacienteId={pacienteAbiertoId}
           onClose={() => setPacienteAbiertoId(null)}
+        />
+      )}
+
+      {modalNuevoPacienteAbierto && (
+        <NuevoPacienteModal
+          onClose={() => setModalNuevoPacienteAbierto(false)}
+          onCreado={(p) => {
+            setPacientes((prev) => [...prev, p])
+            setPacienteAbiertoId(p.id)
+          }}
         />
       )}
     </Layout>

@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/Login'
@@ -9,7 +9,6 @@ import RestablecerPassword from './pages/RestablecerPassword'
 import MiPerfil from './pages/MiPerfil'
 import ReservarPublico from './pages/ReservarPublico'
 import Pacientes from './pages/Pacientes'
-import NuevoPaciente from './pages/NuevoPaciente'
 import DetallePaciente from './pages/DetallePaciente'
 import EditarPaciente from './pages/EditarPaciente'
 import Turnos from './pages/Turnos'
@@ -51,7 +50,7 @@ function App() {
           <Route path="/reservar/:organizacionId" element={<ReservarPublico />} />
           <Route path="/" element={<ProtectedRoute><CalendarioTurnos /></ProtectedRoute>} />
           <Route path="/pacientes" element={<ProtectedRoute><Pacientes /></ProtectedRoute>} />
-          <Route path="/pacientes/nuevo" element={<ProtectedRoute><NuevoPaciente /></ProtectedRoute>} />
+          <Route path="/pacientes/nuevo" element={<Navigate to="/pacientes" replace />} />
           <Route path="/pacientes/:id/editar" element={<ProtectedRoute><EditarPaciente /></ProtectedRoute>} />
           <Route path="/pacientes/:id" element={<ProtectedRoute><DetallePaciente /></ProtectedRoute>} />
           <Route path="/turnos" element={<ProtectedRoute><CalendarioTurnos /></ProtectedRoute>} />

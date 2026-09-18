@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react'
 import apiClient from '../api/client'
 import Boton from './Boton'
 import CampoTexto from './CampoTexto'
+import { useAuth } from '../context/AuthContext'
 
 export default function PacienteForm({ onCreado }) {
+  const { auth } = useAuth()
   const [error, setError] = useState('')
   const [guardando, setGuardando] = useState(false)
   const [sucursales, setSucursales] = useState([])
@@ -28,6 +30,12 @@ export default function PacienteForm({ onCreado }) {
   }
 
   const hoy = new Date().toISOString().split('T')[0]
+
+  if (auth.rol === 'profesional' && auth.puede_crear_pacientes !== true) {
+    return (
+      <p className="text-red-600">No tenés permiso para crear pacientes. Pedile a la secretaría o al dueño que lo haga.</p>
+    )
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()

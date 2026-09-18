@@ -7,6 +7,7 @@ import {
 import { useAuth } from '../context/AuthContext'
 import apiClient from '../api/client'
 import NotificationBell from './NotificationBell'
+import NuevoPacienteModal from './NuevoPacienteModal'
 import Boton from './Boton'
 import logoQnexus from '../assets/logo_qnexus.png'
 
@@ -54,13 +55,24 @@ function SidebarIcon({ to, onClick, Icon, label, items, active, danger }) {
           <div className="ml-1 w-52 rounded-lg bg-white border border-slate-200 shadow-xl py-1.5">
             <p className="px-3 py-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wide">{label}</p>
             {items.map((item) => (
-              <Link
-                key={item.to}
-                to={item.to}
-                className="block px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-primary"
-              >
-                {item.label}
-              </Link>
+              item.onClick ? (
+                <button
+                  key={item.label}
+                  type="button"
+                  onClick={item.onClick}
+                  className="block w-full text-left px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-primary"
+                >
+                  {item.label}
+                </button>
+              ) : (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className="block px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-primary"
+                >
+                  {item.label}
+                </Link>
+              )
             ))}
           </div>
         </div>
@@ -103,14 +115,25 @@ function SeccionMobile({ Icon, titulo, items, onNavegar }) {
       {abierto && (
         <div className="pl-10 space-y-1 pb-1">
           {items.map((item) => (
-            <Link
-              key={item.to}
-              to={item.to}
-              onClick={onNavegar}
-              className="block text-sm text-slate-600 hover:text-primary py-1"
-            >
-              {item.label}
-            </Link>
+            item.onClick ? (
+              <button
+                key={item.label}
+                type="button"
+                onClick={() => { item.onClick(); onNavegar() }}
+                className="block w-full text-left text-sm text-slate-600 hover:text-primary py-1"
+              >
+                {item.label}
+              </button>
+            ) : (
+              <Link
+                key={item.to}
+                to={item.to}
+                onClick={onNavegar}
+                className="block text-sm text-slate-600 hover:text-primary py-1"
+              >
+                {item.label}
+              </Link>
+            )
           ))}
         </div>
       )}
@@ -123,6 +146,7 @@ export default function Sidebar() {
   const navigate = useNavigate()
   const location = useLocation()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [modalNuevoPacienteAbierto, setModalNuevoPacienteAbierto] = useState(false)
 
   const handleLogout = async () => {
     try {
@@ -138,7 +162,7 @@ export default function Sidebar() {
 
   const itemsPacientes = [
     { to: '/pacientes', label: 'Ver lista' },
-    ...(auth.rol !== 'profesional' || auth.puede_crear_pacientes === true ? [{ to: '/pacientes/nuevo', label: 'Nuevo paciente' }] : []),
+    ...(auth.rol !== 'profesional' || auth.puede_crear_pacientes === true ? [{ label: 'Nuevo paciente', onClick: () => setModalNuevoPacienteAbierto(true) }] : []),
     { to: '/pacientes/sin-turno', label: 'Sin turno reciente' },
     { to: '/pacientes/consultas-pendientes', label: 'Consultas pendientes' },
     { to: '/planes', label: 'Planes' },
@@ -264,6 +288,13 @@ export default function Sidebar() {
             </Boton>
           </div>
         </div>
+      )}
+
+      {modalNuevoPacienteAbierto && (
+        <NuevoPacienteModal
+          onClose={() => setModalNuevoPacienteAbierto(false)}
+          onCreado={(p) => navigate('/pacientes', { state: { abrirPacienteId: p.id } })}
+        />
       )}
     </>
   )
