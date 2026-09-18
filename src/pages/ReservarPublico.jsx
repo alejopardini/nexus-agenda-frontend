@@ -111,11 +111,12 @@ export default function ReservarPublico() {
       const res = await apiClient.post(`/publico/${organizacionId}/buscar-paciente/`, { dni })
       if (res.data.existe) {
         setPaciente({ id: res.data.paciente_id, nombre: res.data.nombre })
-        setPaso('profesional')
       } else {
+        // Paciente nuevo: el alta se pide más adelante, recién cuando se
+        // eligió un horario y ya se sabe la sucursal (ver handleSubmitAlta).
         setAltaForm({ nombre: '', apellido: '', celular: '', email: '' })
-        setPaso('alta')
       }
+      setPaso('profesional')
     } catch (err) {
       const data = err.response?.data
       const mensaje = data ? Object.values(data).flat().join(' ') : 'No se pudo buscar el DNI. Probá de nuevo.'
@@ -138,9 +139,10 @@ export default function ReservarPublico() {
         dni,
         celular: altaForm.celular,
         email: altaForm.email,
+        sucursal_id: horarioSeleccionado.sucursal,
       })
       setPaciente({ id: res.data.id, nombre: `${res.data.nombre} ${res.data.apellido}` })
-      setPaso('profesional')
+      setPaso('confirmar')
     } catch (err) {
       const data = err.response?.data
       const mensaje = data
@@ -305,7 +307,7 @@ export default function ReservarPublico() {
             <Boton type="submit" variante="primary" disabled={guardandoAlta} className="w-full">
               {guardandoAlta ? 'Registrando...' : 'Registrarme y continuar'}
             </Boton>
-            <button type="button" onClick={() => setPaso('dni')} className={VOLVER_LINK}>
+            <button type="button" onClick={() => setPaso('horario')} className={VOLVER_LINK}>
               ← Volver
             </button>
           </form>
@@ -313,7 +315,7 @@ export default function ReservarPublico() {
 
         {paso === 'profesional' && (
           <div className="flex flex-col gap-5">
-            <p className="font-sans text-[14px] text-texto">¡Hola, {paciente?.nombre}!</p>
+            {paciente && <p className="font-sans text-[14px] text-texto">¡Hola, {paciente.nombre}!</p>}
             <div>
               <label className={LABEL_BASE}>¿Con quién preferís atenderte?</label>
               <div className="flex flex-col gap-2">
@@ -403,7 +405,7 @@ export default function ReservarPublico() {
               type="button"
               variante="primary"
               disabled={!horarioSeleccionado}
-              onClick={() => setPaso('confirmar')}
+              onClick={() => setPaso(paciente ? 'confirmar' : 'alta')}
               className="w-full"
             >
               Continuar
