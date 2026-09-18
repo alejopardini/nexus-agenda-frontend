@@ -124,6 +124,10 @@ export default function EditarProfesional() {
       </Layout>
     )
   }
+
+  const sucursalesPorId = {}
+  sucursales.forEach((s) => { sucursalesPorId[s.id] = s.nombre })
+
   return (
     <Layout>
       <div className="max-w-lg">
@@ -193,7 +197,12 @@ export default function EditarProfesional() {
             <ul className="divide-y divide-slate-100 mb-4">
               {disponibilidades.map((d) => (
                 <li key={d.id} className="py-2 flex justify-between items-center text-sm">
-                  <span>{d.dia_semana_nombre}: {d.hora_inicio} - {d.hora_fin}</span>
+                  <span>
+                    {d.dia_semana_nombre}: {d.hora_inicio} - {d.hora_fin}
+                    {sucursales.length > 1 && sucursalesPorId[d.sucursal] && (
+                      <span className="text-slate-400"> — {sucursalesPorId[d.sucursal]}</span>
+                    )}
+                  </span>
                   <BotonIcono icono={Trash2} texto="Eliminar" color="destructive" onClick={() => eliminarHorario(d.id)} />
                 </li>
               ))}
