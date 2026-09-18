@@ -152,7 +152,7 @@ export default function HistorialTurnos() {
                           <select
                             value={t.pagado ? 'si' : 'no'}
                             onChange={(e) => cambiarPago(t, e.target.value)}
-                            className={`${BASE_PILL} ${CLASE_PAGO[t.pagado ? 'si' : 'no']} border-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-input-focus`}
+                            className={`${BASE_PILL} ${CLASE_PAGO[t.pagado ? 'si' : 'no']} text-center border-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-input-focus`}
                           >
                             <option value="si">Pagado</option>
                             <option value="no">Pendiente de pago</option>
