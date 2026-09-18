@@ -12,6 +12,7 @@ import CalendarioSemanal from '../components/CalendarioSemanal'
 import PopoverTurno from '../components/PopoverTurno'
 import Badge from '../components/Badge'
 import Boton from '../components/Boton'
+import { useSucursalActiva } from '../context/SucursalActivaContext'
 import { hmAMinutos, minutosAHM, duracionAMinutos, diaSemanaBackend, fechaToStr, inicioDeSemana } from '../utils/fechas'
 import { estadoVisual } from '../utils/turnos'
 
@@ -98,6 +99,7 @@ function contarTurnosLibresEnFecha(fechaObjetivo, { profesionales, excepciones, 
 }
 
 export default function CalendarioTurnos() {
+  const { sucursalActivaId } = useSucursalActiva()
   const [profesionales, setProfesionales] = useState([])
   const [disponibilidad, setDisponibilidad] = useState([])
   const [turnos, setTurnos] = useState([])
@@ -164,7 +166,7 @@ export default function CalendarioTurnos() {
 
   if (loading) {
     return (
-      <Layout titulo="Calendario de turnos">
+      <Layout titulo="Calendario de turnos" filtraPorSucursal>
         <p className="text-slate-500">Cargando...</p>
       </Layout>
     )
@@ -172,7 +174,7 @@ export default function CalendarioTurnos() {
 
   if (error) {
     return (
-      <Layout titulo="Calendario de turnos">
+      <Layout titulo="Calendario de turnos" filtraPorSucursal>
         <p className="text-red-600">{error}</p>
       </Layout>
     )
@@ -188,6 +190,18 @@ export default function CalendarioTurnos() {
   const sucursalesPorId = {}
   sucursales.forEach((s) => { sucursalesPorId[s.id] = s.nombre })
 
+  // Filtro de sesión (sucursal activa, ver SucursalActivaContext): con
+  // "todas" queda idéntico a como es hoy. `excepciones` queda sin filtrar a
+  // propósito — una excepción bloquea el día entero para ese profesional
+  // independientemente de la sucursal, mismo comportamiento que ya existía.
+  const filtrarPorSucursal = (lista) =>
+    sucursalActivaId ? lista.filter((x) => String(x.sucursal) === String(sucursalActivaId)) : lista
+
+  const disponibilidadFiltrada = filtrarPorSucursal(disponibilidad)
+  const cierresFiltrados = filtrarPorSucursal(cierres)
+  const turnosFiltrados = filtrarPorSucursal(turnos)
+  const turnosTodosFiltrados = filtrarPorSucursal(turnosTodos)
+
   const columnas = []
   profesionales.forEach((p) => {
     const tieneExcepcion = excepciones.some(
@@ -195,9 +209,9 @@ export default function CalendarioTurnos() {
     )
     if (tieneExcepcion) return
 
-    const bloques = disponibilidad
+    const bloques = disponibilidadFiltrada
       .filter((d) => String(d.profesional) === String(p.id) && d.dia_semana === diaSemana)
-      .filter((d) => !cierres.some((c) => String(c.sucursal) === String(d.sucursal) && c.fecha === fechaStr))
+      .filter((d) => !cierresFiltrados.some((c) => String(c.sucursal) === String(d.sucursal) && c.fecha === fechaStr))
       .map((d) => ({
         inicio: hmAMinutos(d.hora_inicio.slice(0, 5)),
         fin: hmAMinutos(d.hora_fin.slice(0, 5)),
@@ -222,7 +236,7 @@ export default function CalendarioTurnos() {
     for (let m = minInicio; m < maxFin; m += 15) franjas.push(m)
   }
 
-  const turnosDelDia = turnos.filter((t) => t.fecha === fechaStr)
+  const turnosDelDia = turnosFiltrados.filter((t) => t.fecha === fechaStr)
 
   const estaEnBloque = (bloques, minuto) => bloques.some((b) => minuto >= b.inicio && minuto < b.fin)
 
@@ -275,11 +289,13 @@ export default function CalendarioTurnos() {
     return d
   })
   const diasSemanaStr = diasDeLaSemana.map(fechaToStr)
-  const turnosDeLaSemana = turnos.filter((t) => diasSemanaStr.includes(t.fecha))
+  const turnosDeLaSemana = turnosFiltrados.filter((t) => diasSemanaStr.includes(t.fecha))
   const turnosSemana = turnosDeLaSemana.length
   const atendidosSemana = turnosDeLaSemana.filter((t) => t.consulta_id && !t.consulta_pendiente_id).length
   const turnosLibresSemana = diasDeLaSemana.reduce(
-    (total, dia) => total + contarTurnosLibresEnFecha(dia, { profesionales, excepciones, disponibilidad, cierres, turnos }),
+    (total, dia) => total + contarTurnosLibresEnFecha(dia, {
+      profesionales, excepciones, disponibilidad: disponibilidadFiltrada, cierres: cierresFiltrados, turnos: turnosFiltrados,
+    }),
     0
   )
 
@@ -357,6 +373,7 @@ export default function CalendarioTurnos() {
   return (
     <Layout
       titulo="Calendario de turnos"
+      filtraPorSucursal
       controles={
         <div className="flex items-center gap-3">
           <div className="flex gap-1 bg-slate-100 rounded p-1">
@@ -437,14 +454,14 @@ export default function CalendarioTurnos() {
             {vista === 'semana' ? (
               <CalendarioSemanal
                 fecha={fecha}
-                turnos={turnosTodos}
+                turnos={turnosTodosFiltrados}
                 onSeleccionarDia={irADiaDesdeSemana}
                 onClickTurno={(turno, anchorRect) => setPopoverTurno({ turno, anchorRect })}
                 onCrearTurno={setCeldaModal}
                 profesionales={profesionales}
-                disponibilidad={disponibilidad}
+                disponibilidad={disponibilidadFiltrada}
                 excepciones={excepciones}
-                cierres={cierres}
+                cierres={cierresFiltrados}
               />
             ) : columnas.length === 0 ? (
               <p className="text-slate-500 text-sm">Nadie atiende este día.</p>
@@ -456,7 +473,7 @@ export default function CalendarioTurnos() {
                     {columnas.map(({ profesional, bloques, mostrarSucursalPorBloque }) => (
                       <th key={profesional.id} className="text-left text-slate-700 border-b border-slate-200 pb-2 px-2 min-w-[140px]">
                         <div>{profesional.nombre} {profesional.apellido}</div>
-                        {!mostrarSucursalPorBloque && sucursalesPorId[bloques[0].sucursal] && (
+                        {!mostrarSucursalPorBloque && !sucursalActivaId && sucursalesPorId[bloques[0].sucursal] && (
                           <div className="text-[10px] font-normal text-slate-400">{sucursalesPorId[bloques[0].sucursal]}</div>
                         )}
                       </th>
@@ -547,10 +564,10 @@ export default function CalendarioTurnos() {
               titulo="Turnos del día"
               fecha={fechaLateral}
               idsRelevantes={profesionales.map((p) => p.id)}
-              disponibilidad={disponibilidad}
+              disponibilidad={disponibilidadFiltrada}
               excepciones={excepciones}
-              cierres={cierres}
-              turnos={turnos}
+              cierres={cierresFiltrados}
+              turnos={turnosFiltrados}
               mostrarProfesional
               profesionales={profesionales}
               onClickLibre={handleClickLibrePanel}
