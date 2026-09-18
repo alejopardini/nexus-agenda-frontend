@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Pencil, Trash2 } from 'lucide-react'
+import { Pencil, Trash2, Check, X } from 'lucide-react'
 import apiClient from '../api/client'
 import Boton from './Boton'
 import BotonIcono from './BotonIcono'
@@ -133,16 +133,14 @@ export default function CatalogoEditable({ titulo, endpoint, campos, valoresInic
                     ))}
                   </div>
                   <div className="space-x-3">
-                    <button
-                      onClick={() => guardarEdicion(item.id)}
+                    <BotonIcono
+                      icono={Check}
+                      texto="Guardar"
+                      color="success"
                       disabled={guardandoEdit}
-                      className="text-green-600 text-xs hover:underline disabled:opacity-50"
-                    >
-                      Guardar
-                    </button>
-                    <button onClick={cancelarEdicion} className="text-slate-500 text-xs hover:underline">
-                      Cancelar
-                    </button>
+                      onClick={() => guardarEdicion(item.id)}
+                    />
+                    <BotonIcono icono={X} texto="Cancelar" color="neutral" onClick={cancelarEdicion} />
                   </div>
                 </div>
               ) : (
