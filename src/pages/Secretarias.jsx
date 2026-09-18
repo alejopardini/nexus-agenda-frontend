@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
+import { UserMinus } from 'lucide-react'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
 import Boton from '../components/Boton'
+import BotonIcono from '../components/BotonIcono'
 
 export default function Secretarias() {
   const [secretarias, setSecretarias] = useState([])
@@ -61,12 +63,12 @@ export default function Secretarias() {
                     <td className="py-2">{s.nombre} {s.apellido}</td>
                     <td className="py-2">{s.username}</td>
                     <td className="py-2">
-                      <button
+                      <BotonIcono
+                        icono={UserMinus}
+                        texto="Dar de baja"
+                        color="destructive"
                         onClick={() => darDeBaja(s.id, `${s.nombre} ${s.apellido}`)}
-                        className="text-red-600 text-xs hover:underline"
-                      >
-                        Dar de baja
-                      </button>
+                      />
                     </td>
                   </tr>
                 ))}
