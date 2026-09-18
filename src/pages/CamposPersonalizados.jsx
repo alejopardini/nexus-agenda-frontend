@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
+import { Check, X, Pencil, Trash2 } from 'lucide-react'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
 import BotonVolver from '../components/BotonVolver'
 import Boton from '../components/Boton'
+import BotonIcono from '../components/BotonIcono'
 
 const TIPOS = [
   ['texto', 'Texto libre'],
@@ -213,16 +215,14 @@ export default function CamposPersonalizados() {
                         className="w-32 border border-slate-300 rounded px-3 py-2 text-sm"
                       />
                       <div className="space-x-3">
-                        <button
-                          onClick={() => guardarEdicion(c.id)}
+                        <BotonIcono
+                          icono={Check}
+                          texto="Guardar"
+                          color="success"
                           disabled={guardando}
-                          className="text-green-600 text-xs hover:underline disabled:opacity-50"
-                        >
-                          Guardar
-                        </button>
-                        <button onClick={cancelarEdicion} className="text-slate-500 text-xs hover:underline">
-                          Cancelar
-                        </button>
+                          onClick={() => guardarEdicion(c.id)}
+                        />
+                        <BotonIcono icono={X} texto="Cancelar" color="neutral" onClick={cancelarEdicion} />
                       </div>
                     </div>
                   ) : (
@@ -235,15 +235,13 @@ export default function CamposPersonalizados() {
                         </p>
                       </div>
                       <div className="space-x-3 whitespace-nowrap">
-                        <button onClick={() => iniciarEdicion(c)} className="text-blue-600 text-xs hover:underline">
-                          Editar
-                        </button>
-                        <button
+                        <BotonIcono icono={Pencil} texto="Editar" onClick={() => iniciarEdicion(c)} />
+                        <BotonIcono
+                          icono={Trash2}
+                          texto="Eliminar"
+                          color="destructive"
                           onClick={() => eliminarCampo(c.id, c.etiqueta)}
-                          className="text-red-600 text-xs hover:underline"
-                        >
-                          Eliminar
-                        </button>
+                        />
                       </div>
                     </div>
                   )}
