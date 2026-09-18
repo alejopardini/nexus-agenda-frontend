@@ -7,6 +7,7 @@ import FichaPacienteModal from '../components/FichaPacienteModal'
 import PanelCamillaCondensado from '../components/PanelCamillaCondensado'
 import BotonIcono from '../components/BotonIcono'
 import Boton from '../components/Boton'
+import { useSucursalActiva } from '../context/SucursalActivaContext'
 import { buscarConsultaCompletadaPrevia } from '../utils/consultas'
 import { formatearFecha, formatearHora } from '../utils/fechas'
 
@@ -21,6 +22,7 @@ function turnoYaOcurrio(turno) {
 }
 
 export default function Turnos() {
+  const { sucursales, sucursalActivaId } = useSucursalActiva()
   const [turnos, setTurnos] = useState([])
   const [consultas, setConsultas] = useState([])
   const [loading, setLoading] = useState(true)
@@ -74,10 +76,21 @@ export default function Turnos() {
     }
   }
 
+  const sucursalesPorId = {}
+  sucursales.forEach((s) => { sucursalesPorId[s.id] = s.nombre })
+
+  // Filtro de sesión (sucursal activa, ver SucursalActivaContext): con
+  // "todas" queda idéntico a como es hoy.
+  const turnosBase = sucursalActivaId
+    ? turnos.filter((t) => String(t.sucursal) === String(sucursalActivaId))
+    : turnos
+
+  const mostrarColumnaSucursal = sucursales.length > 1 && !sucursalActivaId
+
   const termino = busqueda.trim().toLowerCase()
   const turnosFiltrados = termino
-    ? turnos.filter((t) => t.paciente_nombre.toLowerCase().includes(termino))
-    : turnos
+    ? turnosBase.filter((t) => t.paciente_nombre.toLowerCase().includes(termino))
+    : turnosBase
 
   return (
     <Layout titulo="Turnos">
@@ -100,7 +113,9 @@ export default function Turnos() {
           {turnos.length === 0 ? (
             <p className="text-slate-500">No hay turnos activos.</p>
           ) : turnosFiltrados.length === 0 ? (
-            <p className="text-slate-500">Ningún turno coincide con "{busqueda}".</p>
+            <p className="text-slate-500">
+              {termino ? `Ningún turno coincide con "${busqueda}".` : 'No hay turnos activos en esta sucursal.'}
+            </p>
           ) : (
             <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -110,6 +125,7 @@ export default function Turnos() {
                   <th className="py-2">Hora</th>
                   <th className="py-2">Paciente</th>
                   <th className="py-2">Profesional</th>
+                  {mostrarColumnaSucursal && <th className="py-2">Sucursal</th>}
                   <th className="py-2">Tipo</th>
                   <th className="py-2">Estado</th>
                   <th className="py-2"></th>
@@ -129,6 +145,9 @@ export default function Turnos() {
                       </button>
                     </td>
                     <td className="py-2">{t.profesional_nombre}</td>
+                    {mostrarColumnaSucursal && (
+                      <td className="py-2 text-slate-500">{sucursalesPorId[t.sucursal] || '—'}</td>
+                    )}
                     <td className="py-2 text-slate-500">{t.tipo_turno_texto || '—'}</td>
                     <td className="py-2">
                       <span className={`px-2 py-1 rounded text-xs font-medium ${COLOR_ESTADO[t.estado] || ''}`}>
