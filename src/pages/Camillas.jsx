@@ -8,6 +8,7 @@ import ColumnaVertebralMini from '../components/ColumnaVertebralMini'
 import BuscadorPaciente from '../components/BuscadorPaciente'
 import NuevoPacienteModal from '../components/NuevoPacienteModal'
 import { useAuth } from '../context/AuthContext'
+import { useSucursalActiva } from '../context/SucursalActivaContext'
 import PanelFranjasHorarias from '../components/PanelFranjasHorarias'
 import SelectorPlantillaPlan from '../components/SelectorPlantillaPlan'
 import Badge from '../components/Badge'
@@ -46,6 +47,7 @@ function calcularEnCamillaPorProfesional(turnosBase) {
 
 export default function Camillas() {
   const { auth } = useAuth()
+  const { sucursalActivaId } = useSucursalActiva()
   const esQuiro = useEsVerticalQuiro()
   const [turnosHoy, setTurnosHoy] = useState([])
   const [profesionales, setProfesionales] = useState([])
@@ -291,7 +293,14 @@ export default function Camillas() {
 
   const walkInPacienteSeleccionado = pacientes.find((p) => String(p.id) === String(walkInPaciente))
 
-  const turnosActivosHoy = turnosHoy.filter((t) => t.estado === 'pendiente' || t.estado === 'confirmado')
+  // Filtro de sesión (sucursal activa, ver SucursalActivaContext): con
+  // "todas" (sucursalActivaId null) queda idéntico a como es hoy.
+  const filtrarPorSucursal = (lista) =>
+    sucursalActivaId ? lista.filter((x) => String(x.sucursal) === String(sucursalActivaId)) : lista
+
+  const turnosActivosHoy = filtrarPorSucursal(
+    turnosHoy.filter((t) => t.estado === 'pendiente' || t.estado === 'confirmado')
+  )
   const enCamillaPorProfesional = calcularEnCamillaPorProfesional(turnosActivosHoy)
 
   const idsAMostrar = auth.rol === 'profesional'
@@ -351,7 +360,7 @@ export default function Camillas() {
                   titulo={
                     <>
                       {t.profesional ? `${t.profesional.nombre} ${t.profesional.apellido}` : 'Profesional'}
-                      {sucursales.length > 1 && t.sucursalNombre && (
+                      {sucursales.length > 1 && !sucursalActivaId && t.sucursalNombre && (
                         <span className="block text-[11px] font-normal text-slate-400">{t.sucursalNombre}</span>
                       )}
                     </>
@@ -518,10 +527,10 @@ export default function Camillas() {
           titulo="Próximos pacientes hoy"
           fecha={new Date()}
           idsRelevantes={idsRelevantesPanel}
-          disponibilidad={disponibilidad}
-          excepciones={excepciones}
-          cierres={cierres}
-          turnos={turnosHoy}
+          disponibilidad={filtrarPorSucursal(disponibilidad)}
+          excepciones={filtrarPorSucursal(excepciones)}
+          cierres={filtrarPorSucursal(cierres)}
+          turnos={filtrarPorSucursal(turnosHoy)}
           mostrarProfesional={auth.rol !== 'profesional'}
         />
       </div>
