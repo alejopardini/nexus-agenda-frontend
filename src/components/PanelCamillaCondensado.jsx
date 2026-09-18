@@ -322,13 +322,13 @@ export default function PanelCamillaCondensado({ pacienteId, consultaId, onClose
                   </Boton>
                 )}
 
-                <div className="flex justify-between pt-2 text-sm mt-auto">
-                  <button onClick={() => setVerFichaCompleta(true)} className="text-blue-600 hover:underline">
+                <div className="flex justify-between pt-2 mt-auto">
+                  <Boton variante="secondary" tamaño="sm" onClick={() => setVerFichaCompleta(true)}>
                     Ver ficha completa del paciente
-                  </button>
-                  <button onClick={irAConsultaCompleta} className="text-blue-600 hover:underline">
+                  </Boton>
+                  <Boton variante="secondary" tamaño="sm" onClick={irAConsultaCompleta}>
                     Editar consulta completa
-                  </button>
+                  </Boton>
                 </div>
               </div>
             </div>
