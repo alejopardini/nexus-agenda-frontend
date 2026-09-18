@@ -243,6 +243,29 @@ export default function CalendarioTurnos() {
     })
   })
 
+  // Si un profesional atiende en más de una sucursal el mismo día, el label
+  // fijo del header (que solo mostraba la del primer bloque) queda
+  // engañoso para el resto de la columna. En ese caso el nombre de la
+  // sucursal se muestra por bloque, en su primera fila LIBRE (sin turno) —
+  // nunca en la fila donde ya arranca un turno, para no competir con su
+  // badge por el mismo espacio. Si un bloque queda totalmente ocupado ese
+  // día, sencillamente no llega a mostrar su etiqueta.
+  columnas.forEach((columna) => {
+    const sucursalesDistintas = new Set(columna.bloques.map((b) => b.sucursal))
+    columna.mostrarSucursalPorBloque = sucursalesDistintas.size > 1
+    columna.etiquetaSucursalPorMinuto = {}
+    if (columna.mostrarSucursalPorBloque) {
+      columna.bloques.forEach((b) => {
+        const minutoLibre = franjas.find(
+          (m) => m >= b.inicio && m < b.fin && !turnoQueOcupa(columna.profesional.id, m)
+        )
+        if (minutoLibre !== undefined) {
+          columna.etiquetaSucursalPorMinuto[minutoLibre] = sucursalesPorId[b.sucursal]
+        }
+      })
+    }
+  })
+
   // Agregado semanal para las mismas 3 tarjetas, cuando el modo activo es
   // "semana". No reemplaza los cálculos de arriba (que siguen siendo los que
   // usa/necesita la vista diaria) — son cifras adicionales, solo para mostrar.
@@ -430,10 +453,10 @@ export default function CalendarioTurnos() {
                 <thead>
                   <tr>
                     <th className="w-16 text-left text-slate-500 border-b border-slate-200 pb-2">Hora</th>
-                    {columnas.map(({ profesional, bloques }) => (
+                    {columnas.map(({ profesional, bloques, mostrarSucursalPorBloque }) => (
                       <th key={profesional.id} className="text-left text-slate-700 border-b border-slate-200 pb-2 px-2 min-w-[140px]">
                         <div>{profesional.nombre} {profesional.apellido}</div>
-                        {sucursalesPorId[bloques[0].sucursal] && (
+                        {!mostrarSucursalPorBloque && sucursalesPorId[bloques[0].sucursal] && (
                           <div className="text-[10px] font-normal text-slate-400">{sucursalesPorId[bloques[0].sucursal]}</div>
                         )}
                       </th>
@@ -444,7 +467,7 @@ export default function CalendarioTurnos() {
                   {franjas.map((minuto) => (
                     <tr key={minuto}>
                       <td className="text-slate-500 py-1 pr-2 align-top border-b border-slate-50">{minutosAHM(minuto)}</td>
-                      {columnas.map(({ profesional, bloques }) => {
+                      {columnas.map(({ profesional, bloques, mostrarSucursalPorBloque, etiquetaSucursalPorMinuto }) => {
                         const disponible = estaEnBloque(bloques, minuto)
                         const turno = turnoQueOcupa(profesional.id, minuto)
                         const ocupado = Boolean(turno)
@@ -484,6 +507,10 @@ export default function CalendarioTurnos() {
                               </span>
                             </span>
                           ) : badge
+                        } else if (mostrarSucursalPorBloque && etiquetaSucursalPorMinuto[minuto]) {
+                          contenido = (
+                            <span className="text-[10px] text-slate-400 italic">{etiquetaSucursalPorMinuto[minuto]}</span>
+                          )
                         }
 
                         return (
