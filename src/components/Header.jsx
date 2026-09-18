@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { CircleUser, LogOut } from 'lucide-react'
+import { CircleUser, LogOut, MapPin } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { useSucursalActiva } from '../context/SucursalActivaContext'
 import apiClient from '../api/client'
 
 // Header delgado (rama prueba-sidebar-visual): barra fina arriba del
@@ -21,6 +22,7 @@ import apiClient from '../api/client'
 // pantallas de notebook con poca altura.
 export default function Header({ titulo, controles }) {
   const { auth, logout } = useAuth()
+  const { sucursales, sucursalActivaId, setSucursalActiva } = useSucursalActiva()
   const navigate = useNavigate()
 
   const handleLogout = async () => {
@@ -50,6 +52,31 @@ export default function Header({ titulo, controles }) {
 
       <div className="flex items-center gap-4 shrink-0">
         {controles}
+
+        {sucursales.length > 1 && (
+          // Filtro de sesión (ver SucursalActivaContext), no de permisos —
+          // el estilo cambia con "activo" para que no se confunda con
+          // "viendo todo" cuando en realidad hay un filtro puesto.
+          <div
+            className={`flex items-center gap-1.5 text-sm rounded-lg border px-2.5 py-1 transition-colors ${
+              sucursalActivaId
+                ? 'border-primary text-primary bg-primary/5 font-medium'
+                : 'border-borde-suave text-texto-secundario'
+            }`}
+          >
+            <MapPin size={16} strokeWidth={2} aria-hidden="true" className="shrink-0" />
+            <select
+              value={sucursalActivaId || ''}
+              onChange={(e) => setSucursalActiva(e.target.value || null)}
+              className="bg-transparent outline-none cursor-pointer max-w-[160px] truncate"
+            >
+              <option value="">Todas las sucursales</option>
+              {sucursales.map((s) => (
+                <option key={s.id} value={s.id}>{s.nombre}</option>
+              ))}
+            </select>
+          </div>
+        )}
 
         <div className="flex items-center gap-3 pl-4 border-l border-borde-suave">
           <Link

@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
+import { SucursalActivaProvider } from './context/SucursalActivaContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/Login'
 import Registro from './pages/Registro'
@@ -38,46 +39,48 @@ import GestionSuscripcion from './pages/GestionSuscripcion'
 function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/registro" element={<Registro />} />
-          <Route path="/terminos" element={<Terminos />} />
-          <Route path="/olvide-password" element={<OlvidePassword />} />
-          <Route path="/reset-password/:uidb64/:token" element={<RestablecerPassword />} />
-          <Route path="/mi-perfil" element={<ProtectedRoute><MiPerfil /></ProtectedRoute>} />
-          <Route path="/reservar/:organizacionId" element={<ReservarPublico />} />
-          <Route path="/" element={<ProtectedRoute><CalendarioTurnos /></ProtectedRoute>} />
-          <Route path="/pacientes" element={<ProtectedRoute><Pacientes /></ProtectedRoute>} />
-          <Route path="/pacientes/nuevo" element={<Navigate to="/pacientes" replace />} />
-          <Route path="/pacientes/:id/editar" element={<ProtectedRoute><EditarPaciente /></ProtectedRoute>} />
-          <Route path="/pacientes/:id" element={<ProtectedRoute><DetallePaciente /></ProtectedRoute>} />
-          <Route path="/turnos" element={<ProtectedRoute><CalendarioTurnos /></ProtectedRoute>} />
-          <Route path="/turnos/lista" element={<ProtectedRoute><Turnos /></ProtectedRoute>} />
-          <Route path="/turnos/nuevo" element={<ProtectedRoute><NuevoTurno /></ProtectedRoute>} />
-          <Route path="/turnos/cancelados" element={<ProtectedRoute><TurnosCancelados /></ProtectedRoute>} />
-          <Route path="/turnos/historial" element={<ProtectedRoute><HistorialTurnos /></ProtectedRoute>} />
-          <Route path="/turnos/valores" element={<ProtectedRoute><ValoresTurnos /></ProtectedRoute>} />
-          <Route path="/consultas" element={<ProtectedRoute><Consultas /></ProtectedRoute>} />
-          <Route path="/consultas/:id" element={<ProtectedRoute><ConsultaDetalle /></ProtectedRoute>} />
-          <Route path="/disponibilidad" element={<ProtectedRoute><Disponibilidad /></ProtectedRoute>} />
-          <Route path="/profesionales" element={<ProtectedRoute><Profesionales /></ProtectedRoute>} />
-          <Route path="/profesionales/nuevo" element={<ProtectedRoute><NuevoProfesional /></ProtectedRoute>} />
-          <Route path="/profesionales/:id/editar" element={<ProtectedRoute><EditarProfesional /></ProtectedRoute>} />
-          <Route path="/organizacion/suscripcion" element={<ProtectedRoute><GestionSuscripcion /></ProtectedRoute>} />
-          <Route path="/interconsultas" element={<ProtectedRoute><Interconsultas /></ProtectedRoute>} />
-          <Route path="/secretarias" element={<ProtectedRoute><Secretarias /></ProtectedRoute>} />
-          <Route path="/secretarias/nueva" element={<ProtectedRoute><NuevaSecretaria /></ProtectedRoute>} />
-          <Route path="/auditoria" element={<ProtectedRoute><Auditoria /></ProtectedRoute>} />
-          <Route path="/soporte" element={<Navigate to="/" replace />} />
-          <Route path="/pacientes/sin-turno" element={<ProtectedRoute><PacientesSinTurno /></ProtectedRoute>} />
-          <Route path="/pacientes/consultas-pendientes" element={<ProtectedRoute><ConsultasPendientes /></ProtectedRoute>} />
-          <Route path="/planes" element={<ProtectedRoute><Planes /></ProtectedRoute>} />
-          <Route path="/camillas" element={<ProtectedRoute><Camillas /></ProtectedRoute>} />
-          <Route path="/campos-personalizados" element={<ProtectedRoute><CamposPersonalizados /></ProtectedRoute>} />
-          <Route path="/estadisticas" element={<ProtectedRoute><Estadisticas /></ProtectedRoute>} />
-        </Routes>
-      </BrowserRouter>
+      <SucursalActivaProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/registro" element={<Registro />} />
+            <Route path="/terminos" element={<Terminos />} />
+            <Route path="/olvide-password" element={<OlvidePassword />} />
+            <Route path="/reset-password/:uidb64/:token" element={<RestablecerPassword />} />
+            <Route path="/mi-perfil" element={<ProtectedRoute><MiPerfil /></ProtectedRoute>} />
+            <Route path="/reservar/:organizacionId" element={<ReservarPublico />} />
+            <Route path="/" element={<ProtectedRoute><CalendarioTurnos /></ProtectedRoute>} />
+            <Route path="/pacientes" element={<ProtectedRoute><Pacientes /></ProtectedRoute>} />
+            <Route path="/pacientes/nuevo" element={<Navigate to="/pacientes" replace />} />
+            <Route path="/pacientes/:id/editar" element={<ProtectedRoute><EditarPaciente /></ProtectedRoute>} />
+            <Route path="/pacientes/:id" element={<ProtectedRoute><DetallePaciente /></ProtectedRoute>} />
+            <Route path="/turnos" element={<ProtectedRoute><CalendarioTurnos /></ProtectedRoute>} />
+            <Route path="/turnos/lista" element={<ProtectedRoute><Turnos /></ProtectedRoute>} />
+            <Route path="/turnos/nuevo" element={<ProtectedRoute><NuevoTurno /></ProtectedRoute>} />
+            <Route path="/turnos/cancelados" element={<ProtectedRoute><TurnosCancelados /></ProtectedRoute>} />
+            <Route path="/turnos/historial" element={<ProtectedRoute><HistorialTurnos /></ProtectedRoute>} />
+            <Route path="/turnos/valores" element={<ProtectedRoute><ValoresTurnos /></ProtectedRoute>} />
+            <Route path="/consultas" element={<ProtectedRoute><Consultas /></ProtectedRoute>} />
+            <Route path="/consultas/:id" element={<ProtectedRoute><ConsultaDetalle /></ProtectedRoute>} />
+            <Route path="/disponibilidad" element={<ProtectedRoute><Disponibilidad /></ProtectedRoute>} />
+            <Route path="/profesionales" element={<ProtectedRoute><Profesionales /></ProtectedRoute>} />
+            <Route path="/profesionales/nuevo" element={<ProtectedRoute><NuevoProfesional /></ProtectedRoute>} />
+            <Route path="/profesionales/:id/editar" element={<ProtectedRoute><EditarProfesional /></ProtectedRoute>} />
+            <Route path="/organizacion/suscripcion" element={<ProtectedRoute><GestionSuscripcion /></ProtectedRoute>} />
+            <Route path="/interconsultas" element={<ProtectedRoute><Interconsultas /></ProtectedRoute>} />
+            <Route path="/secretarias" element={<ProtectedRoute><Secretarias /></ProtectedRoute>} />
+            <Route path="/secretarias/nueva" element={<ProtectedRoute><NuevaSecretaria /></ProtectedRoute>} />
+            <Route path="/auditoria" element={<ProtectedRoute><Auditoria /></ProtectedRoute>} />
+            <Route path="/soporte" element={<Navigate to="/" replace />} />
+            <Route path="/pacientes/sin-turno" element={<ProtectedRoute><PacientesSinTurno /></ProtectedRoute>} />
+            <Route path="/pacientes/consultas-pendientes" element={<ProtectedRoute><ConsultasPendientes /></ProtectedRoute>} />
+            <Route path="/planes" element={<ProtectedRoute><Planes /></ProtectedRoute>} />
+            <Route path="/camillas" element={<ProtectedRoute><Camillas /></ProtectedRoute>} />
+            <Route path="/campos-personalizados" element={<ProtectedRoute><CamposPersonalizados /></ProtectedRoute>} />
+            <Route path="/estadisticas" element={<ProtectedRoute><Estadisticas /></ProtectedRoute>} />
+          </Routes>
+        </BrowserRouter>
+      </SucursalActivaProvider>
     </AuthProvider>
   )
 }
