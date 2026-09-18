@@ -1,6 +1,10 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import apiClient from '../api/client'
+import CampoTexto from '../components/CampoTexto'
+import Boton from '../components/Boton'
+import loginBg from '../assets/login-bg.png'
+import logoQnexusCompleto from '../assets/logo_qnexus_completo.png'
 
 export default function RestablecerPassword() {
   const { uidb64, token } = useParams()
@@ -39,57 +43,66 @@ export default function RestablecerPassword() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-100">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-sm">
-        <h1 className="text-xl font-bold mb-6 text-slate-800">Elegir nueva contraseña</h1>
+    <div className="min-h-screen relative flex items-center justify-center overflow-hidden p-4 bg-white">
+      <div
+        className="absolute inset-0 bg-cover bg-top"
+        style={{ backgroundImage: `url(${loginBg})` }}
+      />
+      <div className="absolute inset-0 bg-white/15 backdrop-blur-md" />
+
+      <div className="relative w-full max-w-[420px] bg-white rounded-xl shadow-[0px_4px_16px_rgba(0,0,0,0.1)] p-8 flex flex-col gap-5">
+        <img
+          src={logoQnexusCompleto}
+          alt="QuiroNexus"
+          className="w-[100px] h-[100px] object-contain mx-auto"
+        />
+
+        <h1 className="font-sans font-semibold text-[20px] text-heading text-center">
+          Elegir nueva contraseña
+        </h1>
 
         {exito ? (
           <>
-            <p className="text-sm text-slate-600 mb-4">Tu contraseña se actualizó correctamente.</p>
-            <Link
-              to="/login"
-              className="block w-full text-center bg-blue-600 text-white rounded py-2 font-medium hover:bg-blue-700"
-            >
+            <p className="font-sans text-[14px] text-texto-secundario">
+              Tu contraseña se actualizó correctamente.
+            </p>
+            <Boton to="/login" variante="primary" className="w-full text-center">
               Ir a iniciar sesión
-            </Link>
+            </Boton>
           </>
         ) : (
           <>
             {error && (
-              <div className="mb-4">
-                <p className="text-red-600 text-sm">{error}</p>
-                <Link to="/olvide-password" className="text-sm text-blue-600 hover:underline">
+              <div className="flex flex-col gap-1">
+                <p className="font-sans text-[14px] text-input-error">{error}</p>
+                <Link to="/olvide-password" className="font-sans text-[14px] text-primary hover:underline">
                   Pedir un link nuevo
                 </Link>
               </div>
             )}
 
-            <form onSubmit={handleSubmit}>
-              <label className="block text-sm text-slate-600 mb-1">Nueva contraseña</label>
-              <input
+            <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+              <CampoTexto
+                label="Nueva contraseña"
+                id="newPassword"
                 type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full border border-slate-300 rounded px-3 py-2 mb-4"
                 required
               />
 
-              <label className="block text-sm text-slate-600 mb-1">Confirmar contraseña</label>
-              <input
+              <CampoTexto
+                label="Confirmar contraseña"
+                id="confirmPassword"
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full border border-slate-300 rounded px-3 py-2 mb-6"
                 required
               />
 
-              <button
-                type="submit"
-                disabled={guardando}
-                className="w-full bg-blue-600 text-white rounded py-2 font-medium hover:bg-blue-700 disabled:opacity-50"
-              >
+              <Boton type="submit" variante="primary" disabled={guardando} className="w-full">
                 {guardando ? 'Guardando...' : 'Restablecer contraseña'}
-              </button>
+              </Boton>
             </form>
           </>
         )}
