@@ -6,6 +6,7 @@ import Layout from '../components/Layout'
 import FichaPacienteModal from '../components/FichaPacienteModal'
 import PanelCamillaCondensado from '../components/PanelCamillaCondensado'
 import BotonIcono from '../components/BotonIcono'
+import Boton from '../components/Boton'
 import { buscarConsultaCompletadaPrevia } from '../utils/consultas'
 import { formatearFecha, formatearHora } from '../utils/fechas'
 
@@ -92,12 +93,8 @@ export default function Turnos() {
               onChange={(e) => setBusqueda(e.target.value)}
               className="flex-1 max-w-xs border border-slate-300 rounded px-3 py-1.5 text-sm"
             />
-            <Link to="/turnos" className="text-sm text-blue-600 hover:underline whitespace-nowrap">
-              Ver calendario
-            </Link>
-            <Link to="/turnos/cancelados" className="text-sm text-slate-500 hover:underline whitespace-nowrap">
-              Ver cancelados
-            </Link>
+            <Boton to="/turnos" variante="ghost" tamaño="sm">Ver calendario</Boton>
+            <Boton to="/turnos/cancelados" variante="ghost" tamaño="sm">Ver cancelados</Boton>
           </div>
 
           {turnos.length === 0 ? (
