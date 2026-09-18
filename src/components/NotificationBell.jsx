@@ -64,9 +64,9 @@ export default function NotificationBell() {
           {error ? (
             <div className="p-4 text-center">
               <p className="text-sm text-input-error mb-2">No se pudieron cargar las notificaciones.</p>
-              <button onClick={cargar} className="text-sm text-btn-primary hover:underline">
+              <Boton variante="ghost" tamaño="sm" onClick={cargar}>
                 Reintentar
-              </button>
+              </Boton>
             </div>
           ) : (
             <>
