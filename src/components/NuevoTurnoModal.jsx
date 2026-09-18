@@ -8,7 +8,7 @@ import Boton from './Boton'
 
 const DURACION_PLAN_NUEVO_MINUTOS = 30
 
-export default function NuevoTurnoModal({ profesional, sucursalId, fecha, hora, onClose, onCreado }) {
+export default function NuevoTurnoModal({ profesional, sucursalId, fecha, hora, pacienteInicialId, onClose, onCreado }) {
   const [pacientes, setPacientes] = useState([])
   const [loadingPacientes, setLoadingPacientes] = useState(true)
   const [paciente, setPaciente] = useState('')
@@ -26,10 +26,19 @@ export default function NuevoTurnoModal({ profesional, sucursalId, fecha, hora, 
   useEffect(() => {
     apiClient
       .get('/pacientes/')
-      .then((res) => setPacientes(res.data))
+      .then((res) => {
+        setPacientes(res.data)
+        // Si el id que llegó por query param no existe o el usuario no
+        // tiene acceso a ese paciente, no va a estar en esta lista —
+        // se lo ignora en silencio y el buscador queda vacío, como si
+        // no hubiera llegado ningún pacienteInicialId.
+        if (pacienteInicialId && res.data.some((p) => String(p.id) === String(pacienteInicialId))) {
+          setPaciente(pacienteInicialId)
+        }
+      })
       .catch(() => setError('No se pudieron cargar los pacientes.'))
       .finally(() => setLoadingPacientes(false))
-  }, [])
+  }, [pacienteInicialId])
 
   useEffect(() => {
     apiClient

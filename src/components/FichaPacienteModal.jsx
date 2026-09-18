@@ -371,6 +371,7 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
   const planCerrado = (p) => !p.activo || p.sesiones_usadas >= p.sesiones_totales
 
   const tieneAcceso = paciente ? 'email' in paciente : false
+  const puedeAgendarTurno = auth.rol !== 'profesional' || auth.puede_crear_turnos === true
   const puedeCargarHistorica = auth.rol === 'dueño' || auth.rol === 'profesional'
   const profesionalACargo = consultas[0]?.profesional_nombre || null
   const ultimaConsultaCompletada = consultas.find((c) => c.estado === 'completada')
@@ -389,14 +390,23 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
       titulo={
         <>
           {paciente ? `${paciente.nombre} ${paciente.apellido}` : 'Ficha del paciente'}
-          {tieneAcceso && !ocultarEditar && (
-            <Link
-              to={`/pacientes/${pacienteId}/editar`}
-              onClick={onClose}
-              className="block text-[12px] font-normal text-btn-primary hover:underline mt-1"
-            >
-              Editar ficha completa
-            </Link>
+          {tieneAcceso && (!ocultarEditar || puedeAgendarTurno) && (
+            <div className="flex flex-wrap gap-2 mt-1">
+              {!ocultarEditar && (
+                <Boton to={`/pacientes/${pacienteId}/editar`} variante="ghost" tamaño="sm" onClick={onClose}>
+                  Editar ficha completa
+                </Boton>
+              )}
+              {puedeAgendarTurno && (
+                <Boton
+                  variante="ghost"
+                  tamaño="sm"
+                  onClick={() => { onClose(); navigate(`/turnos?paciente=${pacienteId}`) }}
+                >
+                  Agendar turno
+                </Boton>
+              )}
+            </div>
           )}
         </>
       }

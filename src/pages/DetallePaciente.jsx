@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, useNavigate, Link } from 'react-router-dom'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
 import BotonVolver from '../components/BotonVolver'
@@ -10,6 +10,7 @@ import { formatearFecha } from '../utils/fechas'
 
 export default function DetallePaciente() {
   const { id } = useParams()
+  const navigate = useNavigate()
   const { auth } = useAuth()
   const [paciente, setPaciente] = useState(null)
   const [consultas, setConsultas] = useState([])
@@ -111,6 +112,7 @@ export default function DetallePaciente() {
   }
 
   const tieneAcceso = 'email' in paciente
+  const puedeAgendarTurno = auth.rol !== 'profesional' || auth.puede_crear_turnos === true
   const otrosProfesionales = profesionales.filter((p) => String(p.id) !== String(auth.profesional_id))
 
   return (
@@ -124,9 +126,16 @@ export default function DetallePaciente() {
               {paciente.nombre} {paciente.apellido}
             </h1>
             {tieneAcceso && (
-              <Link to={`/pacientes/${id}/editar`} className="text-sm text-blue-600 hover:underline">
-                Editar
-              </Link>
+              <div className="flex flex-wrap gap-2">
+                <Boton to={`/pacientes/${id}/editar`} variante="ghost" tamaño="sm">
+                  Editar
+                </Boton>
+                {puedeAgendarTurno && (
+                  <Boton variante="ghost" tamaño="sm" onClick={() => navigate(`/turnos?paciente=${id}`)}>
+                    Agendar turno
+                  </Boton>
+                )}
+              </div>
             )}
           </div>
 

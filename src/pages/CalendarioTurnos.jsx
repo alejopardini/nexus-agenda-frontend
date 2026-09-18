@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import DatePicker, { registerLocale } from 'react-datepicker'
 import { es } from 'date-fns/locale/es'
 import 'react-datepicker/dist/react-datepicker.css'
@@ -115,6 +116,8 @@ export default function CalendarioTurnos() {
   const [pacienteAbiertoId, setPacienteAbiertoId] = useState(null)
   const [popoverTurno, setPopoverTurno] = useState(null)
   const [vista, setVista] = useState('semana') // 'dia' | 'semana'
+  const [searchParams] = useSearchParams()
+  const pacienteInicialId = searchParams.get('paciente')
 
   useEffect(() => {
     Promise.all([
@@ -535,6 +538,7 @@ export default function CalendarioTurnos() {
           sucursalId={celdaModal.sucursalId}
           fecha={celdaModal.fecha}
           hora={celdaModal.hora}
+          pacienteInicialId={pacienteInicialId}
           onClose={() => setCeldaModal(null)}
           onCreado={() => {
             setCeldaModal(null)
