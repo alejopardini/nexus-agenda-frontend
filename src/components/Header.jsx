@@ -16,11 +16,17 @@ import apiClient from '../api/client'
 // arriba del contenido. El resto de las páginas no los pasa y el header
 // muestra solo el nombre de la app, como antes.
 //
+// `filtraPorSucursal` (default false): opt-in explícito por pantalla, no
+// opt-out. El selector de sucursal activa solo se muestra cuando la propia
+// pantalla lo pide — si mañana se agrega una pantalla nueva y nadie se
+// acuerda de este detalle, el default seguro es "no confundir" (selector
+// oculto), no "mostrar un filtro que esa pantalla no respeta".
+//
 // Usuario + logout viven acá (y no al final del Sidebar) para que sean
 // siempre visibles sin depender de la altura de la ventana — en el sidebar
 // (una columna fija de alto completo, sin scroll propio) se recortaban en
 // pantallas de notebook con poca altura.
-export default function Header({ titulo, controles }) {
+export default function Header({ titulo, controles, filtraPorSucursal = false }) {
   const { auth, logout } = useAuth()
   const { sucursales, sucursalActivaId, setSucursalActiva } = useSucursalActiva()
   const navigate = useNavigate()
@@ -53,7 +59,7 @@ export default function Header({ titulo, controles }) {
       <div className="flex items-center gap-4 shrink-0">
         {controles}
 
-        {sucursales.length > 1 && (
+        {filtraPorSucursal && sucursales.length > 1 && (
           // Filtro de sesión (ver SucursalActivaContext), no de permisos —
           // el estilo cambia con "activo" para que no se confunda con
           // "viendo todo" cuando en realidad hay un filtro puesto.

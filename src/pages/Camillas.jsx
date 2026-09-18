@@ -271,7 +271,7 @@ export default function Camillas() {
 
   if (loading) {
     return (
-      <Layout titulo="Camillas">
+      <Layout titulo="Camillas" filtraPorSucursal>
         <p className="text-slate-500">Cargando...</p>
       </Layout>
     )
@@ -279,7 +279,7 @@ export default function Camillas() {
 
   if (error) {
     return (
-      <Layout titulo="Camillas">
+      <Layout titulo="Camillas" filtraPorSucursal>
         <p className="text-red-600">{error}</p>
       </Layout>
     )
@@ -347,7 +347,7 @@ export default function Camillas() {
     : profesionales.map((p) => p.id)
 
   return (
-    <Layout titulo="Camillas">
+    <Layout titulo="Camillas" filtraPorSucursal>
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4">
         <div>
           {tarjetas.length === 0 ? (

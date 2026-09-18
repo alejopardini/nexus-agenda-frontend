@@ -93,7 +93,7 @@ export default function Turnos() {
     : turnosBase
 
   return (
-    <Layout titulo="Turnos">
+    <Layout titulo="Turnos" filtraPorSucursal>
       {loading && <p className="text-slate-500">Cargando...</p>}
       {error && <p className="text-red-600">{error}</p>}
       {!loading && !error && (
