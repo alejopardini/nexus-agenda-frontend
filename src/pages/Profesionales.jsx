@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { UserMinus } from 'lucide-react'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
 import { useAuth } from '../context/AuthContext'
 import Boton from '../components/Boton'
+import BotonIcono from '../components/BotonIcono'
 
 const ESTADO_SUSCRIPCION_LABELS = {
   trial: 'Prueba gratuita',
@@ -120,12 +122,12 @@ export default function Profesionales() {
                       </td>
                       {auth.rol === 'dueño' && (
                         <td className="py-2">
-                          <button
+                          <BotonIcono
+                            icono={UserMinus}
+                            texto="Dar de baja"
+                            color="destructive"
                             onClick={() => darDeBaja(p.id, `${p.nombre} ${p.apellido}`)}
-                            className="text-red-600 text-xs hover:underline"
-                          >
-                            Dar de baja
-                          </button>
+                          />
                         </td>
                       )}
                     </tr>
