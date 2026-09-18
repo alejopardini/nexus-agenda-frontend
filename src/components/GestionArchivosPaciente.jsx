@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import apiClient from '../api/client'
 import AnotadorArchivo from './AnotadorArchivo'
 import Boton from './Boton'
@@ -16,6 +16,7 @@ export default function GestionArchivosPaciente({ pacienteId }) {
   const [nombreInvalido, setNombreInvalido] = useState(false)
   const [guardandoNombre, setGuardandoNombre] = useState(false)
   const inputArchivoRef = useRef(null)
+  const idInputArchivo = useId()
 
   const cargarArchivos = () => {
     apiClient
@@ -142,13 +143,13 @@ export default function GestionArchivosPaciente({ pacienteId }) {
       {!mostrarArchivados && (
         <form onSubmit={handleUpload} className="flex flex-col gap-2 mb-4">
           <label
-            htmlFor="archivo-input-camilla"
+            htmlFor={idInputArchivo}
             className="w-full text-sm border border-slate-300 rounded px-3 py-2 text-slate-600 truncate cursor-pointer hover:bg-slate-50"
           >
             {archivoFile ? archivoFile.name : 'Elegir archivo...'}
           </label>
           <input
-            id="archivo-input-camilla"
+            id={idInputArchivo}
             type="file"
             ref={inputArchivoRef}
             onChange={(e) => setArchivoFile(e.target.files[0])}
