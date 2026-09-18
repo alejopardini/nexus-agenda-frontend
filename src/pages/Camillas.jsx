@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { X, LogIn, LogOut, User, Search, Plus } from 'lucide-react'
+import { X, LogIn, LogOut, User, Search, Plus, Check } from 'lucide-react'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
 import FichaPacienteModal from '../components/FichaPacienteModal'
@@ -449,12 +449,12 @@ export default function Camillas() {
                                 onClick={() => setPacienteAbiertoId(turno.paciente)}
                               />
                               {turno.estado === 'pendiente' ? (
-                                <button
+                                <BotonIcono
+                                  icono={Check}
+                                  texto="Confirmar"
+                                  color="success"
                                   onClick={() => confirmarTurno(turno.id)}
-                                  className="text-xs text-amber-700 font-medium hover:underline"
-                                >
-                                  Confirmar
-                                </button>
+                                />
                               ) : (
                                 <>
                                   {item.tieneConsultaCompletada ? (
