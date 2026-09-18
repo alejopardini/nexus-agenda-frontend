@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
 import { useAuth } from '../context/AuthContext'
@@ -75,13 +74,13 @@ export default function Interconsultas() {
 
                     {ic.estado === 'pendiente' && esMiaLaSolicitud && (
                       <div className="mt-2">
-                        <button
+                        <Boton
+                          variante="secondary"
                           onClick={() => resolver(ic.id, 'rechazar')}
                           disabled={procesando === ic.id}
-                          className="text-slate-500 text-xs hover:underline disabled:opacity-50"
                         >
                           Cancelar mi solicitud
-                        </button>
+                        </Boton>
                       </div>
                     )}
 
@@ -98,16 +97,16 @@ export default function Interconsultas() {
 
                     {ic.estado === 'aprobada' && (
                       <div className="flex gap-2 mt-2">
-                        <Link to={`/pacientes/${ic.paciente}`} className="text-blue-600 text-xs hover:underline">
+                        <Boton to={`/pacientes/${ic.paciente}`} variante="secondary">
                           Ver ficha del paciente
-                        </Link>
-                        <button
+                        </Boton>
+                        <Boton
+                          variante="destructive"
                           onClick={() => resolver(ic.id, 'revocar')}
                           disabled={procesando === ic.id}
-                          className="text-red-600 text-xs hover:underline disabled:opacity-50"
                         >
                           Revocar acceso
-                        </button>
+                        </Boton>
                       </div>
                     )}
                   </li>
