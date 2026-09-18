@@ -140,7 +140,7 @@ export default function HistorialTurnos() {
                         <select
                           value={t.estado}
                           onChange={(e) => cambiarEstado(t, e.target.value)}
-                          className={`${claseBadge(t.estado)} border-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-input-focus`}
+                          className={`${claseBadge(t.estado)} text-center border-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-input-focus`}
                         >
                           {ESTADOS_EDITABLES.map((op) => (
                             <option key={op.value} value={op.value}>{op.label}</option>
