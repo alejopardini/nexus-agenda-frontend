@@ -11,6 +11,13 @@
 // existentes de la app, acá como ícono (lucide X) con zona clickeable
 // ampliada (24px de ícono + 10px de padding alrededor).
 //
+// Ancla arriba (items-start + pt-[8vh]) en vez de centrar verticalmente:
+// con items-center, la caja recentra su punto medio cada vez que el alto
+// del contenido cambia (ej. FichaPacienteModal al cambiar de pestaña),
+// haciendo que todo —incluida la barra de tabs, aunque esté fuera del área
+// scrolleable— se reacomode bajo el cursor. Con el borde superior fijo, el
+// modal solo crece/achica hacia abajo.
+//
 // `debajoTitulo` es un slot opcional para algo fijo entre el título y el
 // body scrolleable (p.ej. una fila de tabs) — no forma parte del scroll.
 //
@@ -27,7 +34,7 @@ import { X } from 'lucide-react'
 export default function Modal({ titulo, debajoTitulo, children, acciones, onClose, ancho = 'max-w-[480px]', className = '' }) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 pt-[8vh] bg-black/70"
       onClick={onClose}
     >
       <div

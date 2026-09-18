@@ -656,8 +656,49 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
                   {consultasCargadas && consultasError && (
                     <p className="text-texto-secundario text-sm">Este contenido es clínico y no está disponible para tu rol.</p>
                   )}
+                  {consultasCargadas && !consultasError && !hayConsultaCompletada && (
+                    <p className="text-texto-secundario text-sm">Este paciente todavía no tiene consultas completadas.</p>
+                  )}
+                  {consultasCargadas && !consultasError && hayConsultaCompletada && historialError && (
+                    <p className="text-input-error text-sm">No se pudo cargar el historial de ajustes.</p>
+                  )}
+                  {consultasCargadas && !consultasError && hayConsultaCompletada && !historialError && !historialAjustes && (
+                    <p className="text-texto-secundario text-sm">Cargando...</p>
+                  )}
+                  {historialAjustes && (
+                    <div>
+                      <p className="text-xs text-texto-secundario mb-2">
+                        Segmentos ajustados alguna vez, acumulado de todas las consultas completadas.
+                        La dirección y el estado de bloqueo reflejan la consulta más reciente.
+                      </p>
+                      {esQuiro && (
+                        <ColumnaVertebral ajustes={historialAjustes} segmentoActivo={null} onClickSegmento={() => {}} />
+                      )}
+                      {ultimaConsultaCompletada && (
+                        <div className="mt-4 pt-4 border-t border-borde-suave flex justify-between items-center text-sm">
+                          <span className="text-texto">{formatearFecha(ultimaConsultaCompletada.fecha)}</span>
+                          <div className="flex gap-3">
+                            <Link
+                              to={`/consultas/${ultimaConsultaCompletada.id}`}
+                              onClick={onClose}
+                              className="text-xs text-btn-primary hover:underline"
+                            >
+                              Ver consulta →
+                            </Link>
+                            <Link
+                              to={`/pacientes/${pacienteId}`}
+                              onClick={onClose}
+                              className="text-xs text-btn-primary hover:underline"
+                            >
+                              Ver historial completo →
+                            </Link>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                   {consultasCargadas && !consultasError && puedeCargarHistorica && (
-                    <div className="mb-4 pb-4 border-b border-borde-suave">
+                    <div className="mt-4 pt-4 border-t border-borde-suave">
                       <button onClick={toggleFormHistorica} className="text-sm text-btn-primary hover:underline">
                         {mostrarFormHistorica ? 'Cancelar' : '+ Cargar consulta histórica'}
                       </button>
@@ -716,36 +757,6 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
                             </Boton>
                           </div>
                         </form>
-                      )}
-                    </div>
-                  )}
-                  {consultasCargadas && !consultasError && !hayConsultaCompletada && (
-                    <p className="text-texto-secundario text-sm">Este paciente todavía no tiene consultas completadas.</p>
-                  )}
-                  {consultasCargadas && !consultasError && hayConsultaCompletada && historialError && (
-                    <p className="text-input-error text-sm">No se pudo cargar el historial de ajustes.</p>
-                  )}
-                  {consultasCargadas && !consultasError && hayConsultaCompletada && !historialError && !historialAjustes && (
-                    <p className="text-texto-secundario text-sm">Cargando...</p>
-                  )}
-                  {historialAjustes && (
-                    <div>
-                      <p className="text-xs text-texto-secundario mb-2">
-                        Segmentos ajustados alguna vez, acumulado de todas las consultas completadas.
-                        La dirección y el estado de bloqueo reflejan la consulta más reciente.
-                      </p>
-                      <ul className="divide-y divide-borde-suave mb-4">
-                        {consultas.filter((c) => c.estado === 'completada').map((c) => (
-                          <li key={c.id} className="py-1.5 flex justify-between items-center text-sm">
-                            <span className="text-texto">{formatearFecha(c.fecha)}</span>
-                            <Link to={`/consultas/${c.id}`} onClick={onClose} className="text-xs text-btn-primary hover:underline">
-                              Ver consulta →
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                      {esQuiro && (
-                        <ColumnaVertebral ajustes={historialAjustes} segmentoActivo={null} onClickSegmento={() => {}} />
                       )}
                     </div>
                   )}
