@@ -252,323 +252,331 @@ export default function ConsultaDetalle() {
     )
   }
 
+  const hayColumnaVertebral = esQuiropractico && esQuiro
+
   return (
     <Layout>
       <BotonVolver to={`/pacientes/${consulta.paciente}`} className="mb-4" />
-      <div className="bg-white rounded-lg shadow-md p-6 max-w-5xl">
-        <h1 className="text-xl font-bold text-slate-800 mb-1">
-          Consulta — {consulta.estado === 'completada' ? 'completada' : 'pendiente'}
-        </h1>
-        <p className="text-sm text-slate-500 mb-4">
-          {consulta.paciente_nombre} — {formatearFecha(consulta.fecha)}
-        </p>
+      <div className={hayColumnaVertebral ? 'max-w-6xl' : 'max-w-3xl'}>
+        <div className="bg-white rounded-lg shadow-md p-6 mb-4">
+          <h1 className="text-xl font-bold text-slate-800 mb-1">
+            Consulta — {consulta.estado === 'completada' ? 'completada' : 'pendiente'}
+          </h1>
+          <p className="text-sm text-slate-500">
+            {consulta.paciente_nombre} — {formatearFecha(consulta.fecha)}
+          </p>
 
-        {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
+          {error && <p className="text-red-600 text-sm mt-4">{error}</p>}
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <h2 className="text-lg font-bold text-slate-800">Subjetivo</h2>
+        <div className={hayColumnaVertebral ? 'grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-4' : ''}>
+          <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-6 space-y-4">
+            <h2 className="text-lg font-bold text-slate-800">Subjetivo</h2>
 
-          <div>
-            <label className="block text-sm text-slate-600 mb-1">Motivo</label>
-            <input
-              type="text"
-              value={motivo}
-              onChange={(e) => setMotivo(e.target.value)}
-              className="w-full border border-slate-300 rounded px-3 py-2"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm text-slate-600 mb-1">Características del dolor</label>
-            <div className="flex flex-wrap gap-3 mb-2">
-              {CARACTERISTICAS_DOLOR_OPCIONES.map((op) => (
-                <label key={op} className="flex items-center gap-1 text-sm text-slate-600">
-                  <input
-                    type="checkbox"
-                    checked={caracteristicasDolor.includes(op)}
-                    onChange={() => toggleValorEnArray(setCaracteristicasDolor, caracteristicasDolor, op)}
-                  />
-                  {op}
-                </label>
-              ))}
+            <div>
+              <label className="block text-sm text-slate-600 mb-1">Motivo</label>
+              <input
+                type="text"
+                value={motivo}
+                onChange={(e) => setMotivo(e.target.value)}
+                className="w-full border border-slate-300 rounded px-3 py-2"
+                required
+              />
             </div>
-            <textarea
-              value={detalleDolor}
-              onChange={(e) => setDetalleDolor(e.target.value)}
-              placeholder="Detalle del dolor (opcional)"
-              className="w-full border border-slate-300 rounded px-3 py-2 text-sm"
-              rows={2}
-            />
-          </div>
 
-          <div>
-            <label className="block text-sm text-slate-600 mb-1">Frecuencia del dolor</label>
-            <select
-              value={frecuenciaDolor}
-              onChange={(e) => setFrecuenciaDolor(e.target.value)}
-              className="w-full border border-slate-300 rounded px-3 py-2"
-            >
-              <option value="">Sin definir</option>
-              {FRECUENCIA_DOLOR_OPCIONES.map(([valor, label]) => (
-                <option key={valor} value={valor}>{label}</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm text-slate-600 mb-1">
-              Dolor promedio: <span className="font-medium text-slate-800">{dolorPromedio}</span>
-            </label>
-            <input
-              type="range"
-              min={0}
-              max={10}
-              value={dolorPromedio}
-              onChange={(e) => setDolorPromedio(Number(e.target.value))}
-              className="w-full"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm text-slate-600 mb-1">Agravado por</label>
-            <div className="flex flex-wrap gap-3">
-              {AGRAVADO_POR_OPCIONES.map((op) => (
-                <label key={op} className="flex items-center gap-1 text-sm text-slate-600">
-                  <input
-                    type="checkbox"
-                    checked={agravadoPor.includes(op)}
-                    onChange={() => toggleValorEnArray(setAgravadoPor, agravadoPor, op)}
-                  />
-                  {op}
-                </label>
-              ))}
+            <div>
+              <label className="block text-sm text-slate-600 mb-1">Características del dolor</label>
+              <div className="flex flex-wrap gap-3 mb-2">
+                {CARACTERISTICAS_DOLOR_OPCIONES.map((op) => (
+                  <label key={op} className="flex items-center gap-1 text-sm text-slate-600">
+                    <input
+                      type="checkbox"
+                      checked={caracteristicasDolor.includes(op)}
+                      onChange={() => toggleValorEnArray(setCaracteristicasDolor, caracteristicasDolor, op)}
+                    />
+                    {op}
+                  </label>
+                ))}
+              </div>
+              <textarea
+                value={detalleDolor}
+                onChange={(e) => setDetalleDolor(e.target.value)}
+                placeholder="Detalle del dolor (opcional)"
+                className="w-full border border-slate-300 rounded px-3 py-2 text-sm"
+                rows={2}
+              />
             </div>
-          </div>
 
-          <div>
-            <label className="block text-sm text-slate-600 mb-1">Progresión</label>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div>
+              <label className="block text-sm text-slate-600 mb-1">Frecuencia del dolor</label>
+              <select
+                value={frecuenciaDolor}
+                onChange={(e) => setFrecuenciaDolor(e.target.value)}
+                className="w-full border border-slate-300 rounded px-3 py-2"
+              >
+                <option value="">Sin definir</option>
+                {FRECUENCIA_DOLOR_OPCIONES.map(([valor, label]) => (
+                  <option key={valor} value={valor}>{label}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm text-slate-600 mb-1">
+                Dolor promedio: <span className="font-medium text-slate-800">{dolorPromedio}</span>
+              </label>
+              <input
+                type="range"
+                min={0}
+                max={10}
+                value={dolorPromedio}
+                onChange={(e) => setDolorPromedio(Number(e.target.value))}
+                className="w-full"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm text-slate-600 mb-1">Agravado por</label>
+              <div className="flex flex-wrap gap-3">
+                {AGRAVADO_POR_OPCIONES.map((op) => (
+                  <label key={op} className="flex items-center gap-1 text-sm text-slate-600">
+                    <input
+                      type="checkbox"
+                      checked={agravadoPor.includes(op)}
+                      onChange={() => toggleValorEnArray(setAgravadoPor, agravadoPor, op)}
+                    />
+                    {op}
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm text-slate-600 mb-1">Progresión</label>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs text-slate-500 mb-1">Desde la última visita</label>
+                  <select
+                    value={progresionDesdeUltimaVisita}
+                    onChange={(e) => setProgresionDesdeUltimaVisita(e.target.value)}
+                    className="w-full border border-slate-300 rounded px-2 py-1.5 text-sm"
+                  >
+                    <option value="">Sin definir</option>
+                    {PROGRESION_OPCIONES.map(([valor, label]) => (
+                      <option key={valor} value={valor}>{label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-500 mb-1">Después de actividad</label>
+                  <select
+                    value={progresionDespuesActividad}
+                    onChange={(e) => setProgresionDespuesActividad(e.target.value)}
+                    className="w-full border border-slate-300 rounded px-2 py-1.5 text-sm"
+                  >
+                    <option value="">Sin definir</option>
+                    {PROGRESION_OPCIONES.map(([valor, label]) => (
+                      <option key={valor} value={valor}>{label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-500 mb-1">Después de dormir</label>
+                  <select
+                    value={progresionDespuesDormir}
+                    onChange={(e) => setProgresionDespuesDormir(e.target.value)}
+                    className="w-full border border-slate-300 rounded px-2 py-1.5 text-sm"
+                  >
+                    <option value="">Sin definir</option>
+                    {PROGRESION_OPCIONES.map(([valor, label]) => (
+                      <option key={valor} value={valor}>{label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm text-slate-600 mb-1">Aliviado por</label>
+              <div className="flex flex-wrap gap-3">
+                {ALIVIADO_POR_OPCIONES.map((op) => (
+                  <label key={op} className="flex items-center gap-1 text-sm text-slate-600">
+                    <input
+                      type="checkbox"
+                      checked={aliviadoPor.includes(op)}
+                      onChange={() => toggleValorEnArray(setAliviadoPor, aliviadoPor, op)}
+                    />
+                    {op}
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div className="pt-4 border-t border-slate-100 space-y-4">
+              <h2 className="text-lg font-bold text-slate-800">Evaluación</h2>
+
               <div>
-                <label className="block text-xs text-slate-500 mb-1">Desde la última visita</label>
+                <label className="block text-sm text-slate-600 mb-1">Estado de la condición</label>
                 <select
-                  value={progresionDesdeUltimaVisita}
-                  onChange={(e) => setProgresionDesdeUltimaVisita(e.target.value)}
-                  className="w-full border border-slate-300 rounded px-2 py-1.5 text-sm"
+                  value={estadoCondicion}
+                  onChange={(e) => setEstadoCondicion(e.target.value)}
+                  className="w-full border border-slate-300 rounded px-3 py-2"
                 >
                   <option value="">Sin definir</option>
-                  {PROGRESION_OPCIONES.map(([valor, label]) => (
+                  {ESTADO_CONDICION_OPCIONES.map(([valor, label]) => (
                     <option key={valor} value={valor}>{label}</option>
                   ))}
                 </select>
               </div>
+
               <div>
-                <label className="block text-xs text-slate-500 mb-1">Después de actividad</label>
+                <label className="block text-sm text-slate-600 mb-1">Progresando</label>
                 <select
-                  value={progresionDespuesActividad}
-                  onChange={(e) => setProgresionDespuesActividad(e.target.value)}
-                  className="w-full border border-slate-300 rounded px-2 py-1.5 text-sm"
+                  value={progresando}
+                  onChange={(e) => setProgresando(e.target.value)}
+                  className="w-full border border-slate-300 rounded px-3 py-2"
                 >
                   <option value="">Sin definir</option>
-                  {PROGRESION_OPCIONES.map(([valor, label]) => (
+                  {PROGRESANDO_OPCIONES.map(([valor, label]) => (
                     <option key={valor} value={valor}>{label}</option>
                   ))}
                 </select>
               </div>
+
               <div>
-                <label className="block text-xs text-slate-500 mb-1">Después de dormir</label>
+                <label className="block text-sm text-slate-600 mb-1">Tratamiento eficaz</label>
                 <select
-                  value={progresionDespuesDormir}
-                  onChange={(e) => setProgresionDespuesDormir(e.target.value)}
-                  className="w-full border border-slate-300 rounded px-2 py-1.5 text-sm"
+                  value={tratamientoEficaz}
+                  onChange={(e) => setTratamientoEficaz(e.target.value)}
+                  className="w-full border border-slate-300 rounded px-3 py-2"
                 >
                   <option value="">Sin definir</option>
-                  {PROGRESION_OPCIONES.map(([valor, label]) => (
+                  {TRATAMIENTO_EFICAZ_OPCIONES.map(([valor, label]) => (
+                    <option key={valor} value={valor}>{label}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm text-slate-600 mb-1">Pronóstico</label>
+                <select
+                  value={pronostico}
+                  onChange={(e) => setPronostico(e.target.value)}
+                  className="w-full border border-slate-300 rounded px-3 py-2"
+                >
+                  <option value="">Sin definir</option>
+                  {PRONOSTICO_OPCIONES.map(([valor, label]) => (
                     <option key={valor} value={valor}>{label}</option>
                   ))}
                 </select>
               </div>
             </div>
-          </div>
 
-          <div>
-            <label className="block text-sm text-slate-600 mb-1">Aliviado por</label>
-            <div className="flex flex-wrap gap-3">
-              {ALIVIADO_POR_OPCIONES.map((op) => (
-                <label key={op} className="flex items-center gap-1 text-sm text-slate-600">
+            <div className="pt-4 border-t border-slate-100 space-y-4">
+              <h2 className="text-lg font-bold text-slate-800">Plan</h2>
+
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <label className="block text-sm text-slate-600 mb-1">Etapa de cuidado</label>
+                  <select
+                    value={etapaCuidado}
+                    onChange={(e) => setEtapaCuidado(e.target.value)}
+                    className="w-full border border-slate-300 rounded px-3 py-2 text-sm"
+                  >
+                    <option value="">Sin definir</option>
+                    {ETAPA_CUIDADO_OPCIONES.map(([valor, label]) => (
+                      <option key={valor} value={valor}>{label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex-1">
+                  <label className="block text-sm text-slate-600 mb-1">Frecuencia recomendada</label>
                   <input
-                    type="checkbox"
-                    checked={aliviadoPor.includes(op)}
-                    onChange={() => toggleValorEnArray(setAliviadoPor, aliviadoPor, op)}
+                    type="text"
+                    placeholder="Ej: 1 vez por semana"
+                    value={frecuenciaSeguimiento}
+                    onChange={(e) => setFrecuenciaSeguimiento(e.target.value)}
+                    className="w-full border border-slate-300 rounded px-3 py-2 text-sm"
                   />
-                  {op}
-                </label>
-              ))}
-            </div>
-          </div>
-
-          {esQuiropractico && esQuiro && (
-            <div className="pt-4 border-t border-slate-100">
-              <h2 className="text-lg font-bold text-slate-800 mb-1">Objetivo</h2>
-              <h3 className="text-sm font-semibold text-slate-700 mb-1">Ajustes vertebrales</h3>
-              <p className="text-xs text-slate-500 mb-3">
-                Click en una vértebra para marcarla.
-              </p>
-
-              <EditorColumnaVertebral ajustes={ajustes} onChangeAjustes={setAjustes} />
-            </div>
-          )}
-
-          <div className="pt-4 border-t border-slate-100 space-y-4">
-            <h2 className="text-lg font-bold text-slate-800">Evaluación</h2>
-
-            <div>
-              <label className="block text-sm text-slate-600 mb-1">Estado de la condición</label>
-              <select
-                value={estadoCondicion}
-                onChange={(e) => setEstadoCondicion(e.target.value)}
-                className="w-full border border-slate-300 rounded px-3 py-2"
-              >
-                <option value="">Sin definir</option>
-                {ESTADO_CONDICION_OPCIONES.map(([valor, label]) => (
-                  <option key={valor} value={valor}>{label}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm text-slate-600 mb-1">Progresando</label>
-              <select
-                value={progresando}
-                onChange={(e) => setProgresando(e.target.value)}
-                className="w-full border border-slate-300 rounded px-3 py-2"
-              >
-                <option value="">Sin definir</option>
-                {PROGRESANDO_OPCIONES.map(([valor, label]) => (
-                  <option key={valor} value={valor}>{label}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm text-slate-600 mb-1">Tratamiento eficaz</label>
-              <select
-                value={tratamientoEficaz}
-                onChange={(e) => setTratamientoEficaz(e.target.value)}
-                className="w-full border border-slate-300 rounded px-3 py-2"
-              >
-                <option value="">Sin definir</option>
-                {TRATAMIENTO_EFICAZ_OPCIONES.map(([valor, label]) => (
-                  <option key={valor} value={valor}>{label}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm text-slate-600 mb-1">Pronóstico</label>
-              <select
-                value={pronostico}
-                onChange={(e) => setPronostico(e.target.value)}
-                className="w-full border border-slate-300 rounded px-3 py-2"
-              >
-                <option value="">Sin definir</option>
-                {PRONOSTICO_OPCIONES.map(([valor, label]) => (
-                  <option key={valor} value={valor}>{label}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="pt-4 border-t border-slate-100 space-y-4">
-            <h2 className="text-lg font-bold text-slate-800">Plan</h2>
-
-            <div className="flex gap-4">
-              <div className="flex-1">
-                <label className="block text-sm text-slate-600 mb-1">Etapa de cuidado</label>
-                <select
-                  value={etapaCuidado}
-                  onChange={(e) => setEtapaCuidado(e.target.value)}
-                  className="w-full border border-slate-300 rounded px-3 py-2 text-sm"
-                >
-                  <option value="">Sin definir</option>
-                  {ETAPA_CUIDADO_OPCIONES.map(([valor, label]) => (
-                    <option key={valor} value={valor}>{label}</option>
-                  ))}
-                </select>
+                </div>
               </div>
-              <div className="flex-1">
-                <label className="block text-sm text-slate-600 mb-1">Frecuencia recomendada</label>
-                <input
-                  type="text"
-                  placeholder="Ej: 1 vez por semana"
-                  value={frecuenciaSeguimiento}
-                  onChange={(e) => setFrecuenciaSeguimiento(e.target.value)}
-                  className="w-full border border-slate-300 rounded px-3 py-2 text-sm"
+
+              <div>
+                <label className="block text-sm text-slate-600 mb-1">Observaciones</label>
+                <textarea
+                  value={observaciones}
+                  onChange={(e) => setObservaciones(e.target.value)}
+                  className="w-full border border-slate-300 rounded px-3 py-2"
+                  rows={4}
                 />
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm text-slate-600 mb-1">Observaciones</label>
-              <textarea
-                value={observaciones}
-                onChange={(e) => setObservaciones(e.target.value)}
-                className="w-full border border-slate-300 rounded px-3 py-2"
-                rows={4}
-              />
-            </div>
-          </div>
+            {camposPersonalizados.length > 0 && (
+              <div className="pt-4 border-t border-slate-100 space-y-4">
+                <h2 className="text-lg font-bold text-slate-800">Campos adicionales</h2>
 
-          {camposPersonalizados.length > 0 && (
-            <div className="pt-4 border-t border-slate-100 space-y-4">
-              <h2 className="text-lg font-bold text-slate-800">Campos adicionales</h2>
+                {camposPersonalizados.map((campo) => (
+                  <div key={campo.id}>
+                    <label className="block text-sm text-slate-600 mb-1">{campo.etiqueta}</label>
+                    {campo.tipo === 'texto' && (
+                      <input
+                        type="text"
+                        value={valoresPersonalizados[campo.id] || ''}
+                        onChange={(e) => setValorCampoPersonalizado(campo.id, e.target.value)}
+                        className="w-full border border-slate-300 rounded px-3 py-2"
+                      />
+                    )}
+                    {campo.tipo === 'select' && (
+                      <select
+                        value={valoresPersonalizados[campo.id] || ''}
+                        onChange={(e) => setValorCampoPersonalizado(campo.id, e.target.value)}
+                        className="w-full border border-slate-300 rounded px-3 py-2"
+                      >
+                        <option value="">Sin definir</option>
+                        {(campo.opciones || []).map((op) => (
+                          <option key={op} value={op}>{op}</option>
+                        ))}
+                      </select>
+                    )}
+                    {campo.tipo === 'checkbox' && (
+                      <div className="flex flex-wrap gap-3">
+                        {(campo.opciones || []).map((op) => (
+                          <label key={op} className="flex items-center gap-1 text-sm text-slate-600">
+                            <input
+                              type="checkbox"
+                              checked={(valoresPersonalizados[campo.id] || []).includes(op)}
+                              onChange={() => toggleValorCampoPersonalizado(campo.id, op)}
+                            />
+                            {op}
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
 
-              {camposPersonalizados.map((campo) => (
-                <div key={campo.id}>
-                  <label className="block text-sm text-slate-600 mb-1">{campo.etiqueta}</label>
-                  {campo.tipo === 'texto' && (
-                    <input
-                      type="text"
-                      value={valoresPersonalizados[campo.id] || ''}
-                      onChange={(e) => setValorCampoPersonalizado(campo.id, e.target.value)}
-                      className="w-full border border-slate-300 rounded px-3 py-2"
-                    />
-                  )}
-                  {campo.tipo === 'select' && (
-                    <select
-                      value={valoresPersonalizados[campo.id] || ''}
-                      onChange={(e) => setValorCampoPersonalizado(campo.id, e.target.value)}
-                      className="w-full border border-slate-300 rounded px-3 py-2"
-                    >
-                      <option value="">Sin definir</option>
-                      {(campo.opciones || []).map((op) => (
-                        <option key={op} value={op}>{op}</option>
-                      ))}
-                    </select>
-                  )}
-                  {campo.tipo === 'checkbox' && (
-                    <div className="flex flex-wrap gap-3">
-                      {(campo.opciones || []).map((op) => (
-                        <label key={op} className="flex items-center gap-1 text-sm text-slate-600">
-                          <input
-                            type="checkbox"
-                            checked={(valoresPersonalizados[campo.id] || []).includes(op)}
-                            onChange={() => toggleValorCampoPersonalizado(campo.id, op)}
-                          />
-                          {op}
-                        </label>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
+            <Boton type="submit" variante="primary" disabled={guardando} className="w-full">
+              {guardando ? 'Guardando...' : consulta.estado === 'completada' ? 'Guardar cambios' : 'Marcar como completada'}
+            </Boton>
+          </form>
+
+          {hayColumnaVertebral && (
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="lg:sticky lg:top-4">
+                <h2 className="text-lg font-bold text-slate-800 mb-1">Objetivo</h2>
+                <h3 className="text-sm font-semibold text-slate-700 mb-1">Ajustes vertebrales</h3>
+                <p className="text-xs text-slate-500 mb-3">
+                  Click en una vértebra para marcarla.
+                </p>
+
+                <EditorColumnaVertebral ajustes={ajustes} onChangeAjustes={setAjustes} apilado />
+              </div>
             </div>
           )}
-
-          <Boton type="submit" variante="primary" disabled={guardando} className="w-full">
-            {guardando ? 'Guardando...' : consulta.estado === 'completada' ? 'Guardar cambios' : 'Marcar como completada'}
-          </Boton>
-        </form>
+        </div>
       </div>
     </Layout>
   )
