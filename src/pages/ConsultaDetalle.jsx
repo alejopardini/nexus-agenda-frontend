@@ -131,6 +131,12 @@ export default function ConsultaDetalle() {
   const [pronostico, setPronostico] = useState('')
   const [etapaCuidado, setEtapaCuidado] = useState('')
   const [frecuenciaSeguimiento, setFrecuenciaSeguimiento] = useState('')
+  // Distingue "no se tocó esta sección" de "se tocó y se dejó en el mismo
+  // valor" — si nunca se tocó, no se reenvía nada al guardar (ver
+  // handleSubmit). Evita que una consulta de otro profesional, que jamás
+  // abrió esta sección, pise en silencio la etapa/frecuencia que alguien
+  // más ya había guardado (los campos son del paciente, no de la consulta).
+  const [seguimientoTocado, setSeguimientoTocado] = useState(false)
   const [camposPersonalizados, setCamposPersonalizados] = useState([])
   const [valoresPersonalizados, setValoresPersonalizados] = useState({})
   const [ajustes, setAjustes] = useState({})
@@ -330,15 +336,17 @@ export default function ConsultaDetalle() {
         await apiClient.post(`/consultas/${id}/ajustes_vertebrales/`, { ajustes: listaAjustes })
       }
 
-      try {
-        await apiClient.post(`/pacientes/${consulta.paciente}/seguimiento_quiropractico/`, {
-          etapa_cuidado: etapaCuidado,
-          frecuencia: frecuenciaSeguimiento,
-        })
-      } catch {
-        alert(
-          'La consulta se guardó, pero no se pudo guardar el seguimiento quiropráctico (etapa/frecuencia). Probá guardarlo de nuevo desde la ficha del paciente.'
-        )
+      if (seguimientoTocado) {
+        try {
+          await apiClient.post(`/pacientes/${consulta.paciente}/seguimiento_quiropractico/`, {
+            etapa_cuidado: etapaCuidado,
+            frecuencia: frecuenciaSeguimiento,
+          })
+        } catch {
+          alert(
+            'La consulta se guardó, pero no se pudo guardar el seguimiento quiropráctico (etapa/frecuencia). Probá guardarlo de nuevo desde la ficha del paciente.'
+          )
+        }
       }
 
       navigate(`/pacientes/${consulta.paciente}`)
@@ -612,7 +620,10 @@ export default function ConsultaDetalle() {
                   <label className="block text-sm text-slate-600 mb-1">Etapa de cuidado</label>
                   <select
                     value={etapaCuidado}
-                    onChange={(e) => setEtapaCuidado(e.target.value)}
+                    onChange={(e) => {
+                      setEtapaCuidado(e.target.value)
+                      setSeguimientoTocado(true)
+                    }}
                     className="w-full border border-slate-300 rounded px-3 py-2 text-sm"
                   >
                     <option value="">Sin definir</option>
@@ -627,7 +638,10 @@ export default function ConsultaDetalle() {
                     type="text"
                     placeholder="Ej: 1 vez por semana"
                     value={frecuenciaSeguimiento}
-                    onChange={(e) => setFrecuenciaSeguimiento(e.target.value)}
+                    onChange={(e) => {
+                      setFrecuenciaSeguimiento(e.target.value)
+                      setSeguimientoTocado(true)
+                    }}
                     className="w-full border border-slate-300 rounded px-3 py-2 text-sm"
                   />
                 </div>
