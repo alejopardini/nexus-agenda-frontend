@@ -286,6 +286,9 @@ export default function Camillas() {
   const profesionalesPorId = {}
   profesionales.forEach((p) => { profesionalesPorId[p.id] = p })
 
+  const sucursalesPorId = {}
+  sucursales.forEach((s) => { sucursalesPorId[s.id] = s.nombre })
+
   const walkInPacienteSeleccionado = pacientes.find((p) => String(p.id) === String(walkInPaciente))
 
   const turnosActivosHoy = turnosHoy.filter((t) => t.estado === 'pendiente' || t.estado === 'confirmado')
@@ -320,7 +323,14 @@ export default function Camillas() {
     // Azules primero, después relleno con lo que falte hasta completar los 4 casilleros.
     const items = [...itemsLlamados, ...itemsSinLlamar].slice(0, 4)
 
-    return { profesionalId: profId, profesional: profesionalesPorId[profId], items }
+    // La sucursal de la tarjeta se toma del primer turno del día — en el caso
+    // normal (un profesional atiende en una sola sucursal por día) es exacta;
+    // no cubre el caso de un profesional con turnos en más de una sucursal el
+    // mismo día, igual que el resto de las pantallas que ya usan este criterio.
+    const sucursalId = items[0]?.turno.sucursal
+    const sucursalNombre = sucursalId ? sucursalesPorId[sucursalId] : null
+
+    return { profesionalId: profId, profesional: profesionalesPorId[profId], items, sucursalNombre }
   })
 
   const idsRelevantesPanel = auth.rol === 'profesional'
@@ -338,7 +348,14 @@ export default function Camillas() {
               {tarjetas.map((t) => (
                 <Card
                   key={t.profesionalId}
-                  titulo={t.profesional ? `${t.profesional.nombre} ${t.profesional.apellido}` : 'Profesional'}
+                  titulo={
+                    <>
+                      {t.profesional ? `${t.profesional.nombre} ${t.profesional.apellido}` : 'Profesional'}
+                      {sucursales.length > 1 && t.sucursalNombre && (
+                        <span className="block text-[11px] font-normal text-slate-400">{t.sucursalNombre}</span>
+                      )}
+                    </>
+                  }
                 >
                   {auth.rol !== 'profesional' && (
                     <BotonIcono
