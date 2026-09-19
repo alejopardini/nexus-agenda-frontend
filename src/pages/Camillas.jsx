@@ -272,7 +272,7 @@ export default function Camillas() {
   if (loading) {
     return (
       <Layout titulo="Camillas" filtraPorSucursal>
-        <p className="text-slate-500">Cargando...</p>
+        <p className="text-texto-secundario">Cargando...</p>
       </Layout>
     )
   }
@@ -280,7 +280,7 @@ export default function Camillas() {
   if (error) {
     return (
       <Layout titulo="Camillas" filtraPorSucursal>
-        <p className="text-red-600">{error}</p>
+        <p className="text-input-error">{error}</p>
       </Layout>
     )
   }
@@ -351,7 +351,7 @@ export default function Camillas() {
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4">
         <div>
           {tarjetas.length === 0 ? (
-            <p className="text-slate-500">No hay profesionales cargados.</p>
+            <p className="text-texto-secundario">No hay profesionales cargados.</p>
           ) : (
             <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-4">
               {tarjetas.map((t) => (
@@ -515,7 +515,9 @@ export default function Camillas() {
                       })}
                     </div>
                   ) : (
-                    <CardTextoSecundario>Sin turnos para hoy.</CardTextoSecundario>
+                    <CardTextoSecundario>
+                      {sucursalActivaId ? 'Sin turnos en esta sucursal hoy.' : 'Sin turnos para hoy.'}
+                    </CardTextoSecundario>
                   )}
                 </Card>
               ))}

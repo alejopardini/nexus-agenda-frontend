@@ -72,8 +72,8 @@ export default function HistorialTurnos() {
 
   return (
     <Layout titulo="Historial de turnos">
-      {loading && <p className="text-slate-500">Cargando...</p>}
-      {error && <p className="text-red-600">{error}</p>}
+      {loading && <p className="text-texto-secundario">Cargando...</p>}
+      {error && <p className="text-input-error">{error}</p>}
       {!loading && !error && (
         <div className="bg-white rounded-lg shadow-md p-6">
           <div className="flex justify-end items-center mb-4 gap-4">
@@ -95,9 +95,9 @@ export default function HistorialTurnos() {
           </div>
 
           {turnos.length === 0 ? (
-            <p className="text-slate-500">No hay turnos pasados registrados.</p>
+            <p className="text-texto-secundario">No hay turnos pasados registrados.</p>
           ) : turnosFiltrados.length === 0 ? (
-            <p className="text-slate-500">Ningún turno coincide con "{busqueda}".</p>
+            <p className="text-texto-secundario">Ningún turno coincide con "{busqueda}".</p>
           ) : (
             <div className="overflow-x-auto">
             <table className="w-full text-sm">

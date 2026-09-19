@@ -95,14 +95,14 @@ export default function Pacientes() {
         )}
       </div>
 
-      {loading && <p className="text-slate-500">Cargando...</p>}
-      {error && <p className="text-red-600">{error}</p>}
+      {loading && <p className="text-texto-secundario">Cargando...</p>}
+      {error && <p className="text-input-error">{error}</p>}
       {!loading && !error && (
         <div className="bg-white rounded-lg shadow-md">
           {pacientes.length === 0 ? (
-            <p className="text-slate-500 p-6">No hay pacientes cargados todavía.</p>
+            <p className="text-texto-secundario p-6">No hay pacientes cargados todavía.</p>
           ) : pacientesFiltrados.length === 0 ? (
-            <p className="text-slate-500 p-6">Ningún paciente coincide con "{busqueda}".</p>
+            <p className="text-texto-secundario p-6">Ningún paciente coincide con "{busqueda}".</p>
           ) : (
             <>
               <div className="overflow-x-auto">
