@@ -17,12 +17,11 @@ export default function TurnosCancelados() {
   }, [])
 
   return (
-    <Layout>
+    <Layout titulo="Turnos cancelados">
       {loading && <p className="text-slate-500">Cargando...</p>}
       {error && <p className="text-red-600">{error}</p>}
       {!loading && !error && (
         <div className="bg-white rounded-lg shadow-md p-6">
-          <h1 className="text-xl font-bold text-slate-800 mb-4">Registro de turnos cancelados</h1>
           {turnos.length === 0 ? (
             <p className="text-slate-500">No hay turnos cancelados registrados.</p>
           ) : (

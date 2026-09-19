@@ -27,10 +27,9 @@ export default function PacientesSinTurno() {
   })
 
   return (
-    <Layout>
+    <Layout titulo="Pacientes sin turno reciente">
       <div className="bg-white rounded-lg shadow-md p-6">
-        <div className="flex justify-between items-center mb-4 gap-4">
-          <h1 className="text-xl font-bold text-slate-800 whitespace-nowrap">Pacientes sin turno reciente</h1>
+        <div className="flex justify-end items-center mb-4 gap-4">
           <label className="flex items-center gap-2 text-sm text-slate-600 whitespace-nowrap">
             Mostrar pacientes sin turno hace más de:
             <input

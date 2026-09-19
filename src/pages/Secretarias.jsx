@@ -33,13 +33,12 @@ export default function Secretarias() {
   }
 
   return (
-    <Layout>
+    <Layout titulo="Secretaría">
       {loading && <p className="text-slate-500">Cargando...</p>}
       {error && <p className="text-red-600">{error}</p>}
       {!loading && !error && (
         <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h1 className="text-xl font-bold text-slate-800">Secretaría</h1>
+          <div className="flex justify-end items-center mb-4">
             <Boton to="/secretarias/nueva" variante="primary">
               + Nueva secretaria
             </Boton>

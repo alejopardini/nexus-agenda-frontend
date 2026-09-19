@@ -64,11 +64,10 @@ export default function NuevoProfesional() {
   }
 
   return (
-    <Layout>
+    <Layout titulo="Nuevo profesional">
       <div className="max-w-lg">
         <BotonVolver to="/profesionales" className="mb-4" />
         <div className="bg-white rounded-lg shadow-md p-6">
-          <h1 className="text-xl font-bold text-slate-800 mb-1">Nuevo profesional</h1>
           <p className="text-sm text-slate-500 mb-4">
             Se crea una cuenta de acceso para que el profesional pueda usar la app.
           </p>
