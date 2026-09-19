@@ -43,12 +43,11 @@ export default function Interconsultas() {
   }
 
   return (
-    <Layout>
+    <Layout titulo="Interconsultas">
       {loading && <p className="text-slate-500">Cargando...</p>}
       {error && <p className="text-red-600">{error}</p>}
       {!loading && !error && (
         <div className="bg-white rounded-lg shadow-md p-6">
-          <h1 className="text-xl font-bold text-slate-800 mb-4">Interconsultas</h1>
           {interconsultas.length === 0 ? (
             <p className="text-slate-500">No hay interconsultas todavía.</p>
           ) : (

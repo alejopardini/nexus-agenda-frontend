@@ -87,18 +87,16 @@ export default function MiPerfil() {
 
   if (loading || !form) {
     return (
-      <Layout>
+      <Layout titulo="Mi perfil">
         <p className="text-slate-500">Cargando...</p>
       </Layout>
     )
   }
 
   return (
-    <Layout>
+    <Layout titulo="Mi perfil">
       <div className="max-w-lg">
         <div className="bg-white rounded-lg shadow-md p-6">
-          <h1 className="text-xl font-bold text-slate-800 mb-4">Mi perfil</h1>
-
           {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
           {guardadoOk && <p className="text-green-600 text-sm mb-4">Perfil actualizado.</p>}
 
