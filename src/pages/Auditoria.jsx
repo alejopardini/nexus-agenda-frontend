@@ -57,7 +57,7 @@ export default function Auditoria() {
 
   if (auth.rol !== 'dueño') {
     return (
-      <Layout>
+      <Layout titulo="Auditoría">
         <p className="text-red-600">No tenés permiso para ver esta pantalla.</p>
       </Layout>
     )
@@ -69,10 +69,8 @@ export default function Auditoria() {
   }
 
   return (
-    <Layout>
+    <Layout titulo="Auditoría">
       <div className="bg-white rounded-lg shadow-md p-6">
-        <h1 className="text-xl font-bold text-slate-800 mb-4">Auditoría de acceso a datos clínicos</h1>
-
         <form onSubmit={aplicarFiltros} className="flex flex-wrap gap-3 items-end mb-4">
           <div className="w-64">
             <label className="block text-xs text-slate-500 mb-1">Paciente</label>

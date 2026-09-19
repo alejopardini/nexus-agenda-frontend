@@ -104,14 +104,13 @@ export default function CamposPersonalizados() {
   }
 
   return (
-    <Layout>
+    <Layout titulo="Campos personalizados">
       <BotonVolver to="/" className="mb-4" />
       {loading && <p className="text-slate-500">Cargando...</p>}
       {error && <p className="text-red-600">{error}</p>}
       {!loading && !error && (
         <div className="bg-white rounded-lg shadow-md p-6 max-w-2xl">
-          <div className="flex justify-between items-center mb-4">
-            <h1 className="text-xl font-bold text-slate-800">Campos personalizados</h1>
+          <div className="flex justify-end items-center mb-4">
             <Boton variante="primary" onClick={() => setMostrarForm((prev) => !prev)}>
               {mostrarForm ? 'Cancelar' : '+ Nuevo campo'}
             </Boton>

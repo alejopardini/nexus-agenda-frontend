@@ -43,13 +43,12 @@ export default function Consultas() {
     : pacientes
 
   return (
-    <Layout>
+    <Layout titulo="Consultas">
       {loading && <p className="text-slate-500">Cargando...</p>}
       {error && <p className="text-red-600">{error}</p>}
       {!loading && !error && (
         <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex justify-between items-center mb-4 gap-4">
-            <h1 className="text-xl font-bold text-slate-800 whitespace-nowrap">Consultas</h1>
+          <div className="flex justify-end items-center mb-4 gap-4">
             <input
               type="text"
               placeholder="Buscar por nombre del paciente..."

@@ -43,10 +43,9 @@ export default function ConsultasPendientes() {
   }, [])
 
   return (
-    <Layout>
+    <Layout titulo="Consultas pendientes">
       <div className="bg-white rounded-lg shadow-md p-6">
         <div className="mb-4">
-          <h1 className="text-xl font-bold text-slate-800">Consultas pendientes de completar</h1>
           <p className="text-sm text-slate-500 mt-1">
             Turnos ya pasados cuya consulta nunca se completó. Ordenados por antigüedad: los más urgentes primero.
           </p>
