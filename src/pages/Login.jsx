@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import CampoTexto from '../components/CampoTexto'
 import Boton from '../components/Boton'
 import loginBg from '../assets/login-bg.png'
-import logoQnexusCompleto from '../assets/logo_qnexus_completo.png'
+import logoIcono from '../assets/logo-icono.png'
 
 export default function Login() {
   const [username, setUsername] = useState('')
@@ -48,11 +48,13 @@ export default function Login() {
         onSubmit={handleSubmit}
         className="relative w-full max-w-[420px] bg-white rounded-xl shadow-[0px_4px_16px_rgba(0,0,0,0.1)] p-8 flex flex-col gap-5"
       >
-        <img
-          src={logoQnexusCompleto}
-          alt="QuiroNexus"
-          className="w-[100px] h-[100px] object-contain mx-auto"
-        />
+        <div className="w-[100px] h-[100px] rounded-full overflow-hidden mx-auto">
+          <img
+            src={logoIcono}
+            alt="QuiroNexus"
+            className="w-full h-full object-cover"
+          />
+        </div>
 
         <h1 className="font-sans font-semibold text-[20px] text-heading text-center">
           Iniciar sesión
