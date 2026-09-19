@@ -158,7 +158,7 @@ export default function Disponibilidad() {
 
   if (loading) {
     return (
-      <Layout>
+      <Layout titulo="Disponibilidad">
         <p className="text-slate-500">Cargando...</p>
       </Layout>
     )
@@ -198,7 +198,7 @@ export default function Disponibilidad() {
   )
 
   return (
-    <Layout>
+    <Layout titulo="Disponibilidad">
       <div className="max-w-5xl">
         {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
 
@@ -234,7 +234,7 @@ export default function Disponibilidad() {
 
           <div className="space-y-4">
             <div className="bg-white rounded-lg shadow-md p-6">
-              <h1 className="text-xl font-bold text-slate-800 mb-1">Agregar horario</h1>
+              <h2 className="text-lg font-bold text-slate-800 mb-1">Agregar horario</h2>
               <p className="text-xs text-slate-500 mb-3">
                 Podés cargar varios bloques el mismo día — por ejemplo, "Lunes 9:00-12:00" y después "Lunes 16:00-18:00" por separado.
               </p>

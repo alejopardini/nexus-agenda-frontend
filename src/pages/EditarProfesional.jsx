@@ -119,7 +119,7 @@ export default function EditarProfesional() {
 
   if (loading || !form) {
     return (
-      <Layout>
+      <Layout titulo="Editar profesional">
         <p className="text-slate-500">Cargando...</p>
       </Layout>
     )
@@ -129,12 +129,10 @@ export default function EditarProfesional() {
   sucursales.forEach((s) => { sucursalesPorId[s.id] = s.nombre })
 
   return (
-    <Layout>
+    <Layout titulo="Editar profesional">
       <div className="max-w-lg">
         <BotonVolver to="/profesionales" className="mb-4" />
         <div className="bg-white rounded-lg shadow-md p-6">
-          <h1 className="text-xl font-bold text-slate-800 mb-4">Editar profesional</h1>
-
           {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
 
           <form onSubmit={handleSubmit} className="space-y-4">

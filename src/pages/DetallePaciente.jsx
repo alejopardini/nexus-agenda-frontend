@@ -97,7 +97,7 @@ export default function DetallePaciente() {
 
   if (loading) {
     return (
-      <Layout>
+      <Layout titulo="Paciente">
         <p className="text-slate-500">Cargando...</p>
       </Layout>
     )
@@ -105,7 +105,7 @@ export default function DetallePaciente() {
 
   if (error || !paciente) {
     return (
-      <Layout>
+      <Layout titulo="Paciente">
         <p className="text-red-600">{error || 'Paciente no encontrado.'}</p>
       </Layout>
     )
@@ -116,15 +116,12 @@ export default function DetallePaciente() {
   const otrosProfesionales = profesionales.filter((p) => String(p.id) !== String(auth.profesional_id))
 
   return (
-    <Layout>
+    <Layout titulo={`${paciente.nombre} ${paciente.apellido}`}>
       <div className="space-y-4 max-w-2xl">
         <BotonVolver to="/pacientes" className="mb-4" />
 
         <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex justify-between items-start">
-            <h1 className="text-xl font-bold text-slate-800">
-              {paciente.nombre} {paciente.apellido}
-            </h1>
+          <div className="flex justify-end items-start">
             {tieneAcceso && (
               <div className="flex flex-wrap gap-2">
                 <Boton to={`/pacientes/${id}/editar`} variante="ghost" tamaño="sm">

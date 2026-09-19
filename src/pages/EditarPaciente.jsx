@@ -49,7 +49,7 @@ export default function EditarPaciente() {
 
   if (loading) {
     return (
-      <Layout>
+      <Layout titulo="Editar paciente">
         <p className="text-slate-500">Cargando...</p>
       </Layout>
     )
@@ -57,19 +57,17 @@ export default function EditarPaciente() {
 
   if (error && !form) {
     return (
-      <Layout>
+      <Layout titulo="Editar paciente">
         <p className="text-red-600">{error}</p>
       </Layout>
     )
   }
 
   return (
-    <Layout>
+    <Layout titulo="Editar paciente">
       <div className="max-w-lg">
         <BotonVolver to={`/pacientes/${id}`} className="mb-4" />
         <div className="bg-white rounded-lg shadow-md p-6">
-          <h1 className="text-xl font-bold text-slate-800 mb-4">Editar paciente</h1>
-
           {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
 
           <form onSubmit={handleSubmit} className="space-y-4">
