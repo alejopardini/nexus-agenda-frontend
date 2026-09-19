@@ -121,22 +121,22 @@ export default function Turnos() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-slate-500 border-b border-slate-200">
-                  <th className="py-2">Fecha</th>
-                  <th className="py-2">Hora</th>
-                  <th className="py-2">Paciente</th>
-                  <th className="py-2">Profesional</th>
-                  {mostrarColumnaSucursal && <th className="py-2">Sucursal</th>}
-                  <th className="py-2">Tipo</th>
-                  <th className="py-2">Estado</th>
-                  <th className="py-2"></th>
+                  <th className="py-2 px-4">Fecha</th>
+                  <th className="py-2 px-4">Hora</th>
+                  <th className="py-2 px-4">Paciente</th>
+                  <th className="py-2 px-4">Profesional</th>
+                  {mostrarColumnaSucursal && <th className="py-2 px-4">Sucursal</th>}
+                  <th className="py-2 px-4">Tipo</th>
+                  <th className="py-2 px-4">Estado</th>
+                  <th className="py-2 px-4"></th>
                 </tr>
               </thead>
               <tbody>
                 {turnosFiltrados.map((t) => (
                   <tr key={t.id} className="border-b border-slate-100">
-                    <td className="py-2">{formatearFecha(t.fecha)}</td>
-                    <td className="py-2">{formatearHora(t.hora)}</td>
-                    <td className="py-2">
+                    <td className="py-2 px-4">{formatearFecha(t.fecha)}</td>
+                    <td className="py-2 px-4">{formatearHora(t.hora)}</td>
+                    <td className="py-2 px-4">
                       <button
                         onClick={() => setPacienteAbiertoId(t.paciente)}
                         className="text-texto hover:text-btn-primary transition-colors"
@@ -144,12 +144,12 @@ export default function Turnos() {
                         {t.paciente_nombre}
                       </button>
                     </td>
-                    <td className="py-2">{t.profesional_nombre}</td>
+                    <td className="py-2 px-4">{t.profesional_nombre}</td>
                     {mostrarColumnaSucursal && (
-                      <td className="py-2 text-slate-500">{sucursalesPorId[t.sucursal] || '—'}</td>
+                      <td className="py-2 px-4 text-slate-500">{sucursalesPorId[t.sucursal] || '—'}</td>
                     )}
-                    <td className="py-2 text-slate-500">{t.tipo_turno_texto || '—'}</td>
-                    <td className="py-2">
+                    <td className="py-2 px-4 text-slate-500">{t.tipo_turno_texto || '—'}</td>
+                    <td className="py-2 px-4">
                       <span className={`px-2 py-1 rounded text-xs font-medium ${COLOR_ESTADO[t.estado] || ''}`}>
                         {t.estado}
                       </span>
@@ -169,7 +169,7 @@ export default function Turnos() {
                         )
                       )}
                     </td>
-                    <td className="py-2">
+                    <td className="py-2 px-4">
                       <div className="flex gap-3 items-center">
                         {t.estado === 'pendiente' && (
                           <BotonIcono

@@ -103,12 +103,12 @@ export default function HistorialTurnos() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-slate-500 border-b border-slate-200">
-                  <th className="py-2">Paciente</th>
-                  <th className="py-2">Fecha</th>
-                  <th className="py-2">Profesional</th>
-                  <th className="py-2">Estado</th>
-                  <th className="py-2">Pagó</th>
-                  <th className="py-2">Consulta</th>
+                  <th className="py-2 px-4">Paciente</th>
+                  <th className="py-2 px-4">Fecha</th>
+                  <th className="py-2 px-4">Profesional</th>
+                  <th className="py-2 px-4">Estado</th>
+                  <th className="py-2 px-4">Pagó</th>
+                  <th className="py-2 px-4">Consulta</th>
                 </tr>
               </thead>
               <tbody>
@@ -119,7 +119,7 @@ export default function HistorialTurnos() {
                       key={t.id}
                       className={`border-b border-slate-100 ${sinCompletar ? 'bg-red-50' : ''}`}
                     >
-                      <td className="py-2">
+                      <td className="py-2 px-4">
                         <button
                           onClick={() => setPacienteAbiertoId(t.paciente)}
                           className="text-texto hover:text-btn-primary transition-colors"
@@ -127,8 +127,8 @@ export default function HistorialTurnos() {
                           {t.paciente_nombre}
                         </button>
                       </td>
-                      <td className="py-2">{formatearFecha(t.fecha)}</td>
-                      <td className="py-2">
+                      <td className="py-2 px-4">{formatearFecha(t.fecha)}</td>
+                      <td className="py-2 px-4">
                         <Link
                           to={`/profesionales/${t.profesional}/editar`}
                           className="text-texto hover:text-btn-primary transition-colors"
@@ -136,7 +136,7 @@ export default function HistorialTurnos() {
                           {t.profesional_nombre}
                         </Link>
                       </td>
-                      <td className="py-2">
+                      <td className="py-2 px-4">
                         <select
                           value={t.estado}
                           onChange={(e) => cambiarEstado(t, e.target.value)}
@@ -147,7 +147,7 @@ export default function HistorialTurnos() {
                           ))}
                         </select>
                       </td>
-                      <td className="py-2">
+                      <td className="py-2 px-4">
                         <div className="flex items-center gap-2">
                           <select
                             value={t.pagado ? 'si' : 'no'}
@@ -165,7 +165,7 @@ export default function HistorialTurnos() {
                           )}
                         </div>
                       </td>
-                      <td className="py-2">
+                      <td className="py-2 px-4">
                         <div className="flex items-center gap-2">
                           {t.consulta_id ? (
                             <BotonIcono icono={Eye} texto="Ver consulta" to={`/consultas/${t.consulta_id}`} />
