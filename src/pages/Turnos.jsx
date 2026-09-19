@@ -10,12 +10,7 @@ import Boton from '../components/Boton'
 import { useSucursalActiva } from '../context/SucursalActivaContext'
 import { buscarConsultaCompletadaPrevia } from '../utils/consultas'
 import { formatearFecha, formatearHora } from '../utils/fechas'
-
-const COLOR_ESTADO = {
-  pendiente: 'bg-yellow-100 text-yellow-800',
-  confirmado: 'bg-green-100 text-green-800',
-  ausente: 'bg-orange-100 text-orange-800',
-}
+import { claseBadge } from '../utils/badge'
 
 function turnoYaOcurrio(turno) {
   return new Date(`${turno.fecha}T${turno.hora}`) < new Date()
@@ -150,9 +145,7 @@ export default function Turnos() {
                     )}
                     <td className="py-2 px-4 text-slate-500">{t.tipo_turno_texto || '—'}</td>
                     <td className="py-2 px-4">
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${COLOR_ESTADO[t.estado] || ''}`}>
-                        {t.estado}
-                      </span>
+                      <span className={claseBadge(t.estado)}>{t.estado}</span>
                       {t.consulta_pendiente_id && (
                         buscarConsultaCompletadaPrevia(consultas, t.paciente) ? (
                           <button
