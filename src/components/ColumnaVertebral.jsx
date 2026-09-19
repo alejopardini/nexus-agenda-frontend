@@ -1,4 +1,4 @@
-import { IMAGEN_POR_NIVEL, OPACIDAD_COLOR_IMAGEN, maskImagenStyle } from '../utils/columnaVertebralImagenes'
+import { useImagenesPorNivel, OPACIDAD_COLOR_IMAGEN, maskImagenStyle } from '../utils/columnaVertebralImagenes'
 import { COLOR_REGION, COLOR_AJUSTADO, COLOR_BLOQUEADA } from '../utils/coloresColumna'
 
 const NIVELES = [
@@ -51,7 +51,7 @@ function resumenAjuste(datos) {
   return partes.join('-') + (extra > 0 ? ` +${extra}` : '')
 }
 
-function OvaloPartido({ nivel, ajustes, onClick, ancho = OVALO_ANCHO, alto = OVALO_ALTO, sinDesplazamiento = false }) {
+function OvaloPartido({ nivel, ajustes, onClick, imagenPorNivel, ancho = OVALO_ANCHO, alto = OVALO_ALTO, sinDesplazamiento = false }) {
   const claveIzq = `${nivel}_IZQ`
   const claveDer = `${nivel}_DER`
   const bloqueadaIzq = ajustes[claveIzq]?.bloqueada
@@ -79,7 +79,7 @@ function OvaloPartido({ nivel, ajustes, onClick, ancho = OVALO_ANCHO, alto = OVA
       : ajustadoIzq
         ? (tieneCodigoSinDesplazamiento(ajustes[claveIzq]?.tipo_ajuste) ? 0 : -DESPLAZAMIENTO_AJUSTE)
         : 0
-  const imagenUrl = IMAGEN_POR_NIVEL[nivel]
+  const imagenUrl = imagenPorNivel[nivel]
 
   return (
     <div className="flex flex-col items-center shrink-0" style={{ width: ancho }}>
@@ -167,11 +167,11 @@ function OvaloPartido({ nivel, ajustes, onClick, ancho = OVALO_ANCHO, alto = OVA
   )
 }
 
-function VertebraPelvis({ segmento, datos, seleccionado, onClick, ancho, ovaloAlto }) {
+function VertebraPelvis({ segmento, datos, seleccionado, onClick, imagenPorNivel, ancho, ovaloAlto }) {
   const { color } = colorEstado(segmento, datos)
   const colorImagen = color
   const resumen = resumenAjuste(datos)
-  const imagenUrl = IMAGEN_POR_NIVEL[segmento]
+  const imagenUrl = imagenPorNivel[segmento]
 
   return (
     <div className="relative flex items-center justify-center" style={{ width: ancho + 16, height: ovaloAlto }}>
@@ -218,16 +218,18 @@ function VertebraPelvis({ segmento, datos, seleccionado, onClick, ancho, ovaloAl
   )
 }
 
-function FilaNivel({ nivel, ajustes, onClickSegmento }) {
+function FilaNivel({ nivel, ajustes, onClickSegmento, imagenPorNivel }) {
   return (
     <div className="flex items-center gap-2 py-px">
       <div style={{ width: ILION_CAJA_ANCHO, flexShrink: 0 }} aria-hidden="true" />
-      <OvaloPartido nivel={nivel} ajustes={ajustes} onClick={onClickSegmento} />
+      <OvaloPartido nivel={nivel} ajustes={ajustes} onClick={onClickSegmento} imagenPorNivel={imagenPorNivel} />
     </div>
   )
 }
 
 export default function ColumnaVertebral({ ajustes, segmentoActivo, onClickSegmento }) {
+  const imagenPorNivel = useImagenesPorNivel()
+
   return (
     <div className="max-w-md mx-auto w-full">
       {NIVELES.map((nivel) => (
@@ -236,6 +238,7 @@ export default function ColumnaVertebral({ ajustes, segmentoActivo, onClickSegme
           nivel={nivel}
           ajustes={ajustes}
           onClickSegmento={onClickSegmento}
+          imagenPorNivel={imagenPorNivel}
         />
       ))}
 
@@ -245,6 +248,7 @@ export default function ColumnaVertebral({ ajustes, segmentoActivo, onClickSegme
           datos={ajustes.ILION_IZQ}
           seleccionado={segmentoActivo === 'ILION_IZQ'}
           onClick={onClickSegmento}
+          imagenPorNivel={imagenPorNivel}
           ancho={ILION_ANCHO}
           ovaloAlto={ILION_ALTO}
         />
@@ -252,6 +256,7 @@ export default function ColumnaVertebral({ ajustes, segmentoActivo, onClickSegme
           nivel="SACRO"
           ajustes={ajustes}
           onClick={onClickSegmento}
+          imagenPorNivel={imagenPorNivel}
           ancho={SACRO_ANCHO}
           alto={SACRO_ALTO}
           sinDesplazamiento
@@ -261,6 +266,7 @@ export default function ColumnaVertebral({ ajustes, segmentoActivo, onClickSegme
           datos={ajustes.ILION_DER}
           seleccionado={segmentoActivo === 'ILION_DER'}
           onClick={onClickSegmento}
+          imagenPorNivel={imagenPorNivel}
           ancho={ILION_ANCHO}
           ovaloAlto={ILION_ALTO}
         />

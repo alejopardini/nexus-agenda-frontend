@@ -1,4 +1,4 @@
-import { IMAGEN_POR_NIVEL, OPACIDAD_COLOR_IMAGEN, maskImagenStyle } from '../utils/columnaVertebralImagenes'
+import { useImagenesPorNivel, OPACIDAD_COLOR_IMAGEN, maskImagenStyle } from '../utils/columnaVertebralImagenes'
 import { COLOR_REGION, COLOR_AJUSTADO, COLOR_BLOQUEADA } from '../utils/coloresColumna'
 
 const SEGMENTOS_COLUMNA = [
@@ -54,10 +54,10 @@ function datosCombinados(segmento, ajustes) {
   return { bloqueada, ajustado, direccion }
 }
 
-function OvaloFila({ segmento, ajustes }) {
+function OvaloFila({ segmento, ajustes, imagenPorNivel }) {
   const datos = datosCombinados(segmento, ajustes)
   const offset = offsetPorDireccion(datos)
-  const imagenUrl = IMAGEN_POR_NIVEL[segmento]
+  const imagenUrl = imagenPorNivel[segmento]
   return (
     <div className="relative h-4 w-full">
       <div
@@ -92,8 +92,8 @@ function OvaloFila({ segmento, ajustes }) {
   )
 }
 
-function OvaloPelvis({ segmento, datos, ancho, alto, offset = 0 }) {
-  const imagenUrl = IMAGEN_POR_NIVEL[segmento]
+function OvaloPelvis({ segmento, datos, imagenPorNivel, ancho, alto, offset = 0 }) {
+  const imagenUrl = imagenPorNivel[segmento]
   return (
     <div className="relative" style={{ width: ancho, height: alto, transform: `translateX(${offset}px)` }}>
       {imagenUrl ? (
@@ -119,20 +119,23 @@ function OvaloPelvis({ segmento, datos, ancho, alto, offset = 0 }) {
 }
 
 export default function ColumnaVertebralMini({ ajustes }) {
+  const imagenPorNivel = useImagenesPorNivel()
+
   return (
     <div className="mx-auto" style={{ width: ANCHO_CONTENEDOR }}>
       {SEGMENTOS_COLUMNA.map((seg) => (
-        <OvaloFila key={seg} segmento={seg} ajustes={ajustes} />
+        <OvaloFila key={seg} segmento={seg} ajustes={ajustes} imagenPorNivel={imagenPorNivel} />
       ))}
       <div className="flex items-center justify-center gap-1 pt-1">
-        <OvaloPelvis segmento="ILION_IZQ" datos={ajustes.ILION_IZQ} ancho={ILION_ANCHO} alto={ILION_ALTO} />
+        <OvaloPelvis segmento="ILION_IZQ" datos={ajustes.ILION_IZQ} imagenPorNivel={imagenPorNivel} ancho={ILION_ANCHO} alto={ILION_ALTO} />
         <OvaloPelvis
           segmento="SACRO"
           datos={datosCombinados('SACRO', ajustes)}
+          imagenPorNivel={imagenPorNivel}
           ancho={SACRO_ANCHO}
           alto={SACRO_ALTO}
         />
-        <OvaloPelvis segmento="ILION_DER" datos={ajustes.ILION_DER} ancho={ILION_ANCHO} alto={ILION_ALTO} />
+        <OvaloPelvis segmento="ILION_DER" datos={ajustes.ILION_DER} imagenPorNivel={imagenPorNivel} ancho={ILION_ANCHO} alto={ILION_ALTO} />
       </div>
     </div>
   )
