@@ -462,6 +462,7 @@ export default function CalendarioTurnos() {
                 disponibilidad={disponibilidadFiltrada}
                 excepciones={excepciones}
                 cierres={cierresFiltrados}
+                sucursalesPorId={sucursalesPorId}
               />
             ) : columnas.length === 0 ? (
               <p className="text-slate-500 text-sm">Nadie atiende este día.</p>

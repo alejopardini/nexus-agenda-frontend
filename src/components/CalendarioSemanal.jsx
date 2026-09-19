@@ -15,8 +15,9 @@ const NOMBRES_DIA = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
 const HORA_MIN_DEFAULT = 8
 const HORA_MAX_DEFAULT = 20
 
-function BloqueTurno({ turno, onClick }) {
+function BloqueTurno({ turno, sucursalNombre, onClick }) {
   const estado = estadoVisual(turno)
+  const tooltipTexto = sucursalNombre ? `${turno.profesional_nombre} — ${sucursalNombre}` : turno.profesional_nombre
   return (
     <button
       type="button"
@@ -42,7 +43,7 @@ function BloqueTurno({ turno, onClick }) {
             criterio que antes de la simplificación: contrasta bien sobre
             cualquiera de los colores de estado del Badge. Nombre completo
             del profesional queda solo en este tooltip. */}
-        <Tooltip texto={turno.profesional_nombre}>
+        <Tooltip texto={tooltipTexto}>
           <span className="w-3.5 h-3.5 rounded-full bg-white/70 text-[8px] flex items-center justify-center font-bold shrink-0">
             {inicialesDe(turno.profesional_nombre)}
           </span>
@@ -62,6 +63,7 @@ export default function CalendarioSemanal({
   disponibilidad = [],
   excepciones = [],
   cierres = [],
+  sucursalesPorId = {},
 }) {
   const [popoverElegir, setPopoverElegir] = useState(null)
 
@@ -80,6 +82,13 @@ export default function CalendarioSemanal({
   // igual que siempre ("Turno se cancela, nunca se borra"), disponible para
   // estadísticas y para la vista diaria, que no se toca acá.
   const turnosSemana = turnos.filter((t) => diasStr.includes(t.fecha) && t.estado !== 'cancelado')
+
+  // Si el calendario ya viene filtrado por una sucursal activa (ver
+  // CalendarioTurnos.jsx), acá solo va a quedar una sucursal distinta y el
+  // tooltip no necesita mostrarla — se deriva de los datos, no de un flag
+  // aparte, mismo criterio que la vista Día (5c): con el filtro puesto, esta
+  // cuenta da 1 sola y el tooltip queda igual que hoy.
+  const hayMasDeUnaSucursal = new Set(turnosSemana.map((t) => t.sucursal)).size > 1
 
   let horaMin = HORA_MIN_DEFAULT
   let horaMax = HORA_MAX_DEFAULT
@@ -223,7 +232,14 @@ export default function CalendarioSemanal({
                     clickable ? 'cursor-pointer hover:brightness-95 transition-[filter]' : ''
                   }`}
                 >
-                  {items.map((t) => <BloqueTurno key={t.id} turno={t} onClick={onClickTurno} />)}
+                  {items.map((t) => (
+                    <BloqueTurno
+                      key={t.id}
+                      turno={t}
+                      sucursalNombre={hayMasDeUnaSucursal ? sucursalesPorId[t.sucursal] : null}
+                      onClick={onClickTurno}
+                    />
+                  ))}
                 </div>
               )
             })}
