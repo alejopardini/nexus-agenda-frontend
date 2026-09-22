@@ -14,11 +14,9 @@ export default function DetallePaciente() {
   const { auth } = useAuth()
   const [paciente, setPaciente] = useState(null)
   const [consultas, setConsultas] = useState([])
-  const [seguimiento, setSeguimiento] = useState({ etapa_cuidado: '', frecuencia: '' })
   const [profesionales, setProfesionales] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [guardandoSeguimiento, setGuardandoSeguimiento] = useState(false)
   const [motivoSolicitud, setMotivoSolicitud] = useState('')
   const [enviandoSolicitud, setEnviandoSolicitud] = useState(false)
   const [solicitudEnviada, setSolicitudEnviada] = useState(false)
@@ -31,17 +29,10 @@ export default function DetallePaciente() {
   useEffect(() => {
     Promise.all([
       apiClient.get(`/pacientes/${id}/`),
-      apiClient.get(`/pacientes/${id}/seguimiento_quiropractico/`),
       apiClient.get('/profesionales/'),
     ])
-      .then(([pacienteRes, seguimientoRes, profesionalesRes]) => {
+      .then(([pacienteRes, profesionalesRes]) => {
         setPaciente(pacienteRes.data)
-        if (seguimientoRes.data) {
-          setSeguimiento({
-            etapa_cuidado: seguimientoRes.data.etapa_cuidado || '',
-            frecuencia: seguimientoRes.data.frecuencia || '',
-          })
-        }
         setProfesionales(profesionalesRes.data)
       })
       .catch(() => setError('No se pudo cargar el paciente.'))
@@ -52,17 +43,6 @@ export default function DetallePaciente() {
       .then((res) => setConsultas(res.data.filter((c) => String(c.paciente) === id)))
       .catch(() => setConsultas([]))
   }, [id])
-
-  const guardarSeguimiento = async () => {
-    setGuardandoSeguimiento(true)
-    try {
-      await apiClient.post(`/pacientes/${id}/seguimiento_quiropractico/`, seguimiento)
-    } catch {
-      alert('No se pudo guardar el seguimiento.')
-    } finally {
-      setGuardandoSeguimiento(false)
-    }
-  }
 
   const solicitarAcceso = async (e) => {
     e.preventDefault()
@@ -246,41 +226,6 @@ export default function DetallePaciente() {
 
         {tieneAcceso && (
           <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-lg font-bold text-slate-800 mb-3">Seguimiento quiropráctico</h2>
-            <div className="flex gap-4 items-end">
-              <div className="flex-1">
-                <label className="block text-sm text-slate-600 mb-1">Etapa de cuidado</label>
-                <select
-                  value={seguimiento.etapa_cuidado}
-                  onChange={(e) => setSeguimiento({ ...seguimiento, etapa_cuidado: e.target.value })}
-                  className="w-full border border-slate-300 rounded px-3 py-2 text-sm"
-                >
-                  <option value="">Sin definir</option>
-                  <option value="aguda">Aguda</option>
-                  <option value="intermedia">Intermedia</option>
-                  <option value="mantenimiento">Mantenimiento</option>
-                  <option value="reactivacion">Reactivación</option>
-                </select>
-              </div>
-              <div className="flex-1">
-                <label className="block text-sm text-slate-600 mb-1">Frecuencia recomendada</label>
-                <input
-                  type="text"
-                  placeholder="Ej: 1 vez por semana"
-                  value={seguimiento.frecuencia}
-                  onChange={(e) => setSeguimiento({ ...seguimiento, frecuencia: e.target.value })}
-                  className="w-full border border-slate-300 rounded px-3 py-2 text-sm"
-                />
-              </div>
-              <Boton variante="primary" onClick={guardarSeguimiento} disabled={guardandoSeguimiento}>
-                {guardandoSeguimiento ? 'Guardando...' : 'Guardar'}
-              </Boton>
-            </div>
-          </div>
-        )}
-
-        {tieneAcceso && (
-          <div className="bg-white rounded-lg shadow-md p-6">
             <h2 className="text-lg font-bold text-slate-800 mb-3">Consultas</h2>
             {consultas.length === 0 ? (
               auth.rol === 'secretaria' ? (
@@ -299,7 +244,7 @@ export default function DetallePaciente() {
                         <span className="font-medium text-slate-800">{formatearFecha(c.fecha)}</span>
                         <span className="text-slate-500">{c.profesional_nombre} — {c.estado}</span>
                       </div>
-                      <p className="text-slate-600 mt-1">{c.motivo || '(sin motivo cargado)'}</p>
+                      <p className="text-slate-600 mt-1">{c.titulo || '(sin título cargado)'}</p>
                     </Link>
                   </li>
                 ))}
