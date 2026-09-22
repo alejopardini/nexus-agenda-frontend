@@ -33,6 +33,7 @@ import Estadisticas from './pages/Estadisticas'
 import ValoresTurnos from './pages/ValoresTurnos'
 import Planes from './pages/Planes'
 import GestionSuscripcion from './pages/GestionSuscripcion'
+import ConfiguracionMarca from './pages/ConfiguracionMarca'
 
 function App() {
   return (
@@ -75,6 +76,7 @@ function App() {
             <Route path="/planes" element={<ProtectedRoute><Planes /></ProtectedRoute>} />
             <Route path="/campos-personalizados" element={<ProtectedRoute><CamposPersonalizados /></ProtectedRoute>} />
             <Route path="/estadisticas" element={<ProtectedRoute><Estadisticas /></ProtectedRoute>} />
+            <Route path="/configuracion/marca" element={<ProtectedRoute><ConfiguracionMarca /></ProtectedRoute>} />
           </Routes>
         </BrowserRouter>
       </SucursalActivaProvider>

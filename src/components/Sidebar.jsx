@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
-  Home, Users, CalendarCheck, Stethoscope, BarChart3,
+  Home, Users, CalendarCheck, Stethoscope, BarChart3, Settings,
   MessageCircle, Menu, X, ChevronDown,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
@@ -207,6 +207,9 @@ export default function Sidebar() {
     ...(esDueño ? [{ to: '/secretarias', label: 'Secretaría' }] : []),
     ...(esDueño ? [{ to: '/auditoria', label: 'Auditoría' }] : []),
   ]
+  const itemsConfiguracion = [
+    { to: '/configuracion/marca', label: 'Marca' },
+  ]
 
   // Una sola fuente de verdad para desktop (SidebarIcon) y mobile (ItemMobile/SeccionMobile)
   const secciones = [
@@ -215,6 +218,7 @@ export default function Sidebar() {
     { key: 'turnos', Icon: CalendarCheck, label: 'Turnos', items: itemsTurnos },
     { key: 'profesionales', Icon: Stethoscope, label: 'Profesionales', items: itemsProfesionales },
     ...(auth.rol !== 'secretaria' ? [{ key: 'estadisticas', to: '/estadisticas', Icon: BarChart3, label: 'Estadísticas' }] : []),
+    ...(esDueño ? [{ key: 'configuracion', Icon: Settings, label: 'Configuración', items: itemsConfiguracion }] : []),
   ]
 
   const esActivo = (seccion) => {
