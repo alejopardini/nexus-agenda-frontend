@@ -52,6 +52,26 @@ function estiloMarca(organizacion) {
   return estilo
 }
 
+// Luminancia relativa aproximada (no es la fórmula WCAG completa, alcanza
+// para decidir blanco/negro encima de un color de fondo).
+function luminanciaRelativa(hex) {
+  const num = parseInt(hex.replace('#', ''), 16)
+  const r = (num >> 16) & 0xff
+  const g = (num >> 8) & 0xff
+  const b = num & 0xff
+  return (0.299 * r + 0.587 * g + 0.114 * b) / 255
+}
+
+// Color de texto legible sobre el color_primario de la organización, para
+// los elementos de esta pantalla que hoy tienen texto blanco fijo contra
+// bg-btn-primary (los Boton variante="primary" y el horario seleccionado).
+// Sin color_primario cargado, undefined — el texto blanco fijo de Boton.jsx
+// queda como está, no se toca ese componente en general.
+function textoSobreMarca(colorPrimario) {
+  if (!colorPrimario) return undefined
+  return luminanciaRelativa(colorPrimario) > 0.6 ? '#000000' : '#ffffff'
+}
+
 function calcularHorariosLibres({ filas, excepciones, cierres, turnosOcupados, fecha, hoy }) {
   const fechaStr = fechaToStr(fecha)
   const esHoy = fechaToStr(fecha) === fechaToStr(hoy)
@@ -282,6 +302,9 @@ export default function ReservarPublico() {
     setHorarioSeleccionado(null)
   }
 
+  const colorTexto = textoSobreMarca(organizacion?.color_primario)
+  const estiloTextoMarca = colorTexto ? { color: colorTexto } : undefined
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-page p-4" style={estiloMarca(organizacion)}>
       <div className="bg-white rounded-xl shadow-[0px_4px_16px_rgba(0,0,0,0.1)] p-8 w-full max-w-md flex flex-col gap-5">
@@ -300,7 +323,7 @@ export default function ReservarPublico() {
               error={errorDni}
               required
             />
-            <Boton type="submit" variante="primary" disabled={buscando} className="w-full">
+            <Boton type="submit" variante="primary" disabled={buscando} className="w-full" style={estiloTextoMarca}>
               {buscando ? 'Buscando...' : 'Buscar'}
             </Boton>
           </form>
@@ -348,7 +371,7 @@ export default function ReservarPublico() {
               onChange={handleChangeAlta}
             />
 
-            <Boton type="submit" variante="primary" disabled={guardandoAlta} className="w-full">
+            <Boton type="submit" variante="primary" disabled={guardandoAlta} className="w-full" style={estiloTextoMarca}>
               {guardandoAlta ? 'Registrando...' : 'Registrarme y continuar'}
             </Boton>
             <button type="button" onClick={() => setPaso('horario')} className={VOLVER_LINK}>
@@ -391,6 +414,7 @@ export default function ReservarPublico() {
               disabled={!profesionalId}
               onClick={() => setPaso('horario')}
               className="w-full"
+              style={estiloTextoMarca}
             >
               Continuar
             </Boton>
@@ -436,6 +460,7 @@ export default function ReservarPublico() {
                             ? 'bg-btn-primary text-white border-btn-primary'
                             : 'bg-white text-texto border-input-border hover:bg-btn-outline-hover'
                         }`}
+                        style={horarioSeleccionado?.hora === h.hora ? estiloTextoMarca : undefined}
                       >
                         {h.hora}
                       </button>
@@ -451,6 +476,7 @@ export default function ReservarPublico() {
               disabled={!horarioSeleccionado}
               onClick={() => setPaso(paciente ? 'confirmar' : 'alta')}
               className="w-full"
+              style={estiloTextoMarca}
             >
               Continuar
             </Boton>
@@ -477,7 +503,7 @@ export default function ReservarPublico() {
 
             {errorConfirmar && <p className="font-sans text-[14px] text-input-error">{errorConfirmar}</p>}
 
-            <Boton type="button" variante="primary" disabled={guardandoTurno} onClick={handleConfirmar} className="w-full">
+            <Boton type="button" variante="primary" disabled={guardandoTurno} onClick={handleConfirmar} className="w-full" style={estiloTextoMarca}>
               {guardandoTurno ? 'Reservando...' : 'Confirmar reserva'}
             </Boton>
             <button type="button" onClick={volverAHorario} className={VOLVER_LINK}>
