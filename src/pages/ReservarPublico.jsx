@@ -20,6 +20,38 @@ const LABEL_BASE = 'block font-sans font-medium text-[12px] leading-[15px] text-
 
 const VOLVER_LINK = 'w-full text-center font-sans font-medium text-[14px] text-primary hover:underline mt-3'
 
+// Oscurece un color hex un porcentaje dado (0-1), para simular los estados
+// hover/active de --color-btn-primary sin depender de que la organización
+// cargue esos tonos aparte — mismo criterio que ya usan los tokens fijos del
+// sistema (cada estado ~10-20% más oscuro que el anterior, ver index.css).
+function oscurecerHex(hex, porcentaje) {
+  const num = parseInt(hex.replace('#', ''), 16)
+  const canal = (desplazamiento) => Math.max(0, Math.round(((num >> desplazamiento) & 0xff) * (1 - porcentaje)))
+  return `#${[16, 8, 0].map((d) => canal(d).toString(16).padStart(2, '0')).join('')}`
+}
+
+// Aplica la marca de la organización (color_primario/color_secundario) como
+// variables CSS, sobreescribiendo acá — y solo acá, scopeado a esta pantalla
+// vía el contenedor raíz — los tokens que ya consumen los componentes
+// compartidos (Boton, CampoTexto) para que los botones principales,
+// encabezados y acentos de ESTA pantalla salgan con el color de la
+// organización sin tocar Boton.jsx/CampoTexto.jsx ni el resto de la app.
+// Sin marca cargada (color_primario null), no se define nada acá y todo cae
+// al default del sistema (navy/teal) vía la cascada normal de :root.
+function estiloMarca(organizacion) {
+  if (!organizacion?.color_primario) return undefined
+  const estilo = {
+    '--color-primary': organizacion.color_primario,
+    '--color-btn-primary': organizacion.color_primario,
+    '--color-btn-primary-hover': oscurecerHex(organizacion.color_primario, 0.15),
+    '--color-btn-primary-active': oscurecerHex(organizacion.color_primario, 0.25),
+    '--color-input-focus': organizacion.color_primario,
+    '--color-heading': organizacion.color_primario,
+  }
+  if (organizacion.color_secundario) estilo['--color-secondary'] = organizacion.color_secundario
+  return estilo
+}
+
 function calcularHorariosLibres({ filas, excepciones, cierres, turnosOcupados, fecha, hoy }) {
   const fechaStr = fechaToStr(fecha)
   const esHoy = fechaToStr(fecha) === fechaToStr(hoy)
@@ -65,6 +97,7 @@ export default function ReservarPublico() {
   const [errorCarga, setErrorCarga] = useState('')
   const [profesionales, setProfesionales] = useState([])
   const [datosDisponibilidad, setDatosDisponibilidad] = useState(null)
+  const [organizacion, setOrganizacion] = useState(null)
 
   const [paso, setPaso] = useState('dni')
 
@@ -100,6 +133,14 @@ export default function ReservarPublico() {
     ])
       .catch(() => setErrorCarga('No se pudo cargar la información de reserva. Verificá el link e intentá de nuevo.'))
       .finally(() => setCargando(false))
+
+    // Aparte del Promise.all de arriba: la marca es cosmética, no debe
+    // impedir reservar un turno si este pedido falla (ej. slug inválido ya
+    // reportado por el otro fetch, o un error puntual de este endpoint).
+    apiClient
+      .get(`/publico/${organizacionId}/info/`)
+      .then((res) => setOrganizacion(res.data))
+      .catch(() => {})
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [organizacionId])
 
@@ -242,8 +283,11 @@ export default function ReservarPublico() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-page p-4">
+    <div className="min-h-screen flex items-center justify-center bg-page p-4" style={estiloMarca(organizacion)}>
       <div className="bg-white rounded-xl shadow-[0px_4px_16px_rgba(0,0,0,0.1)] p-8 w-full max-w-md flex flex-col gap-5">
+        {organizacion?.logo && (
+          <img src={organizacion.logo} alt={organizacion.nombre} className="h-16 mx-auto object-contain" />
+        )}
         <h1 className="font-sans font-semibold text-[20px] text-heading text-center">Reservar turno</h1>
 
         {paso === 'dni' && (
