@@ -19,7 +19,7 @@ export default function NuevoProfesional() {
 
   const [form, setForm] = useState({
     username: '', password: '', email: '', nombre: '', apellido: '',
-    puede_crear_turnos: false, puede_crear_pacientes: false,
+    puede_crear_turnos: false, puede_crear_clientes: false,
   })
 
   const [cargarHorario, setCargarHorario] = useState(false)
@@ -128,10 +128,10 @@ export default function NuevoProfesional() {
               </div>
               <div className="flex items-center gap-2">
                 <input
-                  type="checkbox" name="puede_crear_pacientes" checked={form.puede_crear_pacientes}
-                  onChange={handleChange} id="puede-crear-pacientes"
+                  type="checkbox" name="puede_crear_clientes" checked={form.puede_crear_clientes}
+                  onChange={handleChange} id="puede-crear-clientes"
                 />
-                <label htmlFor="puede-crear-pacientes" className="text-sm text-slate-700">Puede crear pacientes</label>
+                <label htmlFor="puede-crear-clientes" className="text-sm text-slate-700">Puede crear clientes</label>
               </div>
             </div>
 

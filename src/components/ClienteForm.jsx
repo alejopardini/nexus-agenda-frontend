@@ -5,7 +5,7 @@ import CampoTexto from './CampoTexto'
 import { useAuth } from '../context/AuthContext'
 import { useSucursalActiva } from '../context/SucursalActivaContext'
 
-export default function PacienteForm({ onCreado }) {
+export default function ClienteForm({ onCreado }) {
   const { auth } = useAuth()
   const { sucursalActivaId } = useSucursalActiva()
   const [error, setError] = useState('')
@@ -36,9 +36,9 @@ export default function PacienteForm({ onCreado }) {
 
   const hoy = new Date().toISOString().split('T')[0]
 
-  if (auth.rol === 'profesional' && auth.puede_crear_pacientes !== true) {
+  if (auth.rol === 'profesional' && auth.puede_crear_clientes !== true) {
     return (
-      <p className="text-red-600">No tenés permiso para crear pacientes. Pedile a la secretaría o al dueño que lo haga.</p>
+      <p className="text-red-600">No tenés permiso para crear clientes. Pedile a la secretaría o al dueño que lo haga.</p>
     )
   }
 
@@ -47,13 +47,13 @@ export default function PacienteForm({ onCreado }) {
     setError('')
     setGuardando(true)
     try {
-      const res = await apiClient.post('/pacientes/', form)
+      const res = await apiClient.post('/clientes/', form)
       onCreado(res.data)
     } catch (err) {
       const data = err.response?.data
       const mensaje = data
         ? Object.entries(data).map(([campo, msgs]) => `${campo}: ${[].concat(msgs).join(', ')}`).join(' | ')
-        : 'No se pudo crear el paciente.'
+        : 'No se pudo crear el cliente.'
       setError(mensaje)
     } finally {
       setGuardando(false)
@@ -145,7 +145,7 @@ export default function PacienteForm({ onCreado }) {
       </div>
 
       <Boton type="submit" variante="primary" disabled={guardando} className="w-full">
-        {guardando ? 'Guardando...' : 'Crear paciente'}
+        {guardando ? 'Guardando...' : 'Crear cliente'}
       </Boton>
     </form>
   )

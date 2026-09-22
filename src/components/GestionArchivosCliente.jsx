@@ -6,7 +6,7 @@ import Boton from './Boton'
 import BotonIcono from './BotonIcono'
 import { formatearFecha } from '../utils/fechas'
 
-export default function GestionArchivosPaciente({ pacienteId }) {
+export default function GestionArchivosCliente({ clienteId }) {
   const [archivos, setArchivos] = useState([])
   const [archivosError, setArchivosError] = useState(false)
   const [archivoFile, setArchivoFile] = useState(null)
@@ -24,7 +24,7 @@ export default function GestionArchivosPaciente({ pacienteId }) {
     apiClient
       .get('/archivos/')
       .then((res) => {
-        setArchivos(res.data.filter((a) => String(a.paciente) === String(pacienteId)))
+        setArchivos(res.data.filter((a) => String(a.cliente) === String(clienteId)))
         setArchivosError(false)
       })
       .catch(() => setArchivosError(true))
@@ -33,14 +33,14 @@ export default function GestionArchivosPaciente({ pacienteId }) {
   useEffect(() => {
     cargarArchivos()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pacienteId])
+  }, [clienteId])
 
   const handleUpload = async (e) => {
     e.preventDefault()
     if (!archivoFile) return
     setSubiendo(true)
     const formData = new FormData()
-    formData.append('paciente', pacienteId)
+    formData.append('cliente', clienteId)
     formData.append('archivo', archivoFile)
     formData.append('nombre', archivoFile.name)
     try {
@@ -265,7 +265,7 @@ export default function GestionArchivosPaciente({ pacienteId }) {
       {archivoAAnotar && (
         <AnotadorArchivo
           archivo={archivoAAnotar}
-          pacienteId={pacienteId}
+          clienteId={clienteId}
           onClose={() => setArchivoAAnotar(null)}
           onGuardado={cargarArchivos}
         />

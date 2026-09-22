@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { ArrowUpRight, Pencil, Check, X } from 'lucide-react'
 import apiClient from '../api/client'
 import SelectorPlantillaPlan from './SelectorPlantillaPlan'
-import GestionArchivosPaciente from './GestionArchivosPaciente'
+import GestionArchivosCliente from './GestionArchivosCliente'
 import Modal from './Modal'
 import Boton from './Boton'
 import BotonIcono from './BotonIcono'
@@ -33,10 +33,10 @@ function previewTexto(texto, max = 160) {
   return texto.length > max ? `${texto.slice(0, max).trimEnd()}…` : texto
 }
 
-export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar = false }) {
+export default function FichaClienteModal({ clienteId, onClose, ocultarEditar = false }) {
   const { auth } = useAuth()
   const navigate = useNavigate()
-  const [paciente, setPaciente] = useState(null)
+  const [cliente, setCliente] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [tab, setTab] = useState('historial_consultas')
@@ -70,7 +70,7 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
 
   const cargarPlanes = () => {
     apiClient
-      .get(`/planes/?paciente=${pacienteId}`)
+      .get(`/planes/?cliente=${clienteId}`)
       .then((res) => {
         setPlanes(res.data)
         setPlanesError(false)
@@ -82,7 +82,7 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
     apiClient
       .get('/consultas/')
       .then((res) => {
-        setConsultas(res.data.filter((c) => String(c.paciente) === String(pacienteId)))
+        setConsultas(res.data.filter((c) => String(c.cliente) === String(clienteId)))
         setConsultasError(false)
       })
       .catch(() => setConsultasError(true))
@@ -93,9 +93,9 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
     let activo = true
 
     apiClient
-      .get(`/pacientes/${pacienteId}/`)
-      .then((res) => { if (activo) setPaciente(res.data) })
-      .catch(() => { if (activo) setError('No se pudo cargar el paciente.') })
+      .get(`/clientes/${clienteId}/`)
+      .then((res) => { if (activo) setCliente(res.data) })
+      .catch(() => { if (activo) setError('No se pudo cargar el cliente.') })
       .finally(() => { if (activo) setLoading(false) })
 
     cargarConsultas()
@@ -111,7 +111,7 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
       .get('/turnos/')
       .then((res) => {
         if (!activo) return
-        const propios = res.data.filter((t) => String(t.paciente) === String(pacienteId))
+        const propios = res.data.filter((t) => String(t.cliente) === String(clienteId))
         propios.sort((a, b) => `${b.fecha} ${b.hora}`.localeCompare(`${a.fecha} ${a.hora}`))
         setTurnos(propios)
       })
@@ -126,14 +126,14 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
 
     return () => { activo = false }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pacienteId])
+  }, [clienteId])
 
   const hayConsultaCompletada = consultas.some((c) => c.estado === 'completada')
   const consultasCompletadas = consultas.filter((c) => c.estado === 'completada')
 
   const iniciarEdicionCampo = (campo) => {
     setEditandoCampo(campo)
-    setValorEditado(paciente[campo] || '')
+    setValorEditado(cliente[campo] || '')
     setErrorCampo('')
   }
 
@@ -146,8 +146,8 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
     setGuardandoCampo(true)
     setErrorCampo('')
     try {
-      const res = await apiClient.patch(`/pacientes/${pacienteId}/`, { [campo]: valorEditado })
-      setPaciente((prev) => ({ ...prev, [campo]: res.data[campo] }))
+      const res = await apiClient.patch(`/clientes/${clienteId}/`, { [campo]: valorEditado })
+      setCliente((prev) => ({ ...prev, [campo]: res.data[campo] }))
       setEditandoCampo(null)
     } catch (err) {
       const data = err.response?.data
@@ -168,7 +168,7 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
     setGuardandoPlan(true)
     try {
       await apiClient.post('/planes/', {
-        paciente: pacienteId,
+        cliente: clienteId,
         sesiones_totales: formPlan.sesiones_totales,
         precio: formPlan.precio,
         notas: formPlan.notas,
@@ -215,7 +215,7 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
         notas: formHistorica.notas,
       }
       if (auth.rol === 'dueño') payload.profesional = formHistorica.profesional
-      const res = await apiClient.post(`/pacientes/${pacienteId}/consulta-historica/`, payload)
+      const res = await apiClient.post(`/clientes/${clienteId}/consulta-historica/`, payload)
       onClose()
       navigate(`/consultas/${res.data.id}`)
     } catch (err) {
@@ -269,7 +269,7 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
 
   const planCerrado = (p) => !p.activo || p.sesiones_usadas >= p.sesiones_totales
 
-  const tieneAcceso = paciente ? 'email' in paciente : false
+  const tieneAcceso = cliente ? 'email' in cliente : false
   const puedeAgendarTurno = auth.rol !== 'profesional' || auth.puede_crear_turnos === true
   const puedeCargarHistorica = auth.rol === 'dueño' || auth.rol === 'profesional'
   const profesionalACargo = consultas[0]?.profesional_nombre || null
@@ -277,7 +277,7 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
   const pagosRealizados = turnos.filter((t) => t.pagado)
   const totalPagado = pagosRealizados.reduce((acc, t) => acc + (Number(t.monto_cobrado) || 0), 0)
 
-  const mostrarTabs = !loading && !error && paciente && tieneAcceso
+  const mostrarTabs = !loading && !error && cliente && tieneAcceso
 
   return (
     <Modal
@@ -285,11 +285,11 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
       onClose={onClose}
       titulo={
         <>
-          {paciente ? `${paciente.nombre} ${paciente.apellido}` : 'Ficha del paciente'}
+          {cliente ? `${cliente.nombre} ${cliente.apellido}` : 'Ficha del cliente'}
           {tieneAcceso && (!ocultarEditar || puedeAgendarTurno) && (
             <div className="flex flex-wrap gap-2 mt-1">
               {!ocultarEditar && (
-                <Boton to={`/pacientes/${pacienteId}/editar`} variante="ghost" tamaño="sm" onClick={onClose}>
+                <Boton to={`/clientes/${clienteId}/editar`} variante="ghost" tamaño="sm" onClick={onClose}>
                   Editar ficha completa
                 </Boton>
               )}
@@ -297,7 +297,7 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
                 <Boton
                   variante="ghost"
                   tamaño="sm"
-                  onClick={() => { onClose(); navigate(`/turnos?paciente=${pacienteId}`) }}
+                  onClick={() => { onClose(); navigate(`/turnos?cliente=${clienteId}`) }}
                 >
                   Agendar turno
                 </Boton>
@@ -327,8 +327,8 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
         {loading && <p className="text-texto-secundario text-sm">Cargando...</p>}
         {!loading && error && <p className="text-input-error text-sm">{error}</p>}
 
-        {!loading && !error && paciente && !tieneAcceso && (
-          <p className="text-sm text-texto-secundario">No tenés acceso a los datos de este paciente.</p>
+        {!loading && !error && cliente && !tieneAcceso && (
+          <p className="text-sm text-texto-secundario">No tenés acceso a los datos de este cliente.</p>
         )}
 
         {mostrarTabs && (
@@ -369,7 +369,7 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
                           </div>
                         ) : (
                           <dd className="text-texto flex items-center gap-1">
-                            {paciente[campo] || '—'}
+                            {cliente[campo] || '—'}
                             <BotonIcono icono={Pencil} texto={`Editar ${label}`} onClick={() => iniciarEdicionCampo(campo)} />
                           </dd>
                         )}
@@ -589,7 +589,7 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
                     <p className="text-texto-secundario text-sm">Este contenido es clínico y no está disponible para tu rol.</p>
                   )}
                   {consultasCargadas && !consultasError && !hayConsultaCompletada && (
-                    <p className="text-texto-secundario text-sm">Este paciente todavía no tiene consultas registradas.</p>
+                    <p className="text-texto-secundario text-sm">Este cliente todavía no tiene consultas registradas.</p>
                   )}
                   {consultasCargadas && !consultasError && hayConsultaCompletada && (
                     <Link
@@ -620,7 +620,7 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
                     <p className="text-texto-secundario text-sm">Este contenido es clínico y no está disponible para tu rol.</p>
                   )}
                   {consultasCargadas && !consultasError && !hayConsultaCompletada && (
-                    <p className="text-texto-secundario text-sm">Este paciente todavía no tiene consultas registradas.</p>
+                    <p className="text-texto-secundario text-sm">Este cliente todavía no tiene consultas registradas.</p>
                   )}
                   {consultasCargadas && !consultasError && hayConsultaCompletada && (
                     <ul className="divide-y divide-borde-suave">
@@ -709,17 +709,17 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
               {tab === 'notas' && (
                 <div>
                   <p className="text-sm text-texto whitespace-pre-wrap">
-                    {paciente.historia_clinica || 'Sin datos cargados.'}
+                    {cliente.historia_clinica || 'Sin datos cargados.'}
                   </p>
-                  {paciente.discapacidad && (
+                  {cliente.discapacidad && (
                     <p className="text-sm text-texto mt-2">
-                      <span className="font-medium">Discapacidad:</span> {paciente.discapacidad_detalle || 'Sí'}
+                      <span className="font-medium">Discapacidad:</span> {cliente.discapacidad_detalle || 'Sí'}
                     </p>
                   )}
                 </div>
               )}
 
-              {tab === 'archivos' && <GestionArchivosPaciente pacienteId={pacienteId} />}
+              {tab === 'archivos' && <GestionArchivosCliente clienteId={clienteId} />}
           </>
         )}
     </Modal>

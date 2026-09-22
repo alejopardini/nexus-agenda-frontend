@@ -31,7 +31,7 @@ export default function TurnosCancelados() {
                 <tr className="text-left text-slate-500 border-b border-slate-200">
                   <th className="py-2">Fecha</th>
                   <th className="py-2">Hora</th>
-                  <th className="py-2">Paciente</th>
+                  <th className="py-2">Cliente</th>
                   <th className="py-2">Profesional</th>
                 </tr>
               </thead>
@@ -40,7 +40,7 @@ export default function TurnosCancelados() {
                   <tr key={t.id} className="border-b border-slate-100">
                     <td className="py-2">{formatearFecha(t.fecha)}</td>
                     <td className="py-2">{formatearHora(t.hora)}</td>
-                    <td className="py-2">{t.paciente_nombre}</td>
+                    <td className="py-2">{t.cliente_nombre}</td>
                     <td className="py-2">{t.profesional_nombre}</td>
                   </tr>
                 ))}

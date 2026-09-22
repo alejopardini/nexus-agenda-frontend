@@ -1,22 +1,22 @@
 import { useEffect, useState } from 'react'
 import apiClient from '../api/client'
-import BuscadorPaciente from './BuscadorPaciente'
-import NuevoPacienteModal from './NuevoPacienteModal'
+import BuscadorCliente from './BuscadorCliente'
+import NuevoClienteModal from './NuevoClienteModal'
 import SelectorPlantillaPlan from './SelectorPlantillaPlan'
 import Modal from './Modal'
 import Boton from './Boton'
 
 const DURACION_PLAN_NUEVO_MINUTOS = 30
 
-export default function NuevoTurnoModal({ profesional, sucursalId, fecha, hora, pacienteInicialId, onClose, onCreado }) {
-  const [pacientes, setPacientes] = useState([])
-  const [loadingPacientes, setLoadingPacientes] = useState(true)
-  const [paciente, setPaciente] = useState('')
+export default function NuevoTurnoModal({ profesional, sucursalId, fecha, hora, clienteInicialId, onClose, onCreado }) {
+  const [clientes, setClientes] = useState([])
+  const [loadingClientes, setLoadingClientes] = useState(true)
+  const [cliente, setCliente] = useState('')
   const [tiposTurno, setTiposTurno] = useState([])
   const [tipoTurnoId, setTipoTurnoId] = useState('')
   const [error, setError] = useState('')
   const [guardando, setGuardando] = useState(false)
-  const [modalNuevoPacienteAbierto, setModalNuevoPacienteAbierto] = useState(false)
+  const [modalNuevoClienteAbierto, setModalNuevoClienteAbierto] = useState(false)
   const [planDisponible, setPlanDisponible] = useState(null)
   const [modo, setModo] = useState('individual')
   const [plantillasPlan, setPlantillasPlan] = useState([])
@@ -25,20 +25,20 @@ export default function NuevoTurnoModal({ profesional, sucursalId, fecha, hora, 
 
   useEffect(() => {
     apiClient
-      .get('/pacientes/')
+      .get('/clientes/')
       .then((res) => {
-        setPacientes(res.data)
+        setClientes(res.data)
         // Si el id que llegó por query param no existe o el usuario no
-        // tiene acceso a ese paciente, no va a estar en esta lista —
+        // tiene acceso a ese cliente, no va a estar en esta lista —
         // se lo ignora en silencio y el buscador queda vacío, como si
-        // no hubiera llegado ningún pacienteInicialId.
-        if (pacienteInicialId && res.data.some((p) => String(p.id) === String(pacienteInicialId))) {
-          setPaciente(pacienteInicialId)
+        // no hubiera llegado ningún clienteInicialId.
+        if (clienteInicialId && res.data.some((p) => String(p.id) === String(clienteInicialId))) {
+          setCliente(clienteInicialId)
         }
       })
-      .catch(() => setError('No se pudieron cargar los pacientes.'))
-      .finally(() => setLoadingPacientes(false))
-  }, [pacienteInicialId])
+      .catch(() => setError('No se pudieron cargar los clientes.'))
+      .finally(() => setLoadingClientes(false))
+  }, [clienteInicialId])
 
   useEffect(() => {
     apiClient
@@ -59,14 +59,14 @@ export default function NuevoTurnoModal({ profesional, sucursalId, fecha, hora, 
   }, [])
 
   useEffect(() => {
-    if (!paciente) {
+    if (!cliente) {
       setPlanDisponible(null)
       return
     }
     let cancelado = false
     setPlanDisponible(null)
     apiClient
-      .get(`/planes/?paciente=${paciente}`)
+      .get(`/planes/?cliente=${cliente}`)
       .then((res) => {
         if (cancelado) return
         const tienePlan = res.data.some((p) => p.activo && p.sesiones_usadas < p.sesiones_totales)
@@ -78,7 +78,7 @@ export default function NuevoTurnoModal({ profesional, sucursalId, fecha, hora, 
     return () => {
       cancelado = true
     }
-  }, [paciente])
+  }, [cliente])
 
   useEffect(() => {
     if (planDisponible !== false) {
@@ -88,14 +88,14 @@ export default function NuevoTurnoModal({ profesional, sucursalId, fecha, hora, 
     }
   }, [planDisponible])
 
-  const pacienteSeleccionado = pacientes.find((p) => String(p.id) === String(paciente))
+  const clienteSeleccionado = clientes.find((p) => String(p.id) === String(cliente))
   const tipo = tiposTurno.find((t) => String(t.id) === String(tipoTurnoId))
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
-    if (!paciente) {
-      setError('Elegí un paciente.')
+    if (!cliente) {
+      setError('Elegí un cliente.')
       return
     }
     if (modo === 'individual' && !tipo) {
@@ -111,7 +111,7 @@ export default function NuevoTurnoModal({ profesional, sucursalId, fecha, hora, 
     try {
       if (modo === 'plan_nuevo') {
         await apiClient.post('/planes/', {
-          paciente,
+          cliente,
           sesiones_totales: nuevoPlanSesiones,
           precio: nuevoPlanPrecio,
         })
@@ -119,7 +119,7 @@ export default function NuevoTurnoModal({ profesional, sucursalId, fecha, hora, 
 
       const payload = {
         sucursal: sucursalId,
-        paciente,
+        cliente,
         profesional: profesional.id,
         fecha,
         hora,
@@ -159,16 +159,16 @@ export default function NuevoTurnoModal({ profesional, sucursalId, fecha, hora, 
 
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <label className="block text-sm text-slate-600 mb-1">Paciente</label>
-            <BuscadorPaciente
-              pacientes={pacientes}
-              value={paciente}
-              onChange={setPaciente}
-              onNuevoPaciente={() => setModalNuevoPacienteAbierto(true)}
+            <label className="block text-sm text-slate-600 mb-1">Cliente</label>
+            <BuscadorCliente
+              clientes={clientes}
+              value={cliente}
+              onChange={setCliente}
+              onNuevoCliente={() => setModalNuevoClienteAbierto(true)}
             />
             {planDisponible === true && (
               <p className="text-xs text-slate-500 mt-1">
-                Este turno va a descontar una sesión del plan activo de {pacienteSeleccionado?.nombre} {pacienteSeleccionado?.apellido}.
+                Este turno va a descontar una sesión del plan activo de {clienteSeleccionado?.nombre} {clienteSeleccionado?.apellido}.
               </p>
             )}
             {planDisponible === false && modo === 'individual' && tipo && (
@@ -229,18 +229,18 @@ export default function NuevoTurnoModal({ profesional, sucursalId, fecha, hora, 
             </div>
           )}
 
-          <Boton type="submit" variante="primary" disabled={guardando || loadingPacientes} className="w-full">
+          <Boton type="submit" variante="primary" disabled={guardando || loadingClientes} className="w-full">
             {guardando ? 'Guardando...' : 'Crear turno'}
           </Boton>
         </form>
       </Modal>
 
-      {modalNuevoPacienteAbierto && (
-        <NuevoPacienteModal
-          onClose={() => setModalNuevoPacienteAbierto(false)}
+      {modalNuevoClienteAbierto && (
+        <NuevoClienteModal
+          onClose={() => setModalNuevoClienteAbierto(false)}
           onCreado={(p) => {
-            setPacientes((prev) => [...prev, p])
-            setPaciente(p.id)
+            setClientes((prev) => [...prev, p])
+            setCliente(p.id)
           }}
         />
       )}

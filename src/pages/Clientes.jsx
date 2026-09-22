@@ -3,8 +3,8 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { Search, ChevronLeft, ChevronRight } from 'lucide-react'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
-import FichaPacienteModal from '../components/FichaPacienteModal'
-import NuevoPacienteModal from '../components/NuevoPacienteModal'
+import FichaClienteModal from '../components/FichaClienteModal'
+import NuevoClienteModal from '../components/NuevoClienteModal'
 import { useAuth } from '../context/AuthContext'
 import Boton from '../components/Boton'
 import Badge from '../components/Badge'
@@ -18,28 +18,28 @@ function formatearTurno(turno) {
   return hora ? `${formatearFecha(turno.fecha)} ${hora}` : formatearFecha(turno.fecha)
 }
 
-export default function Pacientes() {
+export default function Clientes() {
   const { auth } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
-  const [pacientes, setPacientes] = useState([])
+  const [clientes, setClientes] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [busqueda, setBusqueda] = useState('')
   const [pagina, setPagina] = useState(1)
-  const [pacienteAbiertoId, setPacienteAbiertoId] = useState(() => location.state?.abrirPacienteId ?? null)
-  const [modalNuevoPacienteAbierto, setModalNuevoPacienteAbierto] = useState(false)
+  const [clienteAbiertoId, setClienteAbiertoId] = useState(() => location.state?.abrirClienteId ?? null)
+  const [modalNuevoClienteAbierto, setModalNuevoClienteAbierto] = useState(false)
 
   useEffect(() => {
     apiClient
-      .get('/pacientes/')
-      .then((res) => setPacientes(res.data))
-      .catch(() => setError('No se pudieron cargar los pacientes.'))
+      .get('/clientes/')
+      .then((res) => setClientes(res.data))
+      .catch(() => setError('No se pudieron cargar los clientes.'))
       .finally(() => setLoading(false))
   }, [])
 
   useEffect(() => {
-    if (location.state?.abrirPacienteId) {
+    if (location.state?.abrirClienteId) {
       navigate(location.pathname, { replace: true, state: {} })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -47,18 +47,18 @@ export default function Pacientes() {
 
   const termino = busqueda.trim().toLowerCase()
   const terminoDni = termino.replace(/[.\s]/g, '')
-  const pacientesFiltrados = termino
-    ? pacientes.filter((p) => {
+  const clientesFiltrados = termino
+    ? clientes.filter((p) => {
         const coincideNombre = `${p.nombre} ${p.apellido}`.toLowerCase().includes(termino)
         const coincideDni = terminoDni && (p.dni || '').replace(/[.\s]/g, '').includes(terminoDni)
         return coincideNombre || coincideDni
       })
-    : pacientes
+    : clientes
 
-  const totalPaginas = Math.max(1, Math.ceil(pacientesFiltrados.length / TAMANO_PAGINA))
+  const totalPaginas = Math.max(1, Math.ceil(clientesFiltrados.length / TAMANO_PAGINA))
   const paginaActual = Math.min(pagina, totalPaginas)
   const inicio = (paginaActual - 1) * TAMANO_PAGINA
-  const pacientesPagina = pacientesFiltrados.slice(inicio, inicio + TAMANO_PAGINA)
+  const clientesPagina = clientesFiltrados.slice(inicio, inicio + TAMANO_PAGINA)
 
   const cambiarBusqueda = (valor) => {
     setBusqueda(valor)
@@ -66,7 +66,7 @@ export default function Pacientes() {
   }
 
   return (
-    <Layout titulo="Pacientes">
+    <Layout titulo="Clientes">
       <div className="flex items-center justify-end gap-3 mb-6 flex-wrap">
         <div className="relative">
           <Search
@@ -83,14 +83,14 @@ export default function Pacientes() {
             className="w-64 h-10 pl-9 pr-3 rounded-lg border border-input-border text-[14px] outline-none focus:border-2 focus:border-input-focus"
           />
         </div>
-        {(auth.rol !== 'profesional' || auth.puede_crear_pacientes === true) && (
+        {(auth.rol !== 'profesional' || auth.puede_crear_clientes === true) && (
           <Boton
             type="button"
-            onClick={() => setModalNuevoPacienteAbierto(true)}
+            onClick={() => setModalNuevoClienteAbierto(true)}
             variante="primary"
             className="whitespace-nowrap"
           >
-            + Nuevo paciente
+            + Nuevo cliente
           </Boton>
         )}
       </div>
@@ -99,17 +99,17 @@ export default function Pacientes() {
       {error && <p className="text-input-error">{error}</p>}
       {!loading && !error && (
         <div className="bg-white rounded-lg shadow-md">
-          {pacientes.length === 0 ? (
-            <p className="text-texto-secundario p-6">No hay pacientes cargados todavía.</p>
-          ) : pacientesFiltrados.length === 0 ? (
-            <p className="text-texto-secundario p-6">Ningún paciente coincide con "{busqueda}".</p>
+          {clientes.length === 0 ? (
+            <p className="text-texto-secundario p-6">No hay clientes cargados todavía.</p>
+          ) : clientesFiltrados.length === 0 ? (
+            <p className="text-texto-secundario p-6">Ningún cliente coincide con "{busqueda}".</p>
           ) : (
             <>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="text-left text-slate-500 border-b border-borde-suave">
-                      <th className="py-3 px-4 font-medium">Paciente</th>
+                      <th className="py-3 px-4 font-medium">Cliente</th>
                       <th className="py-3 px-4 font-medium">DNI</th>
                       <th className="py-3 px-4 font-medium">Email</th>
                       <th className="py-3 px-4 font-medium">Teléfono</th>
@@ -120,11 +120,11 @@ export default function Pacientes() {
                     </tr>
                   </thead>
                   <tbody>
-                    {pacientesPagina.map((p) => (
+                    {clientesPagina.map((p) => (
                       <tr key={p.id} className="border-b border-borde-suave last:border-b-0 hover:bg-superficie-hover">
                         <td className="py-3 px-4">
                           <button
-                            onClick={() => setPacienteAbiertoId(p.id)}
+                            onClick={() => setClienteAbiertoId(p.id)}
                             className="text-texto hover:text-btn-primary transition-colors"
                           >
                             {p.nombre} {p.apellido}
@@ -155,7 +155,7 @@ export default function Pacientes() {
 
               <div className="flex items-center justify-between gap-4 px-6 py-4 border-t border-borde-suave text-[14px] text-texto-secundario">
                 <span>
-                  Mostrando {inicio + 1}-{Math.min(inicio + TAMANO_PAGINA, pacientesFiltrados.length)} de {pacientesFiltrados.length} pacientes
+                  Mostrando {inicio + 1}-{Math.min(inicio + TAMANO_PAGINA, clientesFiltrados.length)} de {clientesFiltrados.length} clientes
                 </span>
                 <div className="flex items-center gap-3">
                   <button
@@ -184,19 +184,19 @@ export default function Pacientes() {
         </div>
       )}
 
-      {pacienteAbiertoId && (
-        <FichaPacienteModal
-          pacienteId={pacienteAbiertoId}
-          onClose={() => setPacienteAbiertoId(null)}
+      {clienteAbiertoId && (
+        <FichaClienteModal
+          clienteId={clienteAbiertoId}
+          onClose={() => setClienteAbiertoId(null)}
         />
       )}
 
-      {modalNuevoPacienteAbierto && (
-        <NuevoPacienteModal
-          onClose={() => setModalNuevoPacienteAbierto(false)}
+      {modalNuevoClienteAbierto && (
+        <NuevoClienteModal
+          onClose={() => setModalNuevoClienteAbierto(false)}
           onCreado={(p) => {
-            setPacientes((prev) => [...prev, p])
-            setPacienteAbiertoId(p.id)
+            setClientes((prev) => [...prev, p])
+            setClienteAbiertoId(p.id)
           }}
         />
       )}

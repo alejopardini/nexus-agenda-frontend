@@ -5,7 +5,7 @@
 // Uso: <Boton variante="secondary" onClick={...}>Guardar</Boton>
 // Con `to`, se renderiza como Link de react-router en vez de <button> — para
 // los "+ Nuevo X" que en realidad navegan, no disparan una acción.
-// <Boton to="/pacientes/nuevo">+ Nuevo paciente</Boton>
+// <Boton to="/clientes/nuevo">+ Nuevo cliente</Boton>
 
 import { Link } from 'react-router-dom'
 

@@ -82,7 +82,7 @@ export default function NotificationBell() {
                       <li key={t.id} className="p-3 text-sm">
                         <Link to="/turnos/lista" onClick={cerrar} className="block hover:text-blue-600">
                           <div className="flex justify-between">
-                            <span className="font-medium">{t.paciente_nombre}</span>
+                            <span className="font-medium">{t.cliente_nombre}</span>
                             <span className="text-slate-500">{formatearHora(t.hora)}</span>
                           </div>
                           <span className="text-slate-500 text-xs">{formatearFecha(t.fecha)}</span>
@@ -112,7 +112,7 @@ export default function NotificationBell() {
                       <li key={t.id} className="p-3 text-sm">
                         <Link to={`/consultas/${t.consulta_pendiente_id}`} onClick={cerrar} className="block hover:text-blue-600">
                           <div className="flex justify-between">
-                            <span className="font-medium">{t.paciente_nombre}</span>
+                            <span className="font-medium">{t.cliente_nombre}</span>
                             <span className="text-slate-500">{formatearHora(t.hora)}</span>
                           </div>
                           <span className="text-slate-500 text-xs">{formatearFecha(t.fecha)}</span>
@@ -123,7 +123,7 @@ export default function NotificationBell() {
                 )}
                 {consultasVencidas.cantidad > consultasVencidas.items.length && (
                   <div className="p-3">
-                    <Boton to="/pacientes/consultas-pendientes" onClick={cerrar} variante="ghost" tamaño="sm" className="w-full">
+                    <Boton to="/clientes/consultas-pendientes" onClick={cerrar} variante="ghost" tamaño="sm" className="w-full">
                       Ver todo
                     </Boton>
                   </div>

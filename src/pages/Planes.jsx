@@ -1,28 +1,28 @@
 import { useEffect, useState } from 'react'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
-import FichaPacienteModal from '../components/FichaPacienteModal'
-import BuscadorPaciente from '../components/BuscadorPaciente'
-import NuevoPacienteModal from '../components/NuevoPacienteModal'
+import FichaClienteModal from '../components/FichaClienteModal'
+import BuscadorCliente from '../components/BuscadorCliente'
+import NuevoClienteModal from '../components/NuevoClienteModal'
 import SelectorPlantillaPlan from '../components/SelectorPlantillaPlan'
 import Modal from '../components/Modal'
 import Boton from '../components/Boton'
 
 export default function Planes() {
   const [planes, setPlanes] = useState([])
-  const [pacientes, setPacientes] = useState([])
+  const [clientes, setClientes] = useState([])
   const [plantillasPlan, setPlantillasPlan] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [busqueda, setBusqueda] = useState('')
-  const [pacienteAbiertoId, setPacienteAbiertoId] = useState(null)
+  const [clienteAbiertoId, setClienteAbiertoId] = useState(null)
 
   const [modalAbierto, setModalAbierto] = useState(false)
-  const [nuevoPaciente, setNuevoPaciente] = useState('')
+  const [nuevoCliente, setNuevoCliente] = useState('')
   const [formPlan, setFormPlan] = useState({ sesiones_totales: '', precio: '', notas: '' })
   const [guardando, setGuardando] = useState(false)
   const [errorForm, setErrorForm] = useState('')
-  const [modalNuevoPacienteAbierto, setModalNuevoPacienteAbierto] = useState(false)
+  const [modalNuevoClienteAbierto, setModalNuevoClienteAbierto] = useState(false)
 
   const cargarPlanes = () => {
     apiClient
@@ -34,24 +34,24 @@ export default function Planes() {
   useEffect(() => {
     Promise.all([
       apiClient.get('/planes/'),
-      apiClient.get('/pacientes/'),
+      apiClient.get('/clientes/'),
       apiClient.get('/plantillas-plan/'),
     ])
-      .then(([planesRes, pacientesRes, plantillasRes]) => {
+      .then(([planesRes, clientesRes, plantillasRes]) => {
         setPlanes(planesRes.data)
-        setPacientes(pacientesRes.data)
+        setClientes(clientesRes.data)
         setPlantillasPlan(plantillasRes.data.filter((pl) => pl.activo))
       })
       .catch(() => setError('No se pudieron cargar los planes.'))
       .finally(() => setLoading(false))
   }, [])
 
-  const pacientesPorId = {}
-  pacientes.forEach((p) => { pacientesPorId[p.id] = p })
+  const clientesPorId = {}
+  clientes.forEach((p) => { clientesPorId[p.id] = p })
 
   const abrirModal = () => {
     setModalAbierto(true)
-    setNuevoPaciente('')
+    setNuevoCliente('')
     setFormPlan({ sesiones_totales: '', precio: '', notas: '' })
     setErrorForm('')
   }
@@ -59,14 +59,14 @@ export default function Planes() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setErrorForm('')
-    if (!nuevoPaciente) {
-      setErrorForm('Elegí un paciente.')
+    if (!nuevoCliente) {
+      setErrorForm('Elegí un cliente.')
       return
     }
     setGuardando(true)
     try {
       await apiClient.post('/planes/', {
-        paciente: nuevoPaciente,
+        cliente: nuevoCliente,
         sesiones_totales: formPlan.sesiones_totales,
         precio: formPlan.precio,
         notas: formPlan.notas,
@@ -86,8 +86,8 @@ export default function Planes() {
   const planesActivos = planes.filter((p) => p.activo)
   const planesFiltrados = termino
     ? planesActivos.filter((p) => {
-        const pac = pacientesPorId[p.paciente]
-        return pac && `${pac.nombre} ${pac.apellido}`.toLowerCase().includes(termino)
+        const cli = clientesPorId[p.cliente]
+        return cli && `${cli.nombre} ${cli.apellido}`.toLowerCase().includes(termino)
       })
     : planesActivos
 
@@ -101,7 +101,7 @@ export default function Planes() {
             <h1 className="text-xl font-bold text-slate-800 whitespace-nowrap">Planes</h1>
             <input
               type="text"
-              placeholder="Buscar por nombre de paciente..."
+              placeholder="Buscar por nombre de cliente..."
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
               className="flex-1 max-w-xs border border-slate-300 rounded px-3 py-1.5 text-sm"
@@ -120,7 +120,7 @@ export default function Planes() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-slate-500 border-b border-slate-200">
-                  <th className="py-2">Paciente</th>
+                  <th className="py-2">Cliente</th>
                   <th className="py-2">Sesiones</th>
                   <th className="py-2">Restantes</th>
                   <th className="py-2">Precio</th>
@@ -129,15 +129,15 @@ export default function Planes() {
               </thead>
               <tbody>
                 {planesFiltrados.map((p) => {
-                  const pac = pacientesPorId[p.paciente]
+                  const cli = clientesPorId[p.cliente]
                   return (
                     <tr key={p.id} className="border-b border-slate-100">
                       <td className="py-2">
                         <button
-                          onClick={() => setPacienteAbiertoId(p.paciente)}
+                          onClick={() => setClienteAbiertoId(p.cliente)}
                           className="text-texto hover:text-btn-primary transition-colors"
                         >
-                          {pac ? `${pac.nombre} ${pac.apellido}` : '—'}
+                          {cli ? `${cli.nombre} ${cli.apellido}` : '—'}
                         </button>
                       </td>
                       <td className="py-2">{p.sesiones_usadas} / {p.sesiones_totales}</td>
@@ -154,8 +154,8 @@ export default function Planes() {
         </div>
       )}
 
-      {pacienteAbiertoId && (
-        <FichaPacienteModal pacienteId={pacienteAbiertoId} onClose={() => setPacienteAbiertoId(null)} />
+      {clienteAbiertoId && (
+        <FichaClienteModal clienteId={clienteAbiertoId} onClose={() => setClienteAbiertoId(null)} />
       )}
 
       {modalAbierto && (
@@ -164,12 +164,12 @@ export default function Planes() {
 
           <form onSubmit={handleSubmit} className="space-y-3">
             <div>
-              <label className="block text-sm text-slate-600 mb-1">Paciente</label>
-              <BuscadorPaciente
-                pacientes={pacientes}
-                value={nuevoPaciente}
-                onChange={setNuevoPaciente}
-                onNuevoPaciente={() => setModalNuevoPacienteAbierto(true)}
+              <label className="block text-sm text-slate-600 mb-1">Cliente</label>
+              <BuscadorCliente
+                clientes={clientes}
+                value={nuevoCliente}
+                onChange={setNuevoCliente}
+                onNuevoCliente={() => setModalNuevoClienteAbierto(true)}
               />
             </div>
 
@@ -200,12 +200,12 @@ export default function Planes() {
         </Modal>
       )}
 
-      {modalNuevoPacienteAbierto && (
-        <NuevoPacienteModal
-          onClose={() => setModalNuevoPacienteAbierto(false)}
+      {modalNuevoClienteAbierto && (
+        <NuevoClienteModal
+          onClose={() => setModalNuevoClienteAbierto(false)}
           onCreado={(p) => {
-            setPacientes((prev) => [...prev, p])
-            setNuevoPaciente(p.id)
+            setClientes((prev) => [...prev, p])
+            setNuevoCliente(p.id)
           }}
         />
       )}

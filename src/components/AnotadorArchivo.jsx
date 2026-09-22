@@ -52,7 +52,7 @@ function dibujarTrazo(ctx, trazo, ancho, alto, anchoBase) {
   }
 }
 
-export default function AnotadorArchivo({ archivo, pacienteId, onClose, onGuardado }) {
+export default function AnotadorArchivo({ archivo, clienteId, onClose, onGuardado }) {
   const canvasRef = useRef(null)
   const imgRef = useRef(null)
   const contenedorRef = useRef(null)
@@ -274,7 +274,7 @@ export default function AnotadorArchivo({ archivo, pacienteId, onClose, onGuarda
       const blob = await new Promise((resolve) => canvasFinal.toBlob(resolve, 'image/png'))
       const nombreBase = archivo.nombre.replace(/\.[^/.]+$/, '')
       const formData = new FormData()
-      formData.append('paciente', pacienteId)
+      formData.append('cliente', clienteId)
       formData.append('archivo', blob, `${nombreBase} (anotado).png`)
       formData.append('nombre', `${nombreBase} (anotado)`)
 

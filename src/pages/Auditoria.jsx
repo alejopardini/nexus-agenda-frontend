@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
-import BuscadorPaciente from '../components/BuscadorPaciente'
+import BuscadorCliente from '../components/BuscadorCliente'
 import { useAuth } from '../context/AuthContext'
 import Boton from '../components/Boton'
 import { formatearFecha } from '../utils/fechas'
@@ -18,13 +18,13 @@ export default function Auditoria() {
   const [accesos, setAccesos] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [pacienteId, setPacienteId] = useState('')
+  const [clienteId, setClienteId] = useState('')
   const [usuarioId, setUsuarioId] = useState('')
-  const [pacientes, setPacientes] = useState([])
+  const [clientes, setClientes] = useState([])
 
   useEffect(() => {
     if (auth.rol !== 'dueño') return
-    apiClient.get('/pacientes/').then((res) => setPacientes(res.data))
+    apiClient.get('/clientes/').then((res) => setClientes(res.data))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -45,7 +45,7 @@ export default function Auditoria() {
   const cargar = () => {
     setLoading(true)
     const params = {}
-    if (pacienteId) params.paciente_id = pacienteId
+    if (clienteId) params.cliente_id = clienteId
     if (usuarioId) params.usuario_id = usuarioId
     buscar(params)
   }
@@ -73,8 +73,8 @@ export default function Auditoria() {
       <div className="bg-white rounded-lg shadow-md p-6">
         <form onSubmit={aplicarFiltros} className="flex flex-wrap gap-3 items-end mb-4">
           <div className="w-64">
-            <label className="block text-xs text-slate-500 mb-1">Paciente</label>
-            <BuscadorPaciente pacientes={pacientes} value={pacienteId} onChange={setPacienteId} />
+            <label className="block text-xs text-slate-500 mb-1">Cliente</label>
+            <BuscadorCliente clientes={clientes} value={clienteId} onChange={setClienteId} />
           </div>
           <div>
             <label className="block text-xs text-input-label mb-1">Usuario</label>
@@ -107,7 +107,7 @@ export default function Auditoria() {
                   <tr className="text-left text-slate-500 border-b border-slate-200">
                     <th className="py-2">Fecha y hora</th>
                     <th className="py-2">Usuario</th>
-                    <th className="py-2">Paciente</th>
+                    <th className="py-2">Cliente</th>
                     <th className="py-2">Tipo de dato</th>
                   </tr>
                 </thead>
@@ -119,7 +119,7 @@ export default function Auditoria() {
                         {new Date(a.fecha_hora).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
                       </td>
                       <td className="py-2">{a.usuario_nombre || '—'}</td>
-                      <td className="py-2">{a.paciente_nombre}</td>
+                      <td className="py-2">{a.cliente_nombre}</td>
                       <td className="py-2">{TIPOS_DATO_LABEL[a.tipo_dato] || a.tipo_dato}</td>
                     </tr>
                   ))}

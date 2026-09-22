@@ -5,7 +5,7 @@ import Layout from '../components/Layout'
 import BotonVolver from '../components/BotonVolver'
 import Boton from '../components/Boton'
 
-export default function EditarPaciente() {
+export default function EditarCliente() {
   const { id } = useParams()
   const navigate = useNavigate()
   const [form, setForm] = useState(null)
@@ -17,9 +17,9 @@ export default function EditarPaciente() {
 
   useEffect(() => {
     apiClient
-      .get(`/pacientes/${id}/`)
+      .get(`/clientes/${id}/`)
       .then((res) => setForm(res.data))
-      .catch(() => setError('No se pudo cargar el paciente.'))
+      .catch(() => setError('No se pudo cargar el cliente.'))
       .finally(() => setLoading(false))
   }, [id])
 
@@ -34,8 +34,8 @@ export default function EditarPaciente() {
     setError('')
     setGuardando(true)
     try {
-      await apiClient.patch(`/pacientes/${id}/`, form)
-      navigate('/pacientes', { state: { abrirPacienteId: id } })
+      await apiClient.patch(`/clientes/${id}/`, form)
+      navigate('/clientes', { state: { abrirClienteId: id } })
     } catch (err) {
       const data = err.response?.data
       const mensaje = data
@@ -49,7 +49,7 @@ export default function EditarPaciente() {
 
   if (loading) {
     return (
-      <Layout titulo="Editar paciente">
+      <Layout titulo="Editar cliente">
         <p className="text-slate-500">Cargando...</p>
       </Layout>
     )
@@ -57,16 +57,16 @@ export default function EditarPaciente() {
 
   if (error && !form) {
     return (
-      <Layout titulo="Editar paciente">
+      <Layout titulo="Editar cliente">
         <p className="text-red-600">{error}</p>
       </Layout>
     )
   }
 
   return (
-    <Layout titulo="Editar paciente">
+    <Layout titulo="Editar cliente">
       <div className="max-w-lg">
-        <BotonVolver to={`/pacientes/${id}`} className="mb-4" />
+        <BotonVolver to={`/clientes/${id}`} className="mb-4" />
         <div className="bg-white rounded-lg shadow-md p-6">
           {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
 

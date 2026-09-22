@@ -9,9 +9,9 @@ import OlvidePassword from './pages/OlvidePassword'
 import RestablecerPassword from './pages/RestablecerPassword'
 import MiPerfil from './pages/MiPerfil'
 import ReservarPublico from './pages/ReservarPublico'
-import Pacientes from './pages/Pacientes'
-import DetallePaciente from './pages/DetallePaciente'
-import EditarPaciente from './pages/EditarPaciente'
+import Clientes from './pages/Clientes'
+import DetalleCliente from './pages/DetalleCliente'
+import EditarCliente from './pages/EditarCliente'
 import Turnos from './pages/Turnos'
 import TurnosCancelados from './pages/TurnosCancelados'
 import HistorialTurnos from './pages/HistorialTurnos'
@@ -26,7 +26,7 @@ import Interconsultas from './pages/Interconsultas'
 import Secretarias from './pages/Secretarias'
 import NuevaSecretaria from './pages/NuevaSecretaria'
 import Auditoria from './pages/Auditoria'
-import PacientesSinTurno from './pages/PacientesSinTurno'
+import ClientesSinTurno from './pages/ClientesSinTurno'
 import ConsultasPendientes from './pages/ConsultasPendientes'
 import CamposPersonalizados from './pages/CamposPersonalizados'
 import Estadisticas from './pages/Estadisticas'
@@ -49,10 +49,10 @@ function App() {
             <Route path="/mi-perfil" element={<ProtectedRoute><MiPerfil /></ProtectedRoute>} />
             <Route path="/reservar/:organizacionId" element={<ReservarPublico />} />
             <Route path="/" element={<ProtectedRoute><CalendarioTurnos /></ProtectedRoute>} />
-            <Route path="/pacientes" element={<ProtectedRoute><Pacientes /></ProtectedRoute>} />
-            <Route path="/pacientes/nuevo" element={<Navigate to="/pacientes" replace />} />
-            <Route path="/pacientes/:id/editar" element={<ProtectedRoute><EditarPaciente /></ProtectedRoute>} />
-            <Route path="/pacientes/:id" element={<ProtectedRoute><DetallePaciente /></ProtectedRoute>} />
+            <Route path="/clientes" element={<ProtectedRoute><Clientes /></ProtectedRoute>} />
+            <Route path="/clientes/nuevo" element={<Navigate to="/clientes" replace />} />
+            <Route path="/clientes/:id/editar" element={<ProtectedRoute><EditarCliente /></ProtectedRoute>} />
+            <Route path="/clientes/:id" element={<ProtectedRoute><DetalleCliente /></ProtectedRoute>} />
             <Route path="/turnos" element={<ProtectedRoute><CalendarioTurnos /></ProtectedRoute>} />
             <Route path="/turnos/lista" element={<ProtectedRoute><Turnos /></ProtectedRoute>} />
             <Route path="/turnos/nuevo" element={<Navigate to="/turnos" replace />} />
@@ -71,8 +71,8 @@ function App() {
             <Route path="/secretarias/nueva" element={<ProtectedRoute><NuevaSecretaria /></ProtectedRoute>} />
             <Route path="/auditoria" element={<ProtectedRoute><Auditoria /></ProtectedRoute>} />
             <Route path="/soporte" element={<Navigate to="/" replace />} />
-            <Route path="/pacientes/sin-turno" element={<ProtectedRoute><PacientesSinTurno /></ProtectedRoute>} />
-            <Route path="/pacientes/consultas-pendientes" element={<ProtectedRoute><ConsultasPendientes /></ProtectedRoute>} />
+            <Route path="/clientes/sin-turno" element={<ProtectedRoute><ClientesSinTurno /></ProtectedRoute>} />
+            <Route path="/clientes/consultas-pendientes" element={<ProtectedRoute><ConsultasPendientes /></ProtectedRoute>} />
             <Route path="/planes" element={<ProtectedRoute><Planes /></ProtectedRoute>} />
             <Route path="/campos-personalizados" element={<ProtectedRoute><CamposPersonalizados /></ProtectedRoute>} />
             <Route path="/estadisticas" element={<ProtectedRoute><Estadisticas /></ProtectedRoute>} />

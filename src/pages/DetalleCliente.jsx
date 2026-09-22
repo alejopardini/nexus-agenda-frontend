@@ -4,15 +4,15 @@ import apiClient from '../api/client'
 import Layout from '../components/Layout'
 import BotonVolver from '../components/BotonVolver'
 import { useAuth } from '../context/AuthContext'
-import GestionArchivosPaciente from '../components/GestionArchivosPaciente'
+import GestionArchivosCliente from '../components/GestionArchivosCliente'
 import Boton from '../components/Boton'
 import { formatearFecha } from '../utils/fechas'
 
-export default function DetallePaciente() {
+export default function DetalleCliente() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { auth } = useAuth()
-  const [paciente, setPaciente] = useState(null)
+  const [cliente, setCliente] = useState(null)
   const [consultas, setConsultas] = useState([])
   const [profesionales, setProfesionales] = useState([])
   const [loading, setLoading] = useState(true)
@@ -28,19 +28,19 @@ export default function DetallePaciente() {
 
   useEffect(() => {
     Promise.all([
-      apiClient.get(`/pacientes/${id}/`),
+      apiClient.get(`/clientes/${id}/`),
       apiClient.get('/profesionales/'),
     ])
-      .then(([pacienteRes, profesionalesRes]) => {
-        setPaciente(pacienteRes.data)
+      .then(([clienteRes, profesionalesRes]) => {
+        setCliente(clienteRes.data)
         setProfesionales(profesionalesRes.data)
       })
-      .catch(() => setError('No se pudo cargar el paciente.'))
+      .catch(() => setError('No se pudo cargar el cliente.'))
       .finally(() => setLoading(false))
 
     apiClient
       .get('/consultas/')
-      .then((res) => setConsultas(res.data.filter((c) => String(c.paciente) === id)))
+      .then((res) => setConsultas(res.data.filter((c) => String(c.cliente) === id)))
       .catch(() => setConsultas([]))
   }, [id])
 
@@ -48,7 +48,7 @@ export default function DetallePaciente() {
     e.preventDefault()
     setEnviandoSolicitud(true)
     try {
-      await apiClient.post('/interconsultas/', { paciente: id, motivo: motivoSolicitud })
+      await apiClient.post('/interconsultas/', { cliente: id, motivo: motivoSolicitud })
       setSolicitudEnviada(true)
     } catch {
       alert('No se pudo enviar la solicitud.')
@@ -63,7 +63,7 @@ export default function DetallePaciente() {
     setInvitando(true)
     try {
       await apiClient.post('/interconsultas/invitar/', {
-        paciente: id, colega: colegaAInvitar, motivo: motivoInvitacion,
+        cliente: id, colega: colegaAInvitar, motivo: motivoInvitacion,
       })
       setInvitacionEnviada(true)
       setColegaAInvitar('')
@@ -77,38 +77,38 @@ export default function DetallePaciente() {
 
   if (loading) {
     return (
-      <Layout titulo="Paciente">
+      <Layout titulo="Cliente">
         <p className="text-slate-500">Cargando...</p>
       </Layout>
     )
   }
 
-  if (error || !paciente) {
+  if (error || !cliente) {
     return (
-      <Layout titulo="Paciente">
-        <p className="text-red-600">{error || 'Paciente no encontrado.'}</p>
+      <Layout titulo="Cliente">
+        <p className="text-red-600">{error || 'Cliente no encontrado.'}</p>
       </Layout>
     )
   }
 
-  const tieneAcceso = 'email' in paciente
+  const tieneAcceso = 'email' in cliente
   const puedeAgendarTurno = auth.rol !== 'profesional' || auth.puede_crear_turnos === true
   const otrosProfesionales = profesionales.filter((p) => String(p.id) !== String(auth.profesional_id))
 
   return (
-    <Layout titulo={`${paciente.nombre} ${paciente.apellido}`}>
+    <Layout titulo={`${cliente.nombre} ${cliente.apellido}`}>
       <div className="space-y-4 max-w-2xl">
-        <BotonVolver to="/pacientes" className="mb-4" />
+        <BotonVolver to="/clientes" className="mb-4" />
 
         <div className="bg-white rounded-lg shadow-md p-6">
           <div className="flex justify-end items-start">
             {tieneAcceso && (
               <div className="flex flex-wrap gap-2">
-                <Boton to={`/pacientes/${id}/editar`} variante="ghost" tamaño="sm">
+                <Boton to={`/clientes/${id}/editar`} variante="ghost" tamaño="sm">
                   Editar
                 </Boton>
                 {puedeAgendarTurno && (
-                  <Boton variante="ghost" tamaño="sm" onClick={() => navigate(`/turnos?paciente=${id}`)}>
+                  <Boton variante="ghost" tamaño="sm" onClick={() => navigate(`/turnos?cliente=${id}`)}>
                     Agendar turno
                   </Boton>
                 )}
@@ -123,7 +123,7 @@ export default function DetallePaciente() {
               ) : (
                 <form onSubmit={solicitarAcceso} className="space-y-2">
                   <p className="text-sm text-slate-500">
-                    No tenés acceso a los datos de este paciente.
+                    No tenés acceso a los datos de este cliente.
                   </p>
                   <input
                     type="text"
@@ -141,7 +141,7 @@ export default function DetallePaciente() {
           )}
 
           {!tieneAcceso && auth.rol !== 'profesional' && (
-            <p className="text-sm text-slate-400 mt-2">No tenés acceso a los datos de este paciente.</p>
+            <p className="text-sm text-slate-400 mt-2">No tenés acceso a los datos de este cliente.</p>
           )}
 
           {tieneAcceso && (
@@ -149,38 +149,38 @@ export default function DetallePaciente() {
               <dl className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                 <div>
                   <dt className="text-slate-500">DNI</dt>
-                  <dd className="text-slate-800">{paciente.dni || '—'}</dd>
+                  <dd className="text-slate-800">{cliente.dni || '—'}</dd>
                 </div>
                 <div>
                   <dt className="text-slate-500">Obra social</dt>
-                  <dd className="text-slate-800">{paciente.obra_social || '—'}</dd>
+                  <dd className="text-slate-800">{cliente.obra_social || '—'}</dd>
                 </div>
                 <div>
                   <dt className="text-slate-500">Email</dt>
-                  <dd className="text-slate-800">{paciente.email || '—'}</dd>
+                  <dd className="text-slate-800">{cliente.email || '—'}</dd>
                 </div>
                 <div>
                   <dt className="text-slate-500">Celular</dt>
-                  <dd className="text-slate-800">{paciente.celular || '—'}</dd>
+                  <dd className="text-slate-800">{cliente.celular || '—'}</dd>
                 </div>
                 <div>
                   <dt className="text-slate-500">Fecha de nacimiento</dt>
-                  <dd className="text-slate-800">{paciente.fecha_nacimiento || '—'}</dd>
+                  <dd className="text-slate-800">{cliente.fecha_nacimiento || '—'}</dd>
                 </div>
                 <div>
                   <dt className="text-slate-500">Última consulta</dt>
-                  <dd className="text-slate-800">{paciente.ultima_consulta || '—'}</dd>
+                  <dd className="text-slate-800">{cliente.ultima_consulta || '—'}</dd>
                 </div>
               </dl>
 
               <div className="mt-4 pt-4 border-t border-slate-100">
                 <h2 className="text-sm font-semibold text-slate-600 mb-1">Historia clínica</h2>
                 <p className="text-sm text-slate-800 whitespace-pre-wrap">
-                  {paciente.historia_clinica || 'Sin datos cargados.'}
+                  {cliente.historia_clinica || 'Sin datos cargados.'}
                 </p>
-                {paciente.discapacidad && (
+                {cliente.discapacidad && (
                   <p className="text-sm text-slate-800 mt-2">
-                    <span className="font-medium">Discapacidad:</span> {paciente.discapacidad_detalle || 'Sí'}
+                    <span className="font-medium">Discapacidad:</span> {cliente.discapacidad_detalle || 'Sí'}
                   </p>
                 )}
               </div>
@@ -256,7 +256,7 @@ export default function DetallePaciente() {
         {tieneAcceso && (
           <div className="bg-white rounded-lg shadow-md p-6">
             <h2 className="text-lg font-bold text-slate-800 mb-3">Archivos adjuntos</h2>
-            <GestionArchivosPaciente pacienteId={id} />
+            <GestionArchivosCliente clienteId={id} />
           </div>
         )}
       </div>

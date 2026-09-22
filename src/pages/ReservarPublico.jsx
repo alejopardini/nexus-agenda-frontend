@@ -125,7 +125,7 @@ export default function ReservarPublico() {
   const [buscando, setBuscando] = useState(false)
   const [errorDni, setErrorDni] = useState('')
 
-  const [paciente, setPaciente] = useState(null)
+  const [cliente, setCliente] = useState(null)
 
   const [altaForm, setAltaForm] = useState({ nombre: '', apellido: '', celular: '', email: '' })
   const [guardandoAlta, setGuardandoAlta] = useState(false)
@@ -169,11 +169,11 @@ export default function ReservarPublico() {
     setErrorDni('')
     setBuscando(true)
     try {
-      const res = await apiClient.post(`/publico/${organizacionId}/buscar-paciente/`, { dni })
+      const res = await apiClient.post(`/publico/${organizacionId}/buscar-cliente/`, { dni })
       if (res.data.existe) {
-        setPaciente({ id: res.data.paciente_id, nombre: res.data.nombre })
+        setCliente({ id: res.data.cliente_id, nombre: res.data.nombre })
       } else {
-        // Paciente nuevo: el alta se pide más adelante, recién cuando se
+        // Cliente nuevo: el alta se pide más adelante, recién cuando se
         // eligió un horario y ya se sabe la sucursal (ver handleSubmitAlta).
         setAltaForm({ nombre: '', apellido: '', celular: '', email: '' })
       }
@@ -194,7 +194,7 @@ export default function ReservarPublico() {
     setErrorAlta('')
     setGuardandoAlta(true)
     try {
-      const res = await apiClient.post(`/publico/${organizacionId}/pacientes/`, {
+      const res = await apiClient.post(`/publico/${organizacionId}/clientes/`, {
         nombre: altaForm.nombre,
         apellido: altaForm.apellido,
         dni,
@@ -202,13 +202,13 @@ export default function ReservarPublico() {
         email: altaForm.email,
         sucursal_id: horarioSeleccionado.sucursal,
       })
-      setPaciente({ id: res.data.id, nombre: `${res.data.nombre} ${res.data.apellido}` })
+      setCliente({ id: res.data.id, nombre: `${res.data.nombre} ${res.data.apellido}` })
       setPaso('confirmar')
     } catch (err) {
       const data = err.response?.data
       const mensaje = data
         ? Object.entries(data).map(([campo, msgs]) => `${campo}: ${[].concat(msgs).join(', ')}`).join(' | ')
-        : 'No se pudo registrar el paciente. Probá de nuevo.'
+        : 'No se pudo registrar el cliente. Probá de nuevo.'
       setErrorAlta(mensaje)
     } finally {
       setGuardandoAlta(false)
@@ -220,7 +220,7 @@ export default function ReservarPublico() {
     setGuardandoTurno(true)
     try {
       const payload = {
-        paciente_id: paciente.id,
+        cliente_id: cliente.id,
         sucursal_id: horarioSeleccionado.sucursal,
         fecha: fechaToStr(fechaSeleccionada),
         hora: horarioSeleccionado.hora,
@@ -382,7 +382,7 @@ export default function ReservarPublico() {
 
         {paso === 'profesional' && (
           <div className="flex flex-col gap-5">
-            {paciente && <p className="font-sans text-[14px] text-texto">¡Hola, {paciente.nombre}!</p>}
+            {cliente && <p className="font-sans text-[14px] text-texto">¡Hola, {cliente.nombre}!</p>}
             <div>
               <label className={LABEL_BASE}>¿Con quién preferís atenderte?</label>
               <div className="flex flex-col gap-2">
@@ -474,7 +474,7 @@ export default function ReservarPublico() {
               type="button"
               variante="primary"
               disabled={!horarioSeleccionado}
-              onClick={() => setPaso(paciente ? 'confirmar' : 'alta')}
+              onClick={() => setPaso(cliente ? 'confirmar' : 'alta')}
               className="w-full"
               style={estiloTextoMarca}
             >
@@ -491,7 +491,7 @@ export default function ReservarPublico() {
             <div>
               <p className="font-sans text-[14px] text-texto mb-2">Revisá los datos de tu turno:</p>
               <ul className="font-sans text-[14px] text-texto space-y-1">
-                <li><strong>Paciente:</strong> {paciente?.nombre}</li>
+                <li><strong>Cliente:</strong> {cliente?.nombre}</li>
                 <li>
                   <strong>Profesional:</strong>{' '}
                   {profesionalId === CUALQUIERA ? 'Cualquiera disponible' : `${profesionalSeleccionado?.nombre} ${profesionalSeleccionado?.apellido}`}

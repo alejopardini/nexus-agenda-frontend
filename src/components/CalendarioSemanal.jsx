@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { hmAMinutos, minutosAHM, duracionAMinutos, diaSemanaBackend, fechaToStr, inicioDeSemana } from '../utils/fechas'
-import { abreviarPaciente, inicialesDe } from '../utils/nombres'
+import { abreviarCliente, inicialesDe } from '../utils/nombres'
 import { estadoVisual } from '../utils/turnos'
 import Tooltip from './Tooltip'
 import Badge from './Badge'
@@ -31,13 +31,13 @@ function BloqueTurno({ turno, sucursalNombre, onClick }) {
         // el tamaño del elemento que lo generó.
         onClick?.(turno, e.currentTarget.getBoundingClientRect())
       }}
-      title={`${turno.hora.slice(0, 5)} — ${turno.paciente_nombre}`}
+      title={`${turno.hora.slice(0, 5)} — ${turno.cliente_nombre}`}
       className="w-full text-left hover:brightness-95 transition-[filter]"
     >
       <Badge estado={estado} className="w-full gap-1 whitespace-nowrap">
         <span className="font-semibold shrink-0">{turno.hora.slice(0, 5)}</span>
         <span className="shrink-0">-</span>
-        <span className="truncate min-w-0">{abreviarPaciente(turno.paciente_nombre)}</span>
+        <span className="truncate min-w-0">{abreviarCliente(turno.cliente_nombre)}</span>
         <span className="shrink-0">-</span>
         {/* Iniciales del profesional en un chip circular translúcido, mismo
             criterio que antes de la simplificación: contrasta bien sobre

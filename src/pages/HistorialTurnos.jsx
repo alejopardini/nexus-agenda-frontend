@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { Search, Eye } from 'lucide-react'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
-import FichaPacienteModal from '../components/FichaPacienteModal'
+import FichaClienteModal from '../components/FichaClienteModal'
 import BotonIcono from '../components/BotonIcono'
 import { claseBadge, BASE_PILL } from '../utils/badge'
 import { formatearFecha } from '../utils/fechas'
@@ -32,7 +32,7 @@ export default function HistorialTurnos() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [busqueda, setBusqueda] = useState('')
-  const [pacienteAbiertoId, setPacienteAbiertoId] = useState(null)
+  const [clienteAbiertoId, setClienteAbiertoId] = useState(null)
 
   const hoy = new Date().toISOString().split('T')[0]
 
@@ -67,7 +67,7 @@ export default function HistorialTurnos() {
 
   const termino = busqueda.trim().toLowerCase()
   const turnosFiltrados = termino
-    ? turnos.filter((t) => t.paciente_nombre.toLowerCase().includes(termino))
+    ? turnos.filter((t) => t.cliente_nombre.toLowerCase().includes(termino))
     : turnos
 
   return (
@@ -86,7 +86,7 @@ export default function HistorialTurnos() {
               />
               <input
                 type="text"
-                placeholder="Buscar por nombre del paciente..."
+                placeholder="Buscar por nombre del cliente..."
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
                 className="w-64 h-10 pl-9 pr-3 rounded-lg border border-input-border text-[14px] outline-none focus:border-2 focus:border-input-focus"
@@ -103,7 +103,7 @@ export default function HistorialTurnos() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-slate-500 border-b border-slate-200">
-                  <th className="py-2 px-4">Paciente</th>
+                  <th className="py-2 px-4">Cliente</th>
                   <th className="py-2 px-4">Fecha</th>
                   <th className="py-2 px-4">Profesional</th>
                   <th className="py-2 px-4">Estado</th>
@@ -121,10 +121,10 @@ export default function HistorialTurnos() {
                     >
                       <td className="py-2 px-4">
                         <button
-                          onClick={() => setPacienteAbiertoId(t.paciente)}
+                          onClick={() => setClienteAbiertoId(t.cliente)}
                           className="text-texto hover:text-btn-primary transition-colors"
                         >
-                          {t.paciente_nombre}
+                          {t.cliente_nombre}
                         </button>
                       </td>
                       <td className="py-2 px-4">{formatearFecha(t.fecha)}</td>
@@ -190,10 +190,10 @@ export default function HistorialTurnos() {
         </div>
       )}
 
-      {pacienteAbiertoId && (
-        <FichaPacienteModal
-          pacienteId={pacienteAbiertoId}
-          onClose={() => setPacienteAbiertoId(null)}
+      {clienteAbiertoId && (
+        <FichaClienteModal
+          clienteId={clienteAbiertoId}
+          onClose={() => setClienteAbiertoId(null)}
         />
       )}
     </Layout>

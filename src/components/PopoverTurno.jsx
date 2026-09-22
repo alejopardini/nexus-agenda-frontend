@@ -1,7 +1,7 @@
 // Popover chico reutilizable (rama prueba-sidebar-visual): referencia rápida
 // de un turno + acciones (confirmar/cancelar/ver ficha), pensado para abrir
 // junto a la celda ocupada de CalendarioTurnos.jsx en vez de ir directo a
-// FichaPacienteModal. Reusa Card/Badge/Boton — nada de estilos sueltos.
+// FichaClienteModal. Reusa Card/Badge/Boton — nada de estilos sueltos.
 //
 // Posicionamiento: a diferencia de NotificationBell (que vive en 2 posiciones
 // fijas conocidas y resuelve el flip con clases responsive), acá el ancla
@@ -75,7 +75,7 @@ export default function PopoverTurno({ turno, anchorRect, onClose, onConfirmar, 
       // no parpadear en la esquina un frame antes del primer cálculo.
       style={{ top: posicion?.top ?? -9999, left: posicion?.left ?? -9999 }}
     >
-      <Card titulo={turno.paciente_nombre} className="shadow-lg">
+      <Card titulo={turno.cliente_nombre} className="shadow-lg">
         <CardTextoSecundario>{turno.hora.slice(0, 5)}</CardTextoSecundario>
 
         <Badge estado={turno.estado} className="self-start">

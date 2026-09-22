@@ -7,7 +7,7 @@ import {
 import { useAuth } from '../context/AuthContext'
 import apiClient from '../api/client'
 import NotificationBell from './NotificationBell'
-import NuevoPacienteModal from './NuevoPacienteModal'
+import NuevoClienteModal from './NuevoClienteModal'
 import SoporteModal from './SoporteModal'
 import Boton from './Boton'
 
@@ -17,7 +17,7 @@ import Boton from './Boton'
 //
 // Un solo componente (SidebarIcon) cubre tanto los links directos (Inicio,
 // Camillas, Estadísticas, Soporte, Mi Perfil) como las secciones con
-// submenú (Pacientes/Turnos/Profesionales): siempre es un <Link> real con
+// submenú (Clientes/Turnos/Profesionales): siempre es un <Link> real con
 // su "to" (arregla que esas 3 no navegaran) y siempre tiene el mismo
 // tooltip/flyout (arregla que el tooltip solo apareciera en algunos).
 
@@ -171,7 +171,7 @@ export default function Sidebar() {
   const navigate = useNavigate()
   const location = useLocation()
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [modalNuevoPacienteAbierto, setModalNuevoPacienteAbierto] = useState(false)
+  const [modalNuevoClienteAbierto, setModalNuevoClienteAbierto] = useState(false)
   const [modalSoporteAbierto, setModalSoporteAbierto] = useState(false)
 
   const handleLogout = async () => {
@@ -186,11 +186,11 @@ export default function Sidebar() {
 
   const esDueño = auth.rol === 'dueño'
 
-  const itemsPacientes = [
-    { to: '/pacientes', label: 'Ver lista' },
-    ...(auth.rol !== 'profesional' || auth.puede_crear_pacientes === true ? [{ label: 'Nuevo paciente', onClick: () => setModalNuevoPacienteAbierto(true) }] : []),
-    { to: '/pacientes/sin-turno', label: 'Sin turno reciente' },
-    { to: '/pacientes/consultas-pendientes', label: 'Consultas pendientes' },
+  const itemsClientes = [
+    { to: '/clientes', label: 'Ver lista' },
+    ...(auth.rol !== 'profesional' || auth.puede_crear_clientes === true ? [{ label: 'Nuevo cliente', onClick: () => setModalNuevoClienteAbierto(true) }] : []),
+    { to: '/clientes/sin-turno', label: 'Sin turno reciente' },
+    { to: '/clientes/consultas-pendientes', label: 'Consultas pendientes' },
     { to: '/planes', label: 'Planes' },
   ]
   const itemsTurnos = [
@@ -214,7 +214,7 @@ export default function Sidebar() {
   // Una sola fuente de verdad para desktop (SidebarIcon) y mobile (ItemMobile/SeccionMobile)
   const secciones = [
     { key: 'inicio', to: '/', Icon: Home, label: 'Inicio' },
-    { key: 'pacientes', Icon: Users, label: 'Pacientes', items: itemsPacientes },
+    { key: 'clientes', Icon: Users, label: 'Clientes', items: itemsClientes },
     { key: 'turnos', Icon: CalendarCheck, label: 'Turnos', items: itemsTurnos },
     { key: 'profesionales', Icon: Stethoscope, label: 'Profesionales', items: itemsProfesionales },
     ...(auth.rol !== 'secretaria' ? [{ key: 'estadisticas', to: '/estadisticas', Icon: BarChart3, label: 'Estadísticas' }] : []),
@@ -321,10 +321,10 @@ export default function Sidebar() {
         </div>
       )}
 
-      {modalNuevoPacienteAbierto && (
-        <NuevoPacienteModal
-          onClose={() => setModalNuevoPacienteAbierto(false)}
-          onCreado={(p) => navigate('/pacientes', { state: { abrirPacienteId: p.id } })}
+      {modalNuevoClienteAbierto && (
+        <NuevoClienteModal
+          onClose={() => setModalNuevoClienteAbierto(false)}
+          onCreado={(p) => navigate('/clientes', { state: { abrirClienteId: p.id } })}
         />
       )}
 

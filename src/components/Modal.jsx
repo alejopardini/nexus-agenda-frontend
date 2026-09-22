@@ -13,7 +13,7 @@
 //
 // Ancla arriba (items-start + pt-[8vh]) en vez de centrar verticalmente:
 // con items-center, la caja recentra su punto medio cada vez que el alto
-// del contenido cambia (ej. FichaPacienteModal al cambiar de pestaña),
+// del contenido cambia (ej. FichaClienteModal al cambiar de pestaña),
 // haciendo que todo —incluida la barra de tabs, aunque esté fuera del área
 // scrolleable— se reacomode bajo el cursor. Con el borde superior fijo, el
 // modal solo crece/achica hacia abajo.

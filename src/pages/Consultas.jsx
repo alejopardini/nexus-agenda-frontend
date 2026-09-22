@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
-import FichaPacienteModal from '../components/FichaPacienteModal'
+import FichaClienteModal from '../components/FichaClienteModal'
 import { useAuth } from '../context/AuthContext'
 
 export default function Consultas() {
@@ -10,7 +10,7 @@ export default function Consultas() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [busqueda, setBusqueda] = useState('')
-  const [pacienteAbiertoId, setPacienteAbiertoId] = useState(null)
+  const [clienteAbiertoId, setClienteAbiertoId] = useState(null)
 
   useEffect(() => {
     apiClient
@@ -20,16 +20,16 @@ export default function Consultas() {
       .finally(() => setLoading(false))
   }, [])
 
-  const pacientes = useMemo(() => {
+  const clientes = useMemo(() => {
     const mapa = new Map()
     consultas.forEach((c) => {
-      const existente = mapa.get(c.paciente)
+      const existente = mapa.get(c.cliente)
       if (existente) {
         existente.profesionales.add(c.profesional_nombre)
       } else {
-        mapa.set(c.paciente, {
-          id: c.paciente,
-          nombre: c.paciente_nombre,
+        mapa.set(c.cliente, {
+          id: c.cliente,
+          nombre: c.cliente_nombre,
           profesionales: new Set([c.profesional_nombre]),
         })
       }
@@ -38,9 +38,9 @@ export default function Consultas() {
   }, [consultas])
 
   const termino = busqueda.trim().toLowerCase()
-  const pacientesFiltrados = termino
-    ? pacientes.filter((p) => p.nombre.toLowerCase().includes(termino))
-    : pacientes
+  const clientesFiltrados = termino
+    ? clientes.filter((p) => p.nombre.toLowerCase().includes(termino))
+    : clientes
 
   return (
     <Layout titulo="Consultas">
@@ -51,32 +51,32 @@ export default function Consultas() {
           <div className="flex justify-end items-center mb-4 gap-4">
             <input
               type="text"
-              placeholder="Buscar por nombre del paciente..."
+              placeholder="Buscar por nombre del cliente..."
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
               className="flex-1 max-w-xs border border-slate-300 rounded px-3 py-1.5 text-sm"
             />
           </div>
 
-          {pacientes.length === 0 ? (
+          {clientes.length === 0 ? (
             <p className="text-slate-500">No hay consultas todavía.</p>
-          ) : pacientesFiltrados.length === 0 ? (
-            <p className="text-slate-500">Ningún paciente coincide con "{busqueda}".</p>
+          ) : clientesFiltrados.length === 0 ? (
+            <p className="text-slate-500">Ningún cliente coincide con "{busqueda}".</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-left text-slate-500 border-b border-slate-200">
-                    <th className="py-2">Paciente</th>
+                    <th className="py-2">Cliente</th>
                     {auth.rol === 'dueño' && <th className="py-2">Profesional/es</th>}
                   </tr>
                 </thead>
                 <tbody>
-                  {pacientesFiltrados.map((p) => (
+                  {clientesFiltrados.map((p) => (
                     <tr key={p.id} className="border-b border-slate-100">
                       <td className="py-2">
                         <button
-                          onClick={() => setPacienteAbiertoId(p.id)}
+                          onClick={() => setClienteAbiertoId(p.id)}
                           className="text-texto hover:text-btn-primary transition-colors"
                         >
                           {p.nombre}
@@ -94,10 +94,10 @@ export default function Consultas() {
         </div>
       )}
 
-      {pacienteAbiertoId && (
-        <FichaPacienteModal
-          pacienteId={pacienteAbiertoId}
-          onClose={() => setPacienteAbiertoId(null)}
+      {clienteAbiertoId && (
+        <FichaClienteModal
+          clienteId={clienteAbiertoId}
+          onClose={() => setClienteAbiertoId(null)}
         />
       )}
     </Layout>

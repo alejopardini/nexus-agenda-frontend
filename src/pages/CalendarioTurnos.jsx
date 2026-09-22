@@ -6,7 +6,7 @@ import 'react-datepicker/dist/react-datepicker.css'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
 import NuevoTurnoModal from '../components/NuevoTurnoModal'
-import FichaPacienteModal from '../components/FichaPacienteModal'
+import FichaClienteModal from '../components/FichaClienteModal'
 import PanelFranjasHorarias from '../components/PanelFranjasHorarias'
 import CalendarioSemanal from '../components/CalendarioSemanal'
 import PopoverTurno from '../components/PopoverTurno'
@@ -115,11 +115,11 @@ export default function CalendarioTurnos() {
   const [fecha, setFecha] = useState(new Date())
   const [fechaLateral, setFechaLateral] = useState(new Date())
   const [celdaModal, setCeldaModal] = useState(null)
-  const [pacienteAbiertoId, setPacienteAbiertoId] = useState(null)
+  const [clienteAbiertoId, setClienteAbiertoId] = useState(null)
   const [popoverTurno, setPopoverTurno] = useState(null)
   const [vista, setVista] = useState('semana') // 'dia' | 'semana'
   const [searchParams] = useSearchParams()
-  const pacienteInicialId = searchParams.get('paciente')
+  const clienteInicialId = searchParams.get('cliente')
 
   useEffect(() => {
     Promise.all([
@@ -300,16 +300,16 @@ export default function CalendarioTurnos() {
   )
 
   // Acción compartida al clickear "Ver ficha completa" desde el popover: abre
-  // la ficha del paciente. La dispara tanto la vista diaria como la semanal,
+  // la ficha del cliente. La dispara tanto la vista diaria como la semanal,
   // siempre a través del popover (ver más abajo) — ninguna de las dos abre
-  // FichaPacienteModal directo al clickear un turno.
-  const abrirFichaDesdeTurno = (turno) => setPacienteAbiertoId(turno.paciente)
+  // FichaClienteModal directo al clickear un turno.
+  const abrirFichaDesdeTurno = (turno) => setClienteAbiertoId(turno.cliente)
 
   // Clickear un turno ya ocupado (vista diaria O semanal) no abre la ficha
   // directo — muestra un popover chico con referencia rápida + confirmar/
   // cancelar (mismo POST /turnos/{id}/confirmar|cancelar/ que ya usan
   // Turnos.jsx y Camillas.jsx). "Ver ficha completa" adentro del popover es
-  // lo único que sigue yendo a FichaPacienteModal. Mismo estado/handlers
+  // lo único que sigue yendo a FichaClienteModal. Mismo estado/handlers
   // para las dos vistas — CalendarioSemanal solo manda un anchorRect más
   // chico (el del chip de turno, no el de toda la celda), el cálculo de
   // posición de PopoverTurno no distingue el tamaño del ancla.
@@ -514,7 +514,7 @@ export default function CalendarioTurnos() {
                         if (esInicioTurno) {
                           const badge = (
                             <Badge estado={estado} tamaño="xs" className="w-full">
-                              <span className="truncate min-w-0">{turno.paciente_nombre}</span>
+                              <span className="truncate min-w-0">{turno.cliente_nombre}</span>
                             </Badge>
                           )
                           contenido = turno.tipo_turno_texto ? (
@@ -583,7 +583,7 @@ export default function CalendarioTurnos() {
           sucursalId={celdaModal.sucursalId}
           fecha={celdaModal.fecha}
           hora={celdaModal.hora}
-          pacienteInicialId={pacienteInicialId}
+          clienteInicialId={clienteInicialId}
           onClose={() => setCeldaModal(null)}
           onCreado={() => {
             setCeldaModal(null)
@@ -592,10 +592,10 @@ export default function CalendarioTurnos() {
         />
       )}
 
-      {pacienteAbiertoId && (
-        <FichaPacienteModal
-          pacienteId={pacienteAbiertoId}
-          onClose={() => setPacienteAbiertoId(null)}
+      {clienteAbiertoId && (
+        <FichaClienteModal
+          clienteId={clienteAbiertoId}
+          onClose={() => setClienteAbiertoId(null)}
         />
       )}
 

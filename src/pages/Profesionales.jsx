@@ -180,7 +180,7 @@ export default function Profesionales() {
             <div className="bg-white rounded-lg shadow-md p-6">
               <h2 className="text-lg font-bold text-slate-800 mb-1">Reserva online</h2>
               <p className="text-sm text-slate-500 mb-3">
-                Compartí este link con tus pacientes para que reserven turnos por su cuenta.
+                Compartí este link con tus clientes para que reserven turnos por su cuenta.
               </p>
               <div className="flex flex-wrap items-center gap-2">
                 <input

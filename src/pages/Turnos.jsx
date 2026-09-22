@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { Check, UserX, X } from 'lucide-react'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
-import FichaPacienteModal from '../components/FichaPacienteModal'
+import FichaClienteModal from '../components/FichaClienteModal'
 import BotonIcono from '../components/BotonIcono'
 import Boton from '../components/Boton'
 import { useSucursalActiva } from '../context/SucursalActivaContext'
@@ -20,7 +20,7 @@ export default function Turnos() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [busqueda, setBusqueda] = useState('')
-  const [pacienteAbiertoId, setPacienteAbiertoId] = useState(null)
+  const [clienteAbiertoId, setClienteAbiertoId] = useState(null)
 
   const hoy = new Date().toISOString().split('T')[0]
 
@@ -80,7 +80,7 @@ export default function Turnos() {
 
   const termino = busqueda.trim().toLowerCase()
   const turnosFiltrados = termino
-    ? turnosBase.filter((t) => t.paciente_nombre.toLowerCase().includes(termino))
+    ? turnosBase.filter((t) => t.cliente_nombre.toLowerCase().includes(termino))
     : turnosBase
 
   return (
@@ -92,7 +92,7 @@ export default function Turnos() {
           <div className="flex items-center gap-4 mb-4">
             <input
               type="text"
-              placeholder="Buscar por apellido del paciente..."
+              placeholder="Buscar por apellido del cliente..."
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
               className="flex-1 max-w-xs border border-slate-300 rounded px-3 py-1.5 text-sm"
@@ -114,7 +114,7 @@ export default function Turnos() {
                 <tr className="text-left text-slate-500 border-b border-slate-200">
                   <th className="py-2 px-4">Fecha</th>
                   <th className="py-2 px-4">Hora</th>
-                  <th className="py-2 px-4">Paciente</th>
+                  <th className="py-2 px-4">Cliente</th>
                   <th className="py-2 px-4">Profesional</th>
                   {mostrarColumnaSucursal && <th className="py-2 px-4">Sucursal</th>}
                   <th className="py-2 px-4">Tipo</th>
@@ -129,10 +129,10 @@ export default function Turnos() {
                     <td className="py-2 px-4">{formatearHora(t.hora)}</td>
                     <td className="py-2 px-4">
                       <button
-                        onClick={() => setPacienteAbiertoId(t.paciente)}
+                        onClick={() => setClienteAbiertoId(t.cliente)}
                         className="text-texto hover:text-btn-primary transition-colors"
                       >
-                        {t.paciente_nombre}
+                        {t.cliente_nombre}
                       </button>
                     </td>
                     <td className="py-2 px-4">{t.profesional_nombre}</td>
@@ -185,10 +185,10 @@ export default function Turnos() {
         </div>
       )}
 
-      {pacienteAbiertoId && (
-        <FichaPacienteModal
-          pacienteId={pacienteAbiertoId}
-          onClose={() => setPacienteAbiertoId(null)}
+      {clienteAbiertoId && (
+        <FichaClienteModal
+          clienteId={clienteAbiertoId}
+          onClose={() => setClienteAbiertoId(null)}
         />
       )}
     </Layout>

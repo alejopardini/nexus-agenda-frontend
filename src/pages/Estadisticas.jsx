@@ -125,8 +125,8 @@ export default function Estadisticas() {
         {!loading && !error && datos && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <div className="bg-white rounded-lg shadow-md p-4 text-center">
-              <p className="text-2xl font-bold text-primary">{datos.total_pacientes}</p>
-              <p className="text-xs text-slate-500 mt-1">Pacientes</p>
+              <p className="text-2xl font-bold text-primary">{datos.total_clientes}</p>
+              <p className="text-xs text-slate-500 mt-1">Clientes</p>
             </div>
             <div className="bg-white rounded-lg shadow-md p-4 text-center">
               <p className="text-2xl font-bold text-primary">{datos.total_visitas}</p>
@@ -168,7 +168,7 @@ export default function Estadisticas() {
                 <Tooltip labelFormatter={(fecha) => formatFechaCorta(fecha, esAnual)} />
                 <Legend wrapperStyle={{ fontSize: 12 }} />
                 <Bar
-                  dataKey="pacientes_nuevos"
+                  dataKey="clientes_nuevos"
                   name="Nuevos"
                   stackId="visitas"
                   fill={COLOR_NUEVOS}
@@ -177,7 +177,7 @@ export default function Estadisticas() {
                   maxBarSize={24}
                 />
                 <Bar
-                  dataKey="pacientes_recurrentes"
+                  dataKey="clientes_recurrentes"
                   name="Recurrentes"
                   stackId="visitas"
                   fill={COLOR_RECURRENTES}
@@ -194,13 +194,13 @@ export default function Estadisticas() {
         {!loading && !error && datos && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-white rounded-lg shadow-md p-4">
-              <h2 className="text-sm font-semibold text-primary mb-3">Top pacientes</h2>
-              {datos.top_pacientes.length === 0 ? (
+              <h2 className="text-sm font-semibold text-primary mb-3">Top clientes</h2>
+              {datos.top_clientes.length === 0 ? (
                 <p className="text-sm text-slate-400 italic">Sin datos facturados en este rango.</p>
               ) : (
                 <ul className="divide-y divide-slate-100">
-                  {datos.top_pacientes.map((p, i) => (
-                    <li key={p.paciente_id} className="py-2 flex justify-between items-center text-sm">
+                  {datos.top_clientes.map((p, i) => (
+                    <li key={p.cliente_id} className="py-2 flex justify-between items-center text-sm">
                       <span className="text-slate-700">
                         <span className="text-slate-400 mr-2">{i + 1}.</span>
                         {p.nombre}

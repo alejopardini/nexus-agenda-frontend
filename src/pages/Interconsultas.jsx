@@ -59,7 +59,7 @@ export default function Interconsultas() {
                     <div className="flex justify-between items-start">
                       <div>
                         <p className="font-medium text-slate-800">
-                          {ic.solicitante_nombre} → {ic.paciente_nombre}
+                          {ic.solicitante_nombre} → {ic.cliente_nombre}
                         </p>
                         {ic.motivo && <p className="text-slate-600 mt-0.5">{ic.motivo}</p>}
                         {ic.invitado_por_nombre && (
@@ -96,8 +96,8 @@ export default function Interconsultas() {
 
                     {ic.estado === 'aprobada' && (
                       <div className="flex gap-2 mt-2">
-                        <Boton to={`/pacientes/${ic.paciente}`} variante="secondary">
-                          Ver ficha del paciente
+                        <Boton to={`/clientes/${ic.cliente}`} variante="secondary">
+                          Ver ficha del cliente
                         </Boton>
                         <Boton
                           variante="destructive"

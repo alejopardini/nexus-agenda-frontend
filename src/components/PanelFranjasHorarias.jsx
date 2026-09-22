@@ -1,5 +1,5 @@
 import { hmAMinutos, minutosAHM, duracionAMinutos, diaSemanaBackend, fechaToStr } from '../utils/fechas'
-import { abreviarPaciente, inicialesDe } from '../utils/nombres'
+import { abreviarCliente, inicialesDe } from '../utils/nombres'
 import Tooltip from './Tooltip'
 import Badge from './Badge'
 
@@ -141,7 +141,7 @@ export default function PanelFranjasHorarias({
                   {fila.ocupantes.map((t) => {
                     const contenidoBadge = (
                       <Badge key={t.id} estado={t.estado} className="gap-1.5">
-                        <span className="truncate min-w-0">{abreviarPaciente(t.paciente_nombre)}</span>
+                        <span className="truncate min-w-0">{abreviarCliente(t.cliente_nombre)}</span>
                         {mostrarProfesional && (
                           <Tooltip texto={t.profesional_nombre} position="bottom" className="shrink-0">
                             <span className="w-3.5 h-3.5 rounded-full bg-white/70 text-[8px] flex items-center justify-center font-bold">

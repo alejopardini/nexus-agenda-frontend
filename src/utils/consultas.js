@@ -1,5 +1,5 @@
-export function buscarConsultaCompletadaPrevia(consultas, pacienteId) {
+export function buscarConsultaCompletadaPrevia(consultas, clienteId) {
   return consultas.find(
-    (c) => String(c.paciente) === String(pacienteId) && c.estado === 'completada'
+    (c) => String(c.cliente) === String(clienteId) && c.estado === 'completada'
   )
 }

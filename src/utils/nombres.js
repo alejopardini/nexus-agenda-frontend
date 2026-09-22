@@ -13,11 +13,11 @@ export function inicialesDe(nombre) {
 const LARGO_MAX_APELLIDO = 10
 
 // "Nombre Apellido" -> "N. Apellido". El backend solo manda el nombre
-// completo concatenado (paciente_nombre), así que se asume: primera palabra
+// completo concatenado (cliente_nombre), así que se asume: primera palabra
 // = nombre de pila (se usa solo su inicial), última palabra = apellido. Con
 // nombres compuestos ("Alejo Nicolas Pardini") da "A. Pardini", que es
 // justamente el formato pedido.
-export function abreviarPaciente(nombreCompleto) {
+export function abreviarCliente(nombreCompleto) {
   const partes = (nombreCompleto || '').trim().split(/\s+/)
   if (partes.length <= 1) return partes[0] || ''
   const inicial = partes[0][0]?.toUpperCase() || ''

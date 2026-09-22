@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
-import FichaPacienteModal from '../components/FichaPacienteModal'
+import FichaClienteModal from '../components/FichaClienteModal'
 import Boton from '../components/Boton'
 import { formatearFecha, formatearHora } from '../utils/fechas'
 
@@ -19,7 +19,7 @@ export default function ConsultasPendientes() {
   const [turnos, setTurnos] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [pacienteAbiertoId, setPacienteAbiertoId] = useState(null)
+  const [clienteAbiertoId, setClienteAbiertoId] = useState(null)
 
   const cargarDatos = () => {
     apiClient
@@ -53,7 +53,7 @@ export default function ConsultasPendientes() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-left text-slate-500 border-b border-slate-200">
-                    <th className="py-2">Paciente</th>
+                    <th className="py-2">Cliente</th>
                     <th className="py-2">Profesional</th>
                     <th className="py-2">Turno vencido</th>
                     <th className="py-2">Plan</th>
@@ -66,10 +66,10 @@ export default function ConsultasPendientes() {
                       <tr key={t.id} className="border-b border-slate-100 bg-red-50">
                         <td className="py-2">
                           <button
-                            onClick={() => setPacienteAbiertoId(t.paciente)}
+                            onClick={() => setClienteAbiertoId(t.cliente)}
                             className="text-texto hover:text-btn-primary transition-colors"
                           >
-                            {t.paciente_nombre}
+                            {t.cliente_nombre}
                           </button>
                         </td>
                         <td className="py-2">{t.profesional_nombre}</td>
@@ -99,8 +99,8 @@ export default function ConsultasPendientes() {
         )}
       </div>
 
-      {pacienteAbiertoId && (
-        <FichaPacienteModal pacienteId={pacienteAbiertoId} onClose={() => setPacienteAbiertoId(null)} />
+      {clienteAbiertoId && (
+        <FichaClienteModal clienteId={clienteAbiertoId} onClose={() => setClienteAbiertoId(null)} />
       )}
     </Layout>
   )
