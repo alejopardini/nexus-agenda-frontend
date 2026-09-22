@@ -10,7 +10,6 @@ import NotificationBell from './NotificationBell'
 import NuevoPacienteModal from './NuevoPacienteModal'
 import SoporteModal from './SoporteModal'
 import Boton from './Boton'
-import logoQnexus from '../assets/logo_qnexus.png'
 
 // PRUEBA VISUAL (rama prueba-sidebar-visual): navbar lateral solo-íconos con
 // tooltip al hover, en reemplazo del navbar superior de Navbar.jsx (que queda
@@ -153,6 +152,20 @@ function SeccionMobile({ Icon, titulo, items, onNavegar }) {
   )
 }
 
+// Marca reducida a la letra "N" (Nexus Agenda) para el riel angosto — no
+// entra el wordmark completo ahí, y el nombre ya está en texto en
+// Header.jsx al lado. Colores del sistema (navy/teal) en vez de un ícono,
+// hasta que exista un isotipo propio del producto.
+function MarcaN({ className = '' }) {
+  return (
+    <span
+      className={`flex items-center justify-center rounded-full bg-white/90 text-primary font-sans font-bold text-xl ${className}`.trim()}
+    >
+      N
+    </span>
+  )
+}
+
 export default function Sidebar() {
   const { auth, logout } = useAuth()
   const navigate = useNavigate()
@@ -213,8 +226,8 @@ export default function Sidebar() {
     <>
       {/* Sidebar desktop: fijo a la izquierda, solo íconos */}
       <aside className="hidden md:flex fixed inset-y-0 left-0 w-16 flex-col items-center gap-1 bg-primary py-4 z-40">
-        <Link to="/" className="mb-4 flex rounded-full bg-white/90 p-0">
-          <img src={logoQnexus} alt="QuiroNexus" className="h-11 w-11 object-contain" />
+        <Link to="/" className="mb-4 flex">
+          <MarcaN className="h-11 w-11" />
         </Link>
 
         <nav className="flex-1 flex flex-col items-center gap-3">
@@ -245,7 +258,7 @@ export default function Sidebar() {
       {/* Mobile: barra superior angosta + panel desplegable con texto */}
       <div className="md:hidden bg-primary px-4 py-2 flex items-center justify-between">
         <Link to="/">
-          <img src={logoQnexus} alt="QuiroNexus" className="h-11 w-auto rounded bg-white/90 p-0" />
+          <MarcaN className="h-11 w-11" />
         </Link>
         <div className="flex items-center gap-3">
           <div className="bg-white/90 rounded-full [&>div>button]:w-8 [&>div>button]:h-8 [&>div>button]:flex [&>div>button]:items-center [&>div>button]:justify-center">

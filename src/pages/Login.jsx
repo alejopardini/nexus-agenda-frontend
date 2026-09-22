@@ -4,7 +4,6 @@ import { useAuth } from '../context/AuthContext'
 import CampoTexto from '../components/CampoTexto'
 import Boton from '../components/Boton'
 import loginBg from '../assets/login-bg.png'
-import logoIcono from '../assets/logo-icono.png'
 
 export default function Login() {
   const [username, setUsername] = useState('')
@@ -48,12 +47,11 @@ export default function Login() {
         onSubmit={handleSubmit}
         className="relative w-full max-w-[420px] bg-white rounded-xl shadow-[0px_4px_16px_rgba(0,0,0,0.1)] p-8 flex flex-col gap-5"
       >
-        <div className="w-[100px] h-[100px] rounded-full overflow-hidden mx-auto">
-          <img
-            src={logoIcono}
-            alt="QuiroNexus"
-            className="w-full h-full object-cover"
-          />
+        <div className="text-center">
+          <span className="font-sans font-semibold text-[28px]">
+            <span className="text-primary">Nexus</span> <span className="text-secondary">Agenda</span>
+          </span>
+          <p className="font-sans text-[13px] text-texto-secundario mt-1">Gestionada por Zoe</p>
         </div>
 
         <h1 className="font-sans font-semibold text-[20px] text-heading text-center">

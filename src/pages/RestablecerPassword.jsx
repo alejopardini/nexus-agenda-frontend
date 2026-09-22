@@ -4,7 +4,6 @@ import apiClient from '../api/client'
 import CampoTexto from '../components/CampoTexto'
 import Boton from '../components/Boton'
 import loginBg from '../assets/login-bg.png'
-import logoQnexusCompleto from '../assets/logo_qnexus_completo.png'
 
 export default function RestablecerPassword() {
   const { uidb64, token } = useParams()
@@ -51,11 +50,12 @@ export default function RestablecerPassword() {
       <div className="absolute inset-0 bg-white/15 backdrop-blur-md" />
 
       <div className="relative w-full max-w-[420px] bg-white rounded-xl shadow-[0px_4px_16px_rgba(0,0,0,0.1)] p-8 flex flex-col gap-5">
-        <img
-          src={logoQnexusCompleto}
-          alt="QuiroNexus"
-          className="w-[100px] h-[100px] object-contain mx-auto"
-        />
+        <div className="text-center">
+          <span className="font-sans font-semibold text-[28px]">
+            <span className="text-primary">Nexus</span> <span className="text-secondary">Agenda</span>
+          </span>
+          <p className="font-sans text-[13px] text-texto-secundario mt-1">Gestionada por Zoe</p>
+        </div>
 
         <h1 className="font-sans font-semibold text-[20px] text-heading text-center">
           Elegir nueva contraseña

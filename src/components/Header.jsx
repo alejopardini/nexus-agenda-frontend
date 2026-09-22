@@ -45,8 +45,7 @@ export default function Header({ titulo, controles, filtraPorSucursal = false })
     <header className="hidden md:flex md:ml-16 h-14 items-center justify-between px-6 bg-page border-b border-borde-suave">
       <div className="flex items-center gap-2 min-w-0">
         <span className="font-sans font-semibold text-[22px] shrink-0">
-          <span className="text-primary">Quiro</span>
-          <span className="text-secondary">Nexus</span>
+          <span className="text-primary">Nexus</span> <span className="text-secondary">Agenda</span>
         </span>
         {titulo && (
           <>
