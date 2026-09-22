@@ -4,7 +4,6 @@ import { ChevronDown } from 'lucide-react'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
 import BotonVolver from '../components/BotonVolver'
-import EditorColumnaVertebral from '../components/EditorColumnaVertebral'
 import Boton from '../components/Boton'
 import { useEsVerticalQuiro } from '../hooks/useVertical'
 import { formatearFecha } from '../utils/fechas'
@@ -375,12 +374,10 @@ export default function ConsultaDetalle() {
     )
   }
 
-  const hayColumnaVertebral = esQuiropractico && esQuiro
-
   return (
     <Layout>
       <BotonVolver to={`/pacientes/${consulta.paciente}`} className="mb-4" />
-      <div className={hayColumnaVertebral ? 'max-w-6xl' : 'max-w-3xl'}>
+      <div className="max-w-3xl">
         <div className="bg-white rounded-lg shadow-md p-6 mb-4">
           <h1 className="text-xl font-bold text-slate-800 mb-1">
             Consulta — {consulta.estado === 'completada' ? 'completada' : 'pendiente'}
@@ -392,7 +389,7 @@ export default function ConsultaDetalle() {
           {error && <p className="text-red-600 text-sm mt-4">{error}</p>}
         </div>
 
-        <div className={hayColumnaVertebral ? 'grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-4' : ''}>
+        <div>
           <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-6">
             <SeccionAcordeon
               id="subjetivo"
@@ -714,20 +711,6 @@ export default function ConsultaDetalle() {
               </Boton>
             </div>
           </form>
-
-          {hayColumnaVertebral && (
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <div className="lg:sticky lg:top-4">
-                <h2 className="text-lg font-bold text-slate-800 mb-1">Objetivo</h2>
-                <h3 className="text-sm font-semibold text-slate-700 mb-1">Ajustes vertebrales</h3>
-                <p className="text-xs text-slate-500 mb-3">
-                  Click en una vértebra para marcarla.
-                </p>
-
-                <EditorColumnaVertebral ajustes={ajustes} onChangeAjustes={setAjustes} apilado />
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </Layout>

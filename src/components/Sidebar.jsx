@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
-  Home, Users, CalendarCheck, Stethoscope, BedDouble, BarChart3,
+  Home, Users, CalendarCheck, Stethoscope, BarChart3,
   MessageCircle, Menu, X, ChevronDown,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
@@ -198,7 +198,6 @@ export default function Sidebar() {
   // Una sola fuente de verdad para desktop (SidebarIcon) y mobile (ItemMobile/SeccionMobile)
   const secciones = [
     { key: 'inicio', to: '/', Icon: Home, label: 'Inicio' },
-    { key: 'camillas', to: '/camillas', Icon: BedDouble, label: 'Camillas' },
     { key: 'pacientes', Icon: Users, label: 'Pacientes', items: itemsPacientes },
     { key: 'turnos', Icon: CalendarCheck, label: 'Turnos', items: itemsTurnos },
     { key: 'profesionales', Icon: Stethoscope, label: 'Profesionales', items: itemsProfesionales },

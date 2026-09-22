@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ArrowUpRight, Pencil, Check, X } from 'lucide-react'
 import apiClient from '../api/client'
-import ColumnaVertebral from './ColumnaVertebral'
 import SelectorPlantillaPlan from './SelectorPlantillaPlan'
 import GestionArchivosPaciente from './GestionArchivosPaciente'
 import Modal from './Modal'
@@ -762,13 +761,6 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
                           ? 'Ajustes de la consulta seleccionada.'
                           : 'Segmentos ajustados alguna vez, acumulado de todas las consultas completadas. La dirección y el estado de bloqueo reflejan la consulta más reciente.'}
                       </p>
-                      {esQuiro && (
-                        <ColumnaVertebral
-                          ajustes={consultaSeleccionadaId ? (ajustesPorConsulta[consultaSeleccionadaId] || {}) : historialAjustes}
-                          segmentoActivo={null}
-                          onClickSegmento={() => {}}
-                        />
-                      )}
 
                       {consultasCompletadas.length > 1 && (
                         <div className="mt-4 pt-4 border-t border-borde-suave">

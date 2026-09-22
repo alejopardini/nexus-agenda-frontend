@@ -28,7 +28,6 @@ import NuevaSecretaria from './pages/NuevaSecretaria'
 import Auditoria from './pages/Auditoria'
 import PacientesSinTurno from './pages/PacientesSinTurno'
 import ConsultasPendientes from './pages/ConsultasPendientes'
-import Camillas from './pages/Camillas'
 import CamposPersonalizados from './pages/CamposPersonalizados'
 import Estadisticas from './pages/Estadisticas'
 import ValoresTurnos from './pages/ValoresTurnos'
@@ -74,7 +73,6 @@ function App() {
             <Route path="/pacientes/sin-turno" element={<ProtectedRoute><PacientesSinTurno /></ProtectedRoute>} />
             <Route path="/pacientes/consultas-pendientes" element={<ProtectedRoute><ConsultasPendientes /></ProtectedRoute>} />
             <Route path="/planes" element={<ProtectedRoute><Planes /></ProtectedRoute>} />
-            <Route path="/camillas" element={<ProtectedRoute><Camillas /></ProtectedRoute>} />
             <Route path="/campos-personalizados" element={<ProtectedRoute><CamposPersonalizados /></ProtectedRoute>} />
             <Route path="/estadisticas" element={<ProtectedRoute><Estadisticas /></ProtectedRoute>} />
           </Routes>

@@ -2,9 +2,7 @@ import { useEffect, useState } from 'react'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
 import FichaPacienteModal from '../components/FichaPacienteModal'
-import PanelCamillaCondensado from '../components/PanelCamillaCondensado'
 import Boton from '../components/Boton'
-import { buscarConsultaCompletadaPrevia } from '../utils/consultas'
 import { formatearFecha, formatearHora } from '../utils/fechas'
 
 function diasVencido(fecha) {
@@ -19,21 +17,14 @@ function diasVencido(fecha) {
 
 export default function ConsultasPendientes() {
   const [turnos, setTurnos] = useState([])
-  const [consultas, setConsultas] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [pacienteAbiertoId, setPacienteAbiertoId] = useState(null)
-  const [panelCondensado, setPanelCondensado] = useState(null)
 
   const cargarDatos = () => {
-    Promise.all([
-      apiClient.get('/turnos/?vencidos_sin_completar=1'),
-      apiClient.get('/consultas/'),
-    ])
-      .then(([turnosRes, consultasRes]) => {
-        setTurnos(turnosRes.data)
-        setConsultas(consultasRes.data)
-      })
+    apiClient
+      .get('/turnos/?vencidos_sin_completar=1')
+      .then((res) => setTurnos(res.data))
       .catch(() => setError('No se pudo cargar el listado de consultas pendientes.'))
       .finally(() => setLoading(false))
   }
@@ -71,7 +62,6 @@ export default function ConsultasPendientes() {
                 </thead>
                 <tbody>
                   {turnos.map((t) => {
-                    const tieneHistorial = Boolean(buscarConsultaCompletadaPrevia(consultas, t.paciente))
                     return (
                       <tr key={t.id} className="border-b border-slate-100 bg-red-50">
                         <td className="py-2">
@@ -95,22 +85,9 @@ export default function ConsultasPendientes() {
                           )}
                         </td>
                         <td className="py-2">
-                          {tieneHistorial ? (
-                            <Boton
-                              variante="primary"
-                              tamaño="sm"
-                              onClick={() => setPanelCondensado({
-                                pacienteId: t.paciente,
-                                consultaId: t.consulta_pendiente_id,
-                              })}
-                            >
-                              Completar consulta
-                            </Boton>
-                          ) : (
-                            <Boton to={`/consultas/${t.consulta_pendiente_id}`} variante="primary" tamaño="sm">
-                              Completar consulta
-                            </Boton>
-                          )}
+                          <Boton to={`/consultas/${t.consulta_pendiente_id}`} variante="primary" tamaño="sm">
+                            Completar consulta
+                          </Boton>
                         </td>
                       </tr>
                     )
@@ -124,17 +101,6 @@ export default function ConsultasPendientes() {
 
       {pacienteAbiertoId && (
         <FichaPacienteModal pacienteId={pacienteAbiertoId} onClose={() => setPacienteAbiertoId(null)} />
-      )}
-
-      {panelCondensado && (
-        <PanelCamillaCondensado
-          pacienteId={panelCondensado.pacienteId}
-          consultaId={panelCondensado.consultaId}
-          onClose={() => {
-            setPanelCondensado(null)
-            cargarDatos()
-          }}
-        />
       )}
     </Layout>
   )
