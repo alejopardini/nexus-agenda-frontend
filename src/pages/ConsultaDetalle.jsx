@@ -1,107 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ChevronDown } from 'lucide-react'
 import apiClient from '../api/client'
 import Layout from '../components/Layout'
 import BotonVolver from '../components/BotonVolver'
 import Boton from '../components/Boton'
-import { useEsVerticalQuiro } from '../hooks/useVertical'
 import { formatearFecha } from '../utils/fechas'
-
-// Acordeón de una sección del formulario — una sola abierta a la vez, con un
-// punto de color que indica si tiene algo cargado (no si "cumple" campos
-// obligatorios: el backend no tiene ninguno, ver Consulta model). El punto
-// es una señal de "tocaste esto", no una validación real.
-function SeccionAcordeon({ id, titulo, abierta, completa, onToggle, children }) {
-  return (
-    <div className="border-t border-slate-100 first:border-t-0 pt-4 first:pt-0">
-      <button
-        type="button"
-        onClick={() => onToggle(id)}
-        className="w-full flex items-center justify-between gap-2 text-left"
-      >
-        <span className="flex items-center gap-2">
-          <span
-            className={`w-2 h-2 rounded-full shrink-0 ${completa ? 'bg-blue-600' : 'bg-slate-300'}`}
-            title={completa ? 'Tiene datos cargados' : 'Sin completar'}
-          />
-          <h2 className="text-lg font-bold text-slate-800">{titulo}</h2>
-        </span>
-        <ChevronDown size={18} className={`text-slate-400 transition-transform shrink-0 ${abierta ? 'rotate-180' : ''}`} />
-      </button>
-      {abierta && <div className="space-y-4 mt-4">{children}</div>}
-    </div>
-  )
-}
-
-const CARACTERISTICAS_DOLOR_OPCIONES = [
-  'Doloroso', 'Ardor', 'Sordo', 'Agudo', 'Punzante', 'Pulsátil', 'Debilidad', 'Entumecimiento', 'Tensión',
-]
-
-const FRECUENCIA_DOLOR_OPCIONES = [
-  ['constante', 'Constante'],
-  ['intermitente', 'Intermitente'],
-  ['ocasional', 'Ocasional'],
-  ['frecuente', 'Frecuente'],
-]
-
-const AGRAVADO_POR_OPCIONES = [
-  'Actividad pesada', 'Actividad moderada', 'Actividad liviana', 'Torsión', 'Levantar peso',
-  'Flexión', 'Estar de pie prolongado', 'Sentado prolongado', 'Estrés', 'Cambios de temperatura',
-]
-
-const PROGRESION_OPCIONES = [
-  ['peor', 'Peor'],
-  ['igual', 'Igual'],
-  ['mejor', 'Mejor'],
-  ['fluctuante', 'Fluctuante'],
-]
-
-const ALIVIADO_POR_OPCIONES = [
-  'Hielo', 'Calor', 'Actividad', 'Reposo en cama', 'Medicación de venta libre',
-  'Medicación recetada', 'Cambios posturales', 'Descanso', 'Estiramiento', 'Soporte/faja',
-]
-
-const ESTADO_CONDICION_OPCIONES = [
-  ['mejoria_marcada', 'Mejoría marcada'],
-  ['mejoria_leve', 'Mejoría leve'],
-  ['sin_cambios', 'Sin cambios'],
-  ['empeoramiento_leve', 'Empeoramiento leve'],
-  ['empeoramiento_marcado', 'Empeoramiento marcado'],
-]
-
-const PROGRESANDO_OPCIONES = [
-  ['bien', 'Progresando bien'],
-  ['lento', 'Progresando lento'],
-  ['estancado', 'Estancado'],
-]
-
-const TRATAMIENTO_EFICAZ_OPCIONES = [
-  ['si', 'Sí'],
-  ['parcial', 'Parcial'],
-  ['no', 'No'],
-]
-
-const PRONOSTICO_OPCIONES = [
-  ['excelente', 'Excelente'],
-  ['bueno', 'Bueno'],
-  ['reservado', 'Reservado'],
-  ['malo', 'Malo'],
-]
-
-const ETAPA_CUIDADO_OPCIONES = [
-  ['aguda', 'Aguda'],
-  ['intermedia', 'Intermedia'],
-  ['mantenimiento', 'Mantenimiento'],
-  ['reactivacion', 'Reactivación'],
-]
-
-const TITULO_SECCION = {
-  subjetivo: 'Subjetivo',
-  evaluacion: 'Evaluación',
-  plan: 'Plan',
-  campos: 'Campos adicionales',
-}
 
 export default function ConsultaDetalle() {
   const { id } = useParams()
@@ -110,172 +13,24 @@ export default function ConsultaDetalle() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [guardando, setGuardando] = useState(false)
-  const [motivo, setMotivo] = useState('')
-  const [observaciones, setObservaciones] = useState('')
-  const [caracteristicasDolor, setCaracteristicasDolor] = useState([])
-  const [detalleDolor, setDetalleDolor] = useState('')
-  const [frecuenciaDolor, setFrecuenciaDolor] = useState('')
-  // null hasta que el usuario mueve el slider o llega un valor guardado —
-  // 0/10 es un resultado real y querido (paciente sin dolor), no hay forma
-  // de distinguirlo de "nunca tocado" si el estado inicial fuera 0.
-  const [dolorPromedio, setDolorPromedio] = useState(null)
-  const [agravadoPor, setAgravadoPor] = useState([])
-  const [progresionDesdeUltimaVisita, setProgresionDesdeUltimaVisita] = useState('')
-  const [progresionDespuesActividad, setProgresionDespuesActividad] = useState('')
-  const [progresionDespuesDormir, setProgresionDespuesDormir] = useState('')
-  const [aliviadoPor, setAliviadoPor] = useState([])
-  const [estadoCondicion, setEstadoCondicion] = useState('')
-  const [progresando, setProgresando] = useState('')
-  const [tratamientoEficaz, setTratamientoEficaz] = useState('')
-  const [pronostico, setPronostico] = useState('')
-  const [etapaCuidado, setEtapaCuidado] = useState('')
-  const [frecuenciaSeguimiento, setFrecuenciaSeguimiento] = useState('')
-  // Distingue "no se tocó esta sección" de "se tocó y se dejó en el mismo
-  // valor" — si nunca se tocó, no se reenvía nada al guardar (ver
-  // handleSubmit). Evita que una consulta de otro profesional, que jamás
-  // abrió esta sección, pise en silencio la etapa/frecuencia que alguien
-  // más ya había guardado (los campos son del paciente, no de la consulta).
-  const [seguimientoTocado, setSeguimientoTocado] = useState(false)
+  const [titulo, setTitulo] = useState('')
+  const [notas, setNotas] = useState('')
   const [camposPersonalizados, setCamposPersonalizados] = useState([])
   const [valoresPersonalizados, setValoresPersonalizados] = useState({})
-  const [ajustes, setAjustes] = useState({})
-  const [seccionAbierta, setSeccionAbierta] = useState('subjetivo')
-
-  const esQuiro = useEsVerticalQuiro()
-  // esQuiropractico ya filtraba por la especialidad del profesional (mas
-  // granular, existente desde antes). Se agrega esQuiro como condicion
-  // adicional (organizacion.vertical) sin tocar esa logica - hoy ambas son
-  // siempre verdaderas, asi que el resultado combinado es identico.
-  const esQuiropractico = consulta?.profesional_especialidad === 'kinesiologo_quiropra'
 
   useEffect(() => {
-    let datosConsulta = null
-
     apiClient
       .get(`/consultas/${id}/`)
       .then((res) => {
-        datosConsulta = res.data
         setConsulta(res.data)
-        setMotivo(res.data.motivo || '')
-        setObservaciones(res.data.observaciones || '')
-        setCaracteristicasDolor(res.data.caracteristicas_dolor || [])
-        setDetalleDolor(res.data.detalle_dolor || '')
-        setFrecuenciaDolor(res.data.frecuencia_dolor || '')
-        setDolorPromedio(res.data.dolor_promedio ?? null)
-        setAgravadoPor(res.data.agravado_por || [])
-        setProgresionDesdeUltimaVisita(res.data.progresion_desde_ultima_visita || '')
-        setProgresionDespuesActividad(res.data.progresion_despues_actividad || '')
-        setProgresionDespuesDormir(res.data.progresion_despues_dormir || '')
-        setAliviadoPor(res.data.aliviado_por || [])
-        setEstadoCondicion(res.data.estado_condicion || '')
-        setProgresando(res.data.progresando || '')
-        setTratamientoEficaz(res.data.tratamiento_eficaz || '')
-        setPronostico(res.data.pronostico || '')
+        setTitulo(res.data.titulo || '')
+        setNotas(res.data.notas || '')
         setValoresPersonalizados(res.data.valores_personalizados || {})
         setCamposPersonalizados(res.data.campos_personalizados_disponibles || [])
-
-        // Antes esta llamada no se esperaba (se disparaba pero no se
-        // encadenaba en el then/finally). Ahora se espera junto con la de
-        // ajustes vertebrales, y devuelve los valores ya resueltos (no los
-        // vuelve a leer del estado de React) para poder calcular más abajo,
-        // en el mismo then, qué sección del acordeón abrir por default sin
-        // depender de un segundo efecto ni de una condición de carrera.
-        const promesaSeguimiento = apiClient
-          .get(`/pacientes/${res.data.paciente}/seguimiento_quiropractico/`)
-          .then((r) => {
-            const etapa = r.data?.etapa_cuidado || ''
-            const frecuencia = r.data?.frecuencia || ''
-            setEtapaCuidado(etapa)
-            setFrecuenciaSeguimiento(frecuencia)
-            return { etapa, frecuencia }
-          })
-          .catch(() => ({ etapa: '', frecuencia: '' }))
-
-        const promesaAjustes = res.data.profesional_especialidad === 'kinesiologo_quiropra'
-          ? apiClient.get(`/consultas/${id}/ajustes_vertebrales/`)
-          : Promise.resolve(null)
-
-        return Promise.all([promesaSeguimiento, promesaAjustes])
-      })
-      .then(([, ajustesRes]) => {
-        if (ajustesRes) {
-          const mapa = {}
-          ajustesRes.data.forEach((a) => {
-            mapa[a.segmento] = {
-              ajustado: a.ajustado,
-              tipo_ajuste: a.tipo_ajuste || [],
-              tecnica: a.tecnica || '',
-              notas: a.notas || '',
-              bloqueada: a.bloqueada || false,
-            }
-          })
-          setAjustes(mapa)
-        }
-
-        const d = datosConsulta
-        const subjetivoVacio = !(
-          d.motivo || (d.caracteristicas_dolor || []).length || d.detalle_dolor || d.frecuencia_dolor ||
-          d.dolor_promedio != null || (d.agravado_por || []).length ||
-          d.progresion_desde_ultima_visita || d.progresion_despues_actividad || d.progresion_despues_dormir ||
-          (d.aliviado_por || []).length
-        )
-        const evaluacionVacia = !(d.estado_condicion || d.progresando || d.tratamiento_eficaz || d.pronostico)
-        const planVacio = !d.observaciones
-        const camposDisponibles = d.campos_personalizados_disponibles || []
-        const valores = d.valores_personalizados || {}
-        const camposVacios = !camposDisponibles.some((c) => {
-          const valor = valores[c.id]
-          return Array.isArray(valor) ? valor.length > 0 : Boolean(valor)
-        })
-
-        const secciones = [
-          { id: 'subjetivo', vacia: subjetivoVacio },
-          { id: 'evaluacion', vacia: evaluacionVacia },
-          { id: 'plan', vacia: planVacio },
-          ...(camposDisponibles.length > 0 ? [{ id: 'campos', vacia: camposVacios }] : []),
-        ]
-        const primeraVacia = secciones.find((s) => s.vacia)
-        setSeccionAbierta(primeraVacia ? primeraVacia.id : 'subjetivo')
       })
       .catch(() => setError('No se pudo cargar la consulta.'))
       .finally(() => setLoading(false))
   }, [id])
-
-  // "Tocada" = tiene al menos un campo con contenido — no "cumple los
-  // requeridos" (no hay ninguno en el backend, ver Consulta model). Es la
-  // señal para el punto de completitud del acordeón, no una validación —
-  // se recalcula en cada render a partir del estado actual del form.
-  const subjetivoTocado = Boolean(
-    motivo || caracteristicasDolor.length || detalleDolor || frecuenciaDolor ||
-    dolorPromedio !== null || agravadoPor.length ||
-    progresionDesdeUltimaVisita || progresionDespuesActividad || progresionDespuesDormir ||
-    aliviadoPor.length
-  )
-  const evaluacionTocada = Boolean(estadoCondicion || progresando || tratamientoEficaz || pronostico)
-  // Etapa de cuidado y frecuencia son del paciente (SeguimientoQuiropractico
-  // es OneToOne con Paciente, no con Consulta) — casi siempre vienen
-  // heredadas de una consulta anterior, no "cargadas acá". Si contaran para
-  // la completitud, "Plan" aparecería tocado en consultas donde el
-  // profesional no escribió nada. Observaciones sí es un campo propio de
-  // esta consulta, es lo único que cuenta.
-  const planTocado = Boolean(observaciones)
-  const camposTocados = camposPersonalizados.some((c) => {
-    const valor = valoresPersonalizados[c.id]
-    return Array.isArray(valor) ? valor.length > 0 : Boolean(valor)
-  })
-
-  const SECCIONES = [
-    { id: 'subjetivo', completa: subjetivoTocado },
-    { id: 'evaluacion', completa: evaluacionTocada },
-    { id: 'plan', completa: planTocado },
-    ...(camposPersonalizados.length > 0 ? [{ id: 'campos', completa: camposTocados }] : []),
-  ]
-
-  const toggleSeccion = (id) => setSeccionAbierta((prev) => (prev === id ? null : id))
-
-  const toggleValorEnArray = (setter, actual, valor) => {
-    setter(actual.includes(valor) ? actual.filter((v) => v !== valor) : [...actual, valor])
-  }
 
   const setValorCampoPersonalizado = (campoId, valor) => {
     setValoresPersonalizados((prev) => ({ ...prev, [campoId]: valor }))
@@ -292,61 +47,15 @@ export default function ConsultaDetalle() {
   const handleSubmit = async (e) => {
     e.preventDefault()
 
-    const incompletas = SECCIONES.filter((s) => !s.completa).map((s) => TITULO_SECCION[s.id])
-    if (incompletas.length > 0) {
-      const seguir = confirm(`Quedaron sin completar: ${incompletas.join(', ')}. ¿Guardar igual?`)
-      if (!seguir) return
-    }
-
     setError('')
     setGuardando(true)
     try {
       await apiClient.patch(`/consultas/${id}/`, {
-        motivo,
-        observaciones,
+        titulo,
+        notas,
         estado: 'completada',
-        caracteristicas_dolor: caracteristicasDolor,
-        detalle_dolor: detalleDolor,
-        frecuencia_dolor: frecuenciaDolor,
-        dolor_promedio: dolorPromedio,
-        agravado_por: agravadoPor,
-        progresion_desde_ultima_visita: progresionDesdeUltimaVisita,
-        progresion_despues_actividad: progresionDespuesActividad,
-        progresion_despues_dormir: progresionDespuesDormir,
-        aliviado_por: aliviadoPor,
-        estado_condicion: estadoCondicion,
-        progresando,
-        tratamiento_eficaz: tratamientoEficaz,
-        pronostico,
         valores_personalizados: valoresPersonalizados,
       })
-
-      if (esQuiropractico) {
-        const listaAjustes = Object.entries(ajustes)
-          .filter(([, v]) => v.ajustado || v.bloqueada || v.notas || v.tipo_ajuste.length || v.tecnica)
-          .map(([segmento, v]) => ({
-            segmento,
-            ajustado: v.ajustado,
-            tipo_ajuste: v.tipo_ajuste,
-            tecnica: v.tecnica,
-            notas: v.notas,
-            bloqueada: v.bloqueada,
-          }))
-        await apiClient.post(`/consultas/${id}/ajustes_vertebrales/`, { ajustes: listaAjustes })
-      }
-
-      if (seguimientoTocado) {
-        try {
-          await apiClient.post(`/pacientes/${consulta.paciente}/seguimiento_quiropractico/`, {
-            etapa_cuidado: etapaCuidado,
-            frecuencia: frecuenciaSeguimiento,
-          })
-        } catch {
-          alert(
-            'La consulta se guardó, pero no se pudo guardar el seguimiento quiropráctico (etapa/frecuencia). Probá guardarlo de nuevo desde la ficha del paciente.'
-          )
-        }
-      }
 
       navigate(`/pacientes/${consulta.paciente}`)
     } catch (err) {
@@ -390,279 +99,30 @@ export default function ConsultaDetalle() {
         </div>
 
         <div>
-          <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-6">
-            <SeccionAcordeon
-              id="subjetivo"
-              titulo={TITULO_SECCION.subjetivo}
-              abierta={seccionAbierta === 'subjetivo'}
-              completa={subjetivoTocado}
-              onToggle={toggleSeccion}
-            >
+          <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-6 space-y-4">
             <div>
-              <label className="block text-sm text-slate-600 mb-1">Motivo</label>
+              <label className="block text-sm text-slate-600 mb-1">Título (opcional)</label>
               <input
                 type="text"
-                value={motivo}
-                onChange={(e) => setMotivo(e.target.value)}
+                value={titulo}
+                onChange={(e) => setTitulo(e.target.value)}
                 className="w-full border border-slate-300 rounded px-3 py-2"
-                required
               />
             </div>
 
             <div>
-              <label className="block text-sm text-slate-600 mb-1">Características del dolor</label>
-              <div className="flex flex-wrap gap-3 mb-2">
-                {CARACTERISTICAS_DOLOR_OPCIONES.map((op) => (
-                  <label key={op} className="flex items-center gap-1 text-sm text-slate-600">
-                    <input
-                      type="checkbox"
-                      checked={caracteristicasDolor.includes(op)}
-                      onChange={() => toggleValorEnArray(setCaracteristicasDolor, caracteristicasDolor, op)}
-                    />
-                    {op}
-                  </label>
-                ))}
-              </div>
+              <label className="block text-sm text-slate-600 mb-1">Notas</label>
               <textarea
-                value={detalleDolor}
-                onChange={(e) => setDetalleDolor(e.target.value)}
-                placeholder="Detalle del dolor (opcional)"
-                className="w-full border border-slate-300 rounded px-3 py-2 text-sm"
-                rows={2}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm text-slate-600 mb-1">Frecuencia del dolor</label>
-              <select
-                value={frecuenciaDolor}
-                onChange={(e) => setFrecuenciaDolor(e.target.value)}
+                value={notas}
+                onChange={(e) => setNotas(e.target.value)}
                 className="w-full border border-slate-300 rounded px-3 py-2"
-              >
-                <option value="">Sin definir</option>
-                {FRECUENCIA_DOLOR_OPCIONES.map(([valor, label]) => (
-                  <option key={valor} value={valor}>{label}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm text-slate-600 mb-1">
-                Dolor promedio:{' '}
-                <span className="font-medium text-slate-800">
-                  {dolorPromedio === null ? 'Sin registrar' : dolorPromedio}
-                </span>
-              </label>
-              <input
-                type="range"
-                min={0}
-                max={10}
-                value={dolorPromedio ?? 0}
-                onChange={(e) => setDolorPromedio(Number(e.target.value))}
-                className="w-full"
+                rows={10}
               />
             </div>
-
-            <div>
-              <label className="block text-sm text-slate-600 mb-1">Agravado por</label>
-              <div className="flex flex-wrap gap-3">
-                {AGRAVADO_POR_OPCIONES.map((op) => (
-                  <label key={op} className="flex items-center gap-1 text-sm text-slate-600">
-                    <input
-                      type="checkbox"
-                      checked={agravadoPor.includes(op)}
-                      onChange={() => toggleValorEnArray(setAgravadoPor, agravadoPor, op)}
-                    />
-                    {op}
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm text-slate-600 mb-1">Progresión</label>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-xs text-slate-500 mb-1">Desde la última visita</label>
-                  <select
-                    value={progresionDesdeUltimaVisita}
-                    onChange={(e) => setProgresionDesdeUltimaVisita(e.target.value)}
-                    className="w-full border border-slate-300 rounded px-2 py-1.5 text-sm"
-                  >
-                    <option value="">Sin definir</option>
-                    {PROGRESION_OPCIONES.map(([valor, label]) => (
-                      <option key={valor} value={valor}>{label}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs text-slate-500 mb-1">Después de actividad</label>
-                  <select
-                    value={progresionDespuesActividad}
-                    onChange={(e) => setProgresionDespuesActividad(e.target.value)}
-                    className="w-full border border-slate-300 rounded px-2 py-1.5 text-sm"
-                  >
-                    <option value="">Sin definir</option>
-                    {PROGRESION_OPCIONES.map(([valor, label]) => (
-                      <option key={valor} value={valor}>{label}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs text-slate-500 mb-1">Después de dormir</label>
-                  <select
-                    value={progresionDespuesDormir}
-                    onChange={(e) => setProgresionDespuesDormir(e.target.value)}
-                    className="w-full border border-slate-300 rounded px-2 py-1.5 text-sm"
-                  >
-                    <option value="">Sin definir</option>
-                    {PROGRESION_OPCIONES.map(([valor, label]) => (
-                      <option key={valor} value={valor}>{label}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm text-slate-600 mb-1">Aliviado por</label>
-              <div className="flex flex-wrap gap-3">
-                {ALIVIADO_POR_OPCIONES.map((op) => (
-                  <label key={op} className="flex items-center gap-1 text-sm text-slate-600">
-                    <input
-                      type="checkbox"
-                      checked={aliviadoPor.includes(op)}
-                      onChange={() => toggleValorEnArray(setAliviadoPor, aliviadoPor, op)}
-                    />
-                    {op}
-                  </label>
-                ))}
-              </div>
-            </div>
-            </SeccionAcordeon>
-
-            <SeccionAcordeon
-              id="evaluacion"
-              titulo={TITULO_SECCION.evaluacion}
-              abierta={seccionAbierta === 'evaluacion'}
-              completa={evaluacionTocada}
-              onToggle={toggleSeccion}
-            >
-              <div>
-                <label className="block text-sm text-slate-600 mb-1">Estado de la condición</label>
-                <select
-                  value={estadoCondicion}
-                  onChange={(e) => setEstadoCondicion(e.target.value)}
-                  className="w-full border border-slate-300 rounded px-3 py-2"
-                >
-                  <option value="">Sin definir</option>
-                  {ESTADO_CONDICION_OPCIONES.map(([valor, label]) => (
-                    <option key={valor} value={valor}>{label}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm text-slate-600 mb-1">Progresando</label>
-                <select
-                  value={progresando}
-                  onChange={(e) => setProgresando(e.target.value)}
-                  className="w-full border border-slate-300 rounded px-3 py-2"
-                >
-                  <option value="">Sin definir</option>
-                  {PROGRESANDO_OPCIONES.map(([valor, label]) => (
-                    <option key={valor} value={valor}>{label}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm text-slate-600 mb-1">Tratamiento eficaz</label>
-                <select
-                  value={tratamientoEficaz}
-                  onChange={(e) => setTratamientoEficaz(e.target.value)}
-                  className="w-full border border-slate-300 rounded px-3 py-2"
-                >
-                  <option value="">Sin definir</option>
-                  {TRATAMIENTO_EFICAZ_OPCIONES.map(([valor, label]) => (
-                    <option key={valor} value={valor}>{label}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm text-slate-600 mb-1">Pronóstico</label>
-                <select
-                  value={pronostico}
-                  onChange={(e) => setPronostico(e.target.value)}
-                  className="w-full border border-slate-300 rounded px-3 py-2"
-                >
-                  <option value="">Sin definir</option>
-                  {PRONOSTICO_OPCIONES.map(([valor, label]) => (
-                    <option key={valor} value={valor}>{label}</option>
-                  ))}
-                </select>
-              </div>
-            </SeccionAcordeon>
-
-            <SeccionAcordeon
-              id="plan"
-              titulo={TITULO_SECCION.plan}
-              abierta={seccionAbierta === 'plan'}
-              completa={planTocado}
-              onToggle={toggleSeccion}
-            >
-              <div className="flex gap-4">
-                <div className="flex-1">
-                  <label className="block text-sm text-slate-600 mb-1">Etapa de cuidado</label>
-                  <select
-                    value={etapaCuidado}
-                    onChange={(e) => {
-                      setEtapaCuidado(e.target.value)
-                      setSeguimientoTocado(true)
-                    }}
-                    className="w-full border border-slate-300 rounded px-3 py-2 text-sm"
-                  >
-                    <option value="">Sin definir</option>
-                    {ETAPA_CUIDADO_OPCIONES.map(([valor, label]) => (
-                      <option key={valor} value={valor}>{label}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="flex-1">
-                  <label className="block text-sm text-slate-600 mb-1">Frecuencia recomendada</label>
-                  <input
-                    type="text"
-                    placeholder="Ej: 1 vez por semana"
-                    value={frecuenciaSeguimiento}
-                    onChange={(e) => {
-                      setFrecuenciaSeguimiento(e.target.value)
-                      setSeguimientoTocado(true)
-                    }}
-                    className="w-full border border-slate-300 rounded px-3 py-2 text-sm"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm text-slate-600 mb-1">Observaciones</label>
-                <textarea
-                  value={observaciones}
-                  onChange={(e) => setObservaciones(e.target.value)}
-                  className="w-full border border-slate-300 rounded px-3 py-2"
-                  rows={4}
-                />
-              </div>
-            </SeccionAcordeon>
 
             {camposPersonalizados.length > 0 && (
-              <SeccionAcordeon
-                id="campos"
-                titulo={TITULO_SECCION.campos}
-                abierta={seccionAbierta === 'campos'}
-                completa={camposTocados}
-                onToggle={toggleSeccion}
-              >
+              <div className="border-t border-slate-100 pt-4 space-y-4">
+                <h2 className="text-lg font-bold text-slate-800">Campos adicionales</h2>
                 {camposPersonalizados.map((campo) => (
                   <div key={campo.id}>
                     <label className="block text-sm text-slate-600 mb-1">{campo.etiqueta}</label>
@@ -702,7 +162,7 @@ export default function ConsultaDetalle() {
                     )}
                   </div>
                 ))}
-              </SeccionAcordeon>
+              </div>
             )}
 
             <div className="pt-4 border-t border-slate-100 mt-4">

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ArrowUpRight, Pencil, Check, X } from 'lucide-react'
 import apiClient from '../api/client'
@@ -7,7 +7,6 @@ import GestionArchivosPaciente from './GestionArchivosPaciente'
 import Modal from './Modal'
 import Boton from './Boton'
 import BotonIcono from './BotonIcono'
-import { useEsVerticalQuiro } from '../hooks/useVertical'
 import { useAuth } from '../context/AuthContext'
 import { formatearFecha, formatearHora } from '../utils/fechas'
 
@@ -19,75 +18,33 @@ const CAMPOS_EDITABLES = [
   ['fecha_nacimiento', 'Fecha de nacimiento', 'date'],
 ]
 
-function listaAjustesAMapa(ajustes) {
-  const mapa = {}
-  ajustes.forEach((a) => {
-    mapa[a.segmento] = {
-      ajustado: a.ajustado,
-      tipo_ajuste: a.tipo_ajuste || [],
-      tecnica: a.tecnica ? [a.tecnica] : [],
-      direccion: a.direccion ?? null,
-      bloqueada: a.bloqueada || false,
-    }
-  })
-  return mapa
-}
-
 const TABS = [
   { key: 'datos', label: 'Datos' },
   { key: 'turnos', label: 'Turnos' },
   { key: 'planes', label: 'Planes' },
   { key: 'pagos', label: 'Pagos' },
-  { key: 'ultimo_ajuste', label: 'Último ajuste' },
-  { key: 'historial_ajustes', label: 'Historial de ajustes' },
+  { key: 'ultima_consulta', label: 'Última consulta' },
+  { key: 'historial_consultas', label: 'Historial de consultas' },
   { key: 'notas', label: 'Notas / Información' },
   { key: 'archivos', label: 'Archivos' },
 ]
 
-const humanizar = (valor) => (valor ? valor.replace(/_/g, ' ') : '')
-
-function resumenUltimaConsulta(consulta, etapaCuidado, frecuenciaSeguimiento) {
-  const partes = []
-  if (consulta.frecuencia_dolor || consulta.dolor_promedio != null) {
-    const dolor = [
-      consulta.frecuencia_dolor && humanizar(consulta.frecuencia_dolor),
-      consulta.dolor_promedio != null && `promedio ${consulta.dolor_promedio}/10`,
-    ].filter(Boolean).join(', ')
-    partes.push(`Dolor: ${dolor}.`)
-  }
-  if (consulta.estado_condicion) {
-    partes.push(`Estado: ${humanizar(consulta.estado_condicion)}.`)
-  }
-  if (etapaCuidado || frecuenciaSeguimiento) {
-    partes.push(`Plan: ${[etapaCuidado, frecuenciaSeguimiento].filter(Boolean).join(' — ')}.`)
-  }
-  return partes.join(' ')
+function previewTexto(texto, max = 160) {
+  return texto.length > max ? `${texto.slice(0, max).trimEnd()}…` : texto
 }
 
 export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar = false }) {
-  const esQuiro = useEsVerticalQuiro()
   const { auth } = useAuth()
   const navigate = useNavigate()
   const [paciente, setPaciente] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [tab, setTab] = useState('historial_ajustes')
+  const [tab, setTab] = useState('historial_consultas')
 
   const [consultas, setConsultas] = useState([])
   const [consultasError, setConsultasError] = useState(false)
   const [consultasCargadas, setConsultasCargadas] = useState(false)
   const [turnos, setTurnos] = useState([])
-  const [etapaCuidado, setEtapaCuidado] = useState('')
-  const [frecuenciaSeguimiento, setFrecuenciaSeguimiento] = useState('')
-
-  const [ultimoAjuste, setUltimoAjuste] = useState(null)
-  const [ultimoAjusteError, setUltimoAjusteError] = useState(false)
-  const ultimoAjusteFetchIniciadoRef = useRef(false)
-  const [historialAjustes, setHistorialAjustes] = useState(null)
-  const [historialError, setHistorialError] = useState(false)
-  const historialFetchIniciadoRef = useRef(false)
-  const [ajustesPorConsulta, setAjustesPorConsulta] = useState({})
-  const [consultaSeleccionadaId, setConsultaSeleccionadaId] = useState(null)
 
   const [editandoCampo, setEditandoCampo] = useState(null)
   const [valorEditado, setValorEditado] = useState('')
@@ -96,7 +53,7 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
 
   const [profesionalesOrg, setProfesionalesOrg] = useState([])
   const [mostrarFormHistorica, setMostrarFormHistorica] = useState(false)
-  const [formHistorica, setFormHistorica] = useState({ profesional: '', fecha: '', motivo: '', observaciones: '' })
+  const [formHistorica, setFormHistorica] = useState({ profesional: '', fecha: '', titulo: '', notas: '' })
   const [guardandoHistorica, setGuardandoHistorica] = useState(false)
   const [errorHistorica, setErrorHistorica] = useState('')
 
@@ -160,15 +117,6 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
       })
       .catch(() => {})
 
-    apiClient
-      .get(`/pacientes/${pacienteId}/seguimiento_quiropractico/`)
-      .then((res) => {
-        if (!activo || !res.data) return
-        setEtapaCuidado(res.data.etapa_cuidado || '')
-        setFrecuenciaSeguimiento(res.data.frecuencia || '')
-      })
-      .catch(() => {})
-
     cargarPlanes()
 
     apiClient
@@ -208,54 +156,6 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
       setGuardandoCampo(false)
     }
   }
-
-  useEffect(() => {
-    if (tab !== 'ultimo_ajuste' || !consultasCargadas || consultasError) return
-    if (ultimoAjusteFetchIniciadoRef.current) return
-    const consultaReciente = consultas.find((c) => c.estado === 'completada')
-    if (!consultaReciente) return
-    ultimoAjusteFetchIniciadoRef.current = true
-    apiClient
-      .get(`/consultas/${consultaReciente.id}/ajustes_vertebrales/`)
-      .then((res) => setUltimoAjuste({ consulta: consultaReciente, ajustes: res.data }))
-      .catch(() => setUltimoAjusteError(true))
-  }, [tab, consultasCargadas, consultasError, consultas])
-
-  useEffect(() => {
-    if (tab !== 'historial_ajustes' || !consultasCargadas || consultasError) return
-    if (historialFetchIniciadoRef.current) return
-    const completadas = consultas.filter((c) => c.estado === 'completada')
-    if (completadas.length === 0) return
-    historialFetchIniciadoRef.current = true
-    // de más vieja a más nueva, para que la más reciente sea la que pisa direccion/bloqueada al mergear
-    const completadasAscendente = [...completadas].reverse()
-    Promise.all(
-      completadasAscendente.map((c) =>
-        apiClient.get(`/consultas/${c.id}/ajustes_vertebrales/`).then((res) => res.data).catch(() => [])
-      )
-    )
-      .then((listas) => {
-        const merged = {}
-        const porConsulta = {}
-        completadasAscendente.forEach((c, i) => {
-          const ajustes = listas[i]
-          porConsulta[c.id] = listaAjustesAMapa(ajustes)
-          ajustes.forEach((a) => {
-            const previo = merged[a.segmento] || { ajustado: false, tipo_ajuste: [], tecnica: [], direccion: null, bloqueada: false }
-            merged[a.segmento] = {
-              ajustado: previo.ajustado || a.ajustado,
-              tipo_ajuste: Array.from(new Set([...previo.tipo_ajuste, ...(a.tipo_ajuste || [])])),
-              tecnica: Array.from(new Set([...previo.tecnica, ...(a.tecnica ? [a.tecnica] : [])])),
-              direccion: a.direccion != null ? a.direccion : previo.direccion,
-              bloqueada: a.bloqueada,
-            }
-          })
-        })
-        setHistorialAjustes(merged)
-        setAjustesPorConsulta(porConsulta)
-      })
-      .catch(() => setHistorialError(true))
-  }, [tab, consultasCargadas, consultasError, consultas])
 
   const handleSubmitPlan = async (e) => {
     e.preventDefault()
@@ -311,8 +211,8 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
     try {
       const payload = {
         fecha: formHistorica.fecha,
-        motivo: formHistorica.motivo,
-        observaciones: formHistorica.observaciones,
+        titulo: formHistorica.titulo,
+        notas: formHistorica.notas,
       }
       if (auth.rol === 'dueño') payload.profesional = formHistorica.profesional
       const res = await apiClient.post(`/pacientes/${pacienteId}/consulta-historica/`, payload)
@@ -374,9 +274,6 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
   const puedeCargarHistorica = auth.rol === 'dueño' || auth.rol === 'profesional'
   const profesionalACargo = consultas[0]?.profesional_nombre || null
   const ultimaConsultaCompletada = consultas.find((c) => c.estado === 'completada')
-  const resumenUltima = ultimaConsultaCompletada
-    ? resumenUltimaConsulta(ultimaConsultaCompletada, etapaCuidado, frecuenciaSeguimiento)
-    : ''
   const pagosRealizados = turnos.filter((t) => t.pagado)
   const totalPagado = pagosRealizados.reduce((acc, t) => acc + (Number(t.monto_cobrado) || 0), 0)
 
@@ -495,11 +392,10 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
                           <dd className="text-texto">{formatearFecha(ultimaConsultaCompletada.fecha)}</dd>
                         </div>
                         <div>
-                          <dt className="text-texto-secundario">Motivo</dt>
-                          <dd className="text-texto">{ultimaConsultaCompletada.motivo || '—'}</dd>
+                          <dt className="text-texto-secundario">Título</dt>
+                          <dd className="text-texto">{ultimaConsultaCompletada.titulo || '—'}</dd>
                         </div>
                       </dl>
-                      {resumenUltima && <p className="text-texto text-sm">{resumenUltima}</p>}
                       <div className="text-right mt-2">
                         <BotonIcono
                           icono={ArrowUpRight}
@@ -684,7 +580,7 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
                 )
               )}
 
-              {tab === 'ultimo_ajuste' && (
+              {tab === 'ultima_consulta' && (
                 <div>
                   {!consultasCargadas && (
                     <p className="text-texto-secundario text-sm">Cargando...</p>
@@ -693,51 +589,29 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
                     <p className="text-texto-secundario text-sm">Este contenido es clínico y no está disponible para tu rol.</p>
                   )}
                   {consultasCargadas && !consultasError && !hayConsultaCompletada && (
-                    <p className="text-texto-secundario text-sm">Este paciente todavía no tiene consultas completadas.</p>
+                    <p className="text-texto-secundario text-sm">Este paciente todavía no tiene consultas registradas.</p>
                   )}
-                  {consultasCargadas && !consultasError && hayConsultaCompletada && ultimoAjusteError && (
-                    <p className="text-input-error text-sm">No se pudo cargar el último ajuste.</p>
-                  )}
-                  {consultasCargadas && !consultasError && hayConsultaCompletada && !ultimoAjusteError && !ultimoAjuste && (
-                    <p className="text-texto-secundario text-sm">Cargando...</p>
-                  )}
-                  {ultimoAjuste && (
-                    ultimoAjuste.ajustes.length === 0 ? (
-                      <p className="text-texto-secundario text-sm">
-                        La consulta del {formatearFecha(ultimoAjuste.consulta.fecha)} no tiene ajustes vertebrales cargados.
-                      </p>
-                    ) : (
-                      <div>
-                        <p className="text-xs text-texto-secundario mb-2">
-                          Consulta del {formatearFecha(ultimoAjuste.consulta.fecha)} — {ultimoAjuste.consulta.profesional_nombre}
-                        </p>
-                        <ul className="divide-y divide-borde-suave">
-                          {ultimoAjuste.ajustes.map((a) => (
-                            <li key={a.id} className="py-2 text-sm">
-                              <div className="flex justify-between">
-                                <span className="font-medium text-texto">{a.segmento}</span>
-                                <span className={a.bloqueada ? 'text-btn-destructive' : 'text-texto-secundario'}>
-                                  {a.bloqueada ? 'Bloqueada' : a.ajustado ? 'Ajustado' : 'Sin ajustar'}
-                                </span>
-                              </div>
-                              {(a.tipo_ajuste?.length > 0 || a.tecnica || a.direccion) && (
-                                <p className="text-texto text-xs mt-0.5">
-                                  {[a.tipo_ajuste?.join(', '), a.tecnica, a.direccion]
-                                    .filter(Boolean)
-                                    .join(' — ')}
-                                </p>
-                              )}
-                              {a.notas && <p className="text-texto-secundario text-xs mt-0.5 italic">{a.notas}</p>}
-                            </li>
-                          ))}
-                        </ul>
+                  {consultasCargadas && !consultasError && hayConsultaCompletada && (
+                    <Link
+                      to={`/consultas/${consultasCompletadas[0].id}`}
+                      onClick={onClose}
+                      className="block hover:bg-superficie-hover rounded p-2 -m-2"
+                    >
+                      <div className="flex justify-between items-baseline">
+                        <span className="text-texto font-medium">{consultasCompletadas[0].titulo || 'Consulta sin título'}</span>
+                        <span className="text-texto-secundario text-sm">
+                          {formatearFecha(consultasCompletadas[0].fecha)} — {consultasCompletadas[0].profesional_nombre}
+                        </span>
                       </div>
-                    )
+                      {consultasCompletadas[0].notas && (
+                        <p className="text-texto-secundario text-sm mt-2">{previewTexto(consultasCompletadas[0].notas)}</p>
+                      )}
+                    </Link>
                   )}
                 </div>
               )}
 
-              {tab === 'historial_ajustes' && (
+              {tab === 'historial_consultas' && (
                 <div>
                   {!consultasCargadas && (
                     <p className="text-texto-secundario text-sm">Cargando...</p>
@@ -746,78 +620,25 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
                     <p className="text-texto-secundario text-sm">Este contenido es clínico y no está disponible para tu rol.</p>
                   )}
                   {consultasCargadas && !consultasError && !hayConsultaCompletada && (
-                    <p className="text-texto-secundario text-sm">Este paciente todavía no tiene consultas completadas.</p>
+                    <p className="text-texto-secundario text-sm">Este paciente todavía no tiene consultas registradas.</p>
                   )}
-                  {consultasCargadas && !consultasError && hayConsultaCompletada && historialError && (
-                    <p className="text-input-error text-sm">No se pudo cargar el historial de ajustes.</p>
-                  )}
-                  {consultasCargadas && !consultasError && hayConsultaCompletada && !historialError && !historialAjustes && (
-                    <p className="text-texto-secundario text-sm">Cargando...</p>
-                  )}
-                  {historialAjustes && (
-                    <div>
-                      <p className="text-xs text-texto-secundario mb-2">
-                        {consultaSeleccionadaId
-                          ? 'Ajustes de la consulta seleccionada.'
-                          : 'Segmentos ajustados alguna vez, acumulado de todas las consultas completadas. La dirección y el estado de bloqueo reflejan la consulta más reciente.'}
-                      </p>
-
-                      {consultasCompletadas.length > 1 && (
-                        <div className="mt-4 pt-4 border-t border-borde-suave">
-                          <p className="text-xs font-semibold text-texto-secundario mb-2">Ver ajustes de una consulta puntual</p>
-                          <ul className="divide-y divide-borde-suave max-h-32 overflow-y-auto">
-                            <li>
-                              <button
-                                type="button"
-                                onClick={() => setConsultaSeleccionadaId(null)}
-                                className={`w-full text-left py-1.5 text-sm ${!consultaSeleccionadaId ? 'text-btn-primary font-medium' : 'text-texto'}`}
-                              >
-                                Acumulado (todas las consultas)
-                              </button>
-                            </li>
-                            {consultasCompletadas.map((c) => (
-                              <li key={c.id}>
-                                <button
-                                  type="button"
-                                  onClick={() => setConsultaSeleccionadaId(c.id)}
-                                  className={`w-full text-left py-1.5 text-sm ${consultaSeleccionadaId === c.id ? 'text-btn-primary font-medium' : 'text-texto'}`}
-                                >
-                                  {formatearFecha(c.fecha)} — {c.profesional_nombre}
-                                </button>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-
-                      {ultimaConsultaCompletada && (
-                        <div className="mt-4 pt-4 border-t border-borde-suave flex justify-between items-center text-sm">
-                          <span className="text-texto">
-                            {formatearFecha(
-                              (consultaSeleccionadaId
-                                ? consultasCompletadas.find((c) => c.id === consultaSeleccionadaId)
-                                : ultimaConsultaCompletada
-                              )?.fecha
-                            )}
-                          </span>
-                          <div className="flex gap-3">
-                            <BotonIcono
-                              icono={ArrowUpRight}
-                              texto="Ver consulta completa"
-                              to={`/consultas/${consultaSeleccionadaId || ultimaConsultaCompletada.id}`}
-                              onClick={onClose}
-                            />
-                            <Link
-                              to={`/pacientes/${pacienteId}`}
-                              onClick={onClose}
-                              className="text-xs text-btn-primary hover:underline"
-                            >
-                              Ver historial completo →
-                            </Link>
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                  {consultasCargadas && !consultasError && hayConsultaCompletada && (
+                    <ul className="divide-y divide-borde-suave">
+                      {consultasCompletadas.map((c) => (
+                        <li key={c.id}>
+                          <Link
+                            to={`/consultas/${c.id}`}
+                            onClick={onClose}
+                            className="flex justify-between items-center py-2 text-sm hover:bg-superficie-hover rounded px-1 -mx-1"
+                          >
+                            <span className="text-texto font-medium">{c.titulo || 'Consulta sin título'}</span>
+                            <span className="text-texto-secundario text-right">
+                              {formatearFecha(c.fecha)} — {c.profesional_nombre}
+                            </span>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
                   )}
                   {consultasCargadas && !consultasError && puedeCargarHistorica && (
                     <div className="mt-4 pt-4 border-t border-borde-suave">
@@ -855,19 +676,19 @@ export default function FichaPacienteModal({ pacienteId, onClose, ocultarEditar 
                             />
                           </div>
                           <div>
-                            <label className="block text-xs text-input-label mb-1">Motivo</label>
+                            <label className="block text-xs text-input-label mb-1">Título</label>
                             <input
                               type="text"
-                              value={formHistorica.motivo}
-                              onChange={(e) => setFormHistorica({ ...formHistorica, motivo: e.target.value })}
+                              value={formHistorica.titulo}
+                              onChange={(e) => setFormHistorica({ ...formHistorica, titulo: e.target.value })}
                               className="w-full text-sm border border-input-border rounded-lg px-2 py-1.5 focus:outline-none focus:border-input-focus"
                             />
                           </div>
                           <div>
-                            <label className="block text-xs text-input-label mb-1">Observaciones</label>
+                            <label className="block text-xs text-input-label mb-1">Notas</label>
                             <textarea
-                              value={formHistorica.observaciones}
-                              onChange={(e) => setFormHistorica({ ...formHistorica, observaciones: e.target.value })}
+                              value={formHistorica.notas}
+                              onChange={(e) => setFormHistorica({ ...formHistorica, notas: e.target.value })}
                               className="w-full text-sm border border-input-border rounded-lg px-2 py-1.5 focus:outline-none focus:border-input-focus"
                               rows={2}
                             />
