@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import Boton from '../components/Boton'
 
 export default function MiPerfil() {
-  const { actualizarAuth } = useAuth()
+  const { auth, actualizarAuth } = useAuth()
   const [form, setForm] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -204,6 +204,18 @@ export default function MiPerfil() {
             </Boton>
           </form>
         </div>
+
+        {auth.rol === 'dueño' && (
+          <div className="bg-white rounded-lg shadow-md p-6 mt-6">
+            <h2 className="text-lg font-bold text-slate-800 mb-1">Auditoría</h2>
+            <p className="text-sm text-slate-500 mb-3">
+              Quién accedió a datos clínicos de tus clientes.
+            </p>
+            <Boton to="/auditoria" variante="secondary">
+              Ver auditoría
+            </Boton>
+          </div>
+        )}
       </div>
     </Layout>
   )

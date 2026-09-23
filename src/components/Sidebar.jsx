@@ -217,7 +217,6 @@ export default function Sidebar() {
     ...(auth.rol !== 'secretaria' ? [{ to: '/consultas', label: 'Ver consultas' }] : []),
     ...(esDueño ? [{ to: '/profesionales/nuevo', label: 'Nuevo profesional' }] : []),
     ...(esDueño ? [{ to: '/secretarias', label: 'Secretaría' }] : []),
-    ...(esDueño ? [{ to: '/auditoria', label: 'Auditoría' }] : []),
   ]
   const itemsConfiguracion = [
     { to: '/configuracion/marca', label: 'Marca' },
