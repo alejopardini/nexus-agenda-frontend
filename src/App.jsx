@@ -10,7 +10,6 @@ import RestablecerPassword from './pages/RestablecerPassword'
 import MiPerfil from './pages/MiPerfil'
 import ReservarPublico from './pages/ReservarPublico'
 import Clientes from './pages/Clientes'
-import DetalleCliente from './pages/DetalleCliente'
 import EditarCliente from './pages/EditarCliente'
 import Turnos from './pages/Turnos'
 import TurnosCancelados from './pages/TurnosCancelados'
@@ -22,7 +21,6 @@ import Disponibilidad from './pages/Disponibilidad'
 import Profesionales from './pages/Profesionales'
 import NuevoProfesional from './pages/NuevoProfesional'
 import EditarProfesional from './pages/EditarProfesional'
-import Interconsultas from './pages/Interconsultas'
 import Secretarias from './pages/Secretarias'
 import NuevaSecretaria from './pages/NuevaSecretaria'
 import Auditoria from './pages/Auditoria'
@@ -52,7 +50,6 @@ function App() {
             <Route path="/clientes" element={<ProtectedRoute><Clientes /></ProtectedRoute>} />
             <Route path="/clientes/nuevo" element={<Navigate to="/clientes" replace />} />
             <Route path="/clientes/:id/editar" element={<ProtectedRoute><EditarCliente /></ProtectedRoute>} />
-            <Route path="/clientes/:id" element={<ProtectedRoute><DetalleCliente /></ProtectedRoute>} />
             <Route path="/turnos" element={<ProtectedRoute><CalendarioTurnos /></ProtectedRoute>} />
             <Route path="/turnos/lista" element={<ProtectedRoute><Turnos /></ProtectedRoute>} />
             <Route path="/turnos/nuevo" element={<Navigate to="/turnos" replace />} />
@@ -66,7 +63,6 @@ function App() {
             <Route path="/profesionales/nuevo" element={<ProtectedRoute><NuevoProfesional /></ProtectedRoute>} />
             <Route path="/profesionales/:id/editar" element={<ProtectedRoute><EditarProfesional /></ProtectedRoute>} />
             <Route path="/organizacion/suscripcion" element={<ProtectedRoute><GestionSuscripcion /></ProtectedRoute>} />
-            <Route path="/interconsultas" element={<ProtectedRoute><Interconsultas /></ProtectedRoute>} />
             <Route path="/secretarias" element={<ProtectedRoute><Secretarias /></ProtectedRoute>} />
             <Route path="/secretarias/nueva" element={<ProtectedRoute><NuevaSecretaria /></ProtectedRoute>} />
             <Route path="/auditoria" element={<ProtectedRoute><Auditoria /></ProtectedRoute>} />

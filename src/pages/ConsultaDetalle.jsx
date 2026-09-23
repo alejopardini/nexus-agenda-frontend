@@ -57,7 +57,7 @@ export default function ConsultaDetalle() {
         valores_personalizados: valoresPersonalizados,
       })
 
-      navigate(`/clientes/${consulta.cliente}`)
+      navigate('/clientes', { state: { abrirClienteId: consulta.cliente } })
     } catch (err) {
       const data = err.response?.data
       const mensaje = data ? Object.values(data).flat().join(' ') : 'No se pudo guardar la consulta.'
@@ -85,7 +85,7 @@ export default function ConsultaDetalle() {
 
   return (
     <Layout>
-      <BotonVolver to={`/clientes/${consulta.cliente}`} className="mb-4" />
+      <BotonVolver to="/clientes" state={{ abrirClienteId: consulta.cliente }} className="mb-4" />
       <div className="max-w-3xl">
         <div className="bg-white rounded-lg shadow-md p-6 mb-4">
           <h1 className="text-xl font-bold text-slate-800 mb-1">

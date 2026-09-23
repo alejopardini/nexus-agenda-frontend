@@ -6,7 +6,7 @@ import { ArrowLeft } from 'lucide-react'
 // que tenía antes — unificado para usarse en cualquier pantalla con flujo de
 // alta/edición. Sin margen propio: quien lo usa decide el espaciado con
 // className (arriba de una card, dentro de un header en fila, etc).
-export default function BotonVolver({ to, texto = 'Volver', className = '' }) {
+export default function BotonVolver({ to, state, texto = 'Volver', className = '' }) {
   const navigate = useNavigate()
 
   const volver = () => {
@@ -16,7 +16,7 @@ export default function BotonVolver({ to, texto = 'Volver', className = '' }) {
     if (window.history.state?.idx > 0) {
       navigate(-1)
     } else {
-      navigate(to)
+      navigate(to, state ? { state } : undefined)
     }
   }
 

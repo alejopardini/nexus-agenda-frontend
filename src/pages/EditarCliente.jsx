@@ -66,7 +66,7 @@ export default function EditarCliente() {
   return (
     <Layout titulo="Editar cliente">
       <div className="max-w-lg">
-        <BotonVolver to={`/clientes/${id}`} className="mb-4" />
+        <BotonVolver to="/clientes" state={{ abrirClienteId: id }} className="mb-4" />
         <div className="bg-white rounded-lg shadow-md p-6">
           {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
 
