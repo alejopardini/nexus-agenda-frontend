@@ -17,6 +17,7 @@ export default function ConfiguracionMarca() {
   const [logoActual, setLogoActual] = useState(null)
   const [logoFile, setLogoFile] = useState(null)
   const [logoPreview, setLogoPreview] = useState(null)
+  const [logoPreviewError, setLogoPreviewError] = useState(false)
   const [guardando, setGuardando] = useState(false)
   const [errorGuardar, setErrorGuardar] = useState('')
   const [exito, setExito] = useState(false)
@@ -49,6 +50,8 @@ export default function ConfiguracionMarca() {
     if (!file) return
     setLogoFile(file)
     setLogoPreview(URL.createObjectURL(file))
+    setLogoPreviewError(false)
+    setExito(false)
   }
 
   const handleSubmit = async (e) => {
@@ -134,11 +137,18 @@ export default function ConfiguracionMarca() {
           <div>
             <label className="block text-sm text-texto mb-1">Logo</label>
             {(logoPreview || logoActual) && (
-              <img
-                src={logoPreview || logoActual}
-                alt="Logo de la organización"
-                className="h-20 w-20 object-contain rounded border border-input-border bg-white mb-2"
-              />
+              logoPreviewError ? (
+                <div className="h-20 w-20 flex items-center justify-center rounded border border-input-border bg-superficie-hover text-texto-secundario text-[11px] text-center px-1 mb-2">
+                  Sin vista previa
+                </div>
+              ) : (
+                <img
+                  src={logoPreview || logoActual}
+                  alt="Logo de la organización"
+                  onError={() => setLogoPreviewError(true)}
+                  className="h-20 w-20 object-contain rounded border border-input-border bg-white mb-2"
+                />
+              )
             )}
             <label
               htmlFor="logo"
