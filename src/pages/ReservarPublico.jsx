@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import DatePicker from 'react-datepicker'
+import DatePicker, { registerLocale } from 'react-datepicker'
+import { es } from 'date-fns/locale/es'
 import 'react-datepicker/dist/react-datepicker.css'
 import apiClient from '../api/client'
 import CampoTexto from '../components/CampoTexto'
 import Boton from '../components/Boton'
 import { diaSemanaBackend, duracionAMinutos, fechaToStr, formatearFecha, formatearHora, hmAMinutos, minutosAHM } from '../utils/fechas'
+
+registerLocale('es', es)
 
 const CUALQUIERA = 'cualquiera'
 const DURACION_PUBLICA_MINUTOS = 60
@@ -311,6 +314,9 @@ export default function ReservarPublico() {
         {organizacion?.logo && (
           <img src={organizacion.logo} alt={organizacion.nombre} className="h-16 mx-auto object-contain" />
         )}
+        {organizacion?.nombre && (
+          <p className="font-sans font-semibold text-[16px] text-heading text-center">{organizacion.nombre}</p>
+        )}
         <h1 className="font-sans font-semibold text-[20px] text-heading text-center">Reservar turno</h1>
 
         {paso === 'dni' && (
@@ -440,6 +446,7 @@ export default function ReservarPublico() {
                 placeholderText="Elegí una fecha"
                 className={INPUT_BASE}
                 dateFormat="dd/MM/yyyy"
+                locale="es"
               />
             </div>
 

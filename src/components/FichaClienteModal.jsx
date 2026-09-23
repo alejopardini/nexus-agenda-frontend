@@ -370,7 +370,7 @@ export default function FichaClienteModal({ clienteId, onClose, ocultarEditar = 
                         ) : (
                           <dd className="text-texto flex items-center gap-1">
                             {cliente[campo] || '—'}
-                            <BotonIcono icono={Pencil} texto={`Editar ${label}`} onClick={() => iniciarEdicionCampo(campo)} />
+                            <BotonIcono icono={Pencil} texto={`Editar ${label}`} onClick={() => iniciarEdicionCampo(campo)} className="p-2 -m-2" />
                           </dd>
                         )}
                       </div>
