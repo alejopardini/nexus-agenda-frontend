@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   Home, Users, CalendarCheck, Stethoscope, BarChart3, Settings,
@@ -174,6 +174,18 @@ export default function Sidebar() {
   const [modalNuevoClienteAbierto, setModalNuevoClienteAbierto] = useState(false)
   const [modalSoporteAbierto, setModalSoporteAbierto] = useState(false)
 
+  // El menú mobile ahora es un overlay (absolute + backdrop fijo) en vez de
+  // empujar el contenido: sin este bloqueo, la página de atrás seguiría
+  // scrolleando debajo del backdrop mientras el menú está abierto.
+  useEffect(() => {
+    if (!mobileOpen) return
+    const original = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = original
+    }
+  }, [mobileOpen])
+
   const handleLogout = async () => {
     try {
       await apiClient.post('/logout/')
@@ -259,66 +271,84 @@ export default function Sidebar() {
         </div>
       </aside>
 
-      {/* Mobile: barra superior angosta + panel desplegable con texto */}
-      <div className="md:hidden bg-primary px-4 py-2 flex items-center justify-between">
-        <Link to="/">
-          <MarcaN className="h-11 w-11" />
-        </Link>
-        <div className="flex items-center gap-3">
-          <div className="bg-white/90 rounded-full [&>div>button]:w-8 [&>div>button]:h-8 [&>div>button]:flex [&>div>button]:items-center [&>div>button]:justify-center">
-            <NotificationBell />
+      {/* Mobile: barra superior angosta + panel superpuesto (overlay) con
+          texto. El panel es "absolute top-full" del propio wrapper "relative"
+          de la barra -> se pinta encima del contenido en vez de empujarlo
+          hacia abajo (antes era un bloque normal en el flujo, y tras cerrarlo
+          había que volver a scrollear para ver el contenido de nuevo). El
+          backdrop fijo (bg-black/40) oscurece el resto de la pantalla y
+          cierra el menú al tocar afuera; el wrapper de la barra queda en
+          z-50 (por encima del backdrop en z-40) para que el botón de
+          abrir/cerrar nunca quede tapado. */}
+      <div className="md:hidden relative z-50">
+        <div className="bg-primary px-4 py-2 flex items-center justify-between">
+          <Link to="/">
+            <MarcaN className="h-11 w-11" />
+          </Link>
+          <div className="flex items-center gap-3">
+            <div className="bg-white/90 rounded-full [&>div>button]:w-8 [&>div>button]:h-8 [&>div>button]:flex [&>div>button]:items-center [&>div>button]:justify-center">
+              <NotificationBell />
+            </div>
+            <button
+              onClick={() => setMobileOpen((prev) => !prev)}
+              className="w-9 h-9 flex items-center justify-center text-white"
+              aria-label="Abrir menú"
+            >
+              {mobileOpen ? <X size={22} strokeWidth={GROSOR_TRAZO} /> : <Menu size={22} strokeWidth={GROSOR_TRAZO} />}
+            </button>
           </div>
-          <button
-            onClick={() => setMobileOpen((prev) => !prev)}
-            className="w-9 h-9 flex items-center justify-center text-white"
-            aria-label="Abrir menú"
-          >
-            {mobileOpen ? <X size={22} strokeWidth={GROSOR_TRAZO} /> : <Menu size={22} strokeWidth={GROSOR_TRAZO} />}
-          </button>
         </div>
+
+        {mobileOpen && (
+          <div className="absolute left-0 right-0 top-full bg-white border-b border-slate-200 shadow-lg py-2 space-y-1 max-h-[calc(100vh-3.5rem)] overflow-y-auto">
+            {secciones.map((s) => (
+              s.items ? (
+                <SeccionMobile
+                  key={s.key}
+                  Icon={s.Icon}
+                  titulo={s.label}
+                  items={s.items}
+                  onNavegar={() => setMobileOpen(false)}
+                />
+              ) : (
+                <ItemMobile
+                  key={s.key}
+                  to={s.to}
+                  Icon={s.Icon}
+                  label={s.label}
+                  onClick={() => setMobileOpen(false)}
+                />
+              )
+            ))}
+            {/* Ícono TEMPORAL, ver nota en el bloque desktop. */}
+            <ItemMobile
+              Icon={MessageCircle}
+              label="Soporte técnico"
+              onClick={() => { setModalSoporteAbierto(true); setMobileOpen(false) }}
+            />
+            <div className="border-t border-slate-100 pt-3 px-3 mt-2">
+              <p className="text-xs text-slate-400">{auth.organizacion_nombre}</p>
+              <Link
+                to="/mi-perfil"
+                onClick={() => setMobileOpen(false)}
+                className="block text-sm text-slate-500 hover:text-primary mb-2"
+              >
+                {auth.username} ({auth.rol})
+              </Link>
+              <Boton variante="destructive" onClick={handleLogout} className="w-full">
+                Salir
+              </Boton>
+            </div>
+          </div>
+        )}
       </div>
 
       {mobileOpen && (
-        <div className="md:hidden bg-white border-b border-slate-200 shadow-lg py-2 space-y-1">
-          {secciones.map((s) => (
-            s.items ? (
-              <SeccionMobile
-                key={s.key}
-                Icon={s.Icon}
-                titulo={s.label}
-                items={s.items}
-                onNavegar={() => setMobileOpen(false)}
-              />
-            ) : (
-              <ItemMobile
-                key={s.key}
-                to={s.to}
-                Icon={s.Icon}
-                label={s.label}
-                onClick={() => setMobileOpen(false)}
-              />
-            )
-          ))}
-          {/* Ícono TEMPORAL, ver nota en el bloque desktop. */}
-          <ItemMobile
-            Icon={MessageCircle}
-            label="Soporte técnico"
-            onClick={() => { setModalSoporteAbierto(true); setMobileOpen(false) }}
-          />
-          <div className="border-t border-slate-100 pt-3 px-3 mt-2">
-            <p className="text-xs text-slate-400">{auth.organizacion_nombre}</p>
-            <Link
-              to="/mi-perfil"
-              onClick={() => setMobileOpen(false)}
-              className="block text-sm text-slate-500 hover:text-primary mb-2"
-            >
-              {auth.username} ({auth.rol})
-            </Link>
-            <Boton variante="destructive" onClick={handleLogout} className="w-full">
-              Salir
-            </Boton>
-          </div>
-        </div>
+        <div
+          className="md:hidden fixed inset-0 bg-black/40 z-40"
+          onClick={() => setMobileOpen(false)}
+          aria-hidden="true"
+        />
       )}
 
       {modalNuevoClienteAbierto && (

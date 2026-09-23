@@ -105,7 +105,33 @@ export default function Clientes() {
             <p className="text-texto-secundario p-6">Ningún cliente coincide con "{busqueda}".</p>
           ) : (
             <>
-              <div className="overflow-x-auto">
+              <div className="md:hidden divide-y divide-borde-suave">
+                {clientesPagina.map((p) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => setClienteAbiertoId(p.id)}
+                    className="w-full text-left px-4 py-3 flex flex-col gap-1.5 hover:bg-superficie-hover"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-sans font-medium text-[14px] text-texto">{p.nombre} {p.apellido}</span>
+                      {p.proximo_turno?.estado && ['pendiente', 'confirmado', 'cancelado'].includes(p.proximo_turno.estado) && (
+                        <Badge estado={p.proximo_turno.estado} tamaño="xs">
+                          {p.proximo_turno.estado === 'pendiente' && 'Sin confirmar'}
+                          {p.proximo_turno.estado === 'confirmado' && 'Confirmado'}
+                          {p.proximo_turno.estado === 'cancelado' && 'Cancelado'}
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[13px] text-texto-secundario">
+                      <span>DNI {p.dni || '—'}</span>
+                      <span>Próximo: {formatearTurno(p.proximo_turno)}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="text-left text-slate-500 border-b border-borde-suave">

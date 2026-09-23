@@ -117,7 +117,13 @@ export default function CalendarioTurnos() {
   const [celdaModal, setCeldaModal] = useState(null)
   const [clienteAbiertoId, setClienteAbiertoId] = useState(null)
   const [popoverTurno, setPopoverTurno] = useState(null)
-  const [vista, setVista] = useState('semana') // 'dia' | 'semana'
+  // Default 'dia' en mobile (la vista semanal no entra en un viewport
+  // angosto — se ven ~2 de los 7 días sin ninguna pista de que hay más para
+  // el costado), 'semana' en desktop como siempre. Se calcula una sola vez
+  // al montar; el usuario puede cambiarla con el toggle Día/Semana normal.
+  const [vista, setVista] = useState(() => (
+    typeof window !== 'undefined' && window.innerWidth < 768 ? 'dia' : 'semana'
+  )) // 'dia' | 'semana'
   const [searchParams] = useSearchParams()
   const clienteInicialId = searchParams.get('cliente')
 
@@ -467,12 +473,22 @@ export default function CalendarioTurnos() {
             ) : columnas.length === 0 ? (
               <p className="text-slate-500 text-sm">Nadie atiende este día.</p>
             ) : (
+              // max-h + overflow propio (no el overflow-x-auto del div de
+              // afuera): position:sticky necesita que ESTE sea el contenedor
+              // que realmente scrollea. Un overflow-x-auto sin scroll
+              // vertical interno (el de afuera, que crece con el contenido)
+              // nunca "despega" al sticky de su posición estática — no hay
+              // threshold de scroll que cruzar dentro de un contenedor que
+              // no scrollea. Con alto acotado acá, el header de
+              // profesionales queda a la vista aunque el día tenga muchos
+              // turnos y haya que bajar mucho para verlos todos.
+              <div className="overflow-auto max-h-[70vh]">
               <table className="w-full text-xs border-collapse">
                 <thead>
                   <tr>
-                    <th className="w-16 text-left text-slate-500 border-b border-slate-200 pb-2">Hora</th>
+                    <th className="w-16 text-left text-slate-500 border-b border-slate-200 pb-2 sticky top-0 z-10 bg-white">Hora</th>
                     {columnas.map(({ profesional, bloques, mostrarSucursalPorBloque }) => (
-                      <th key={profesional.id} className="text-left text-slate-700 border-b border-slate-200 pb-2 px-2 min-w-[140px]">
+                      <th key={profesional.id} className="text-left text-slate-700 border-b border-slate-200 pb-2 px-2 min-w-[140px] sticky top-0 z-10 bg-white">
                         <div>{profesional.nombre} {profesional.apellido}</div>
                         {!mostrarSucursalPorBloque && !sucursalActivaId && sucursalesPorId[bloques[0].sucursal] && (
                           <div className="text-[10px] font-normal text-slate-400">{sucursalesPorId[bloques[0].sucursal]}</div>
@@ -547,6 +563,7 @@ export default function CalendarioTurnos() {
                   ))}
                 </tbody>
               </table>
+              </div>
             )}
           </div>
 
